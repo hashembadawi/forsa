@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -38,13 +40,46 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  Future<void> _requireLogin(Function onSuccess) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token != null) {
+      onSuccess();
+    } else {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text("يتطلب تسجيل الدخول"),
+          content: Text("يرجى تسجيل الدخول للوصول إلى هذه الميزة."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => LoginScreen()),
+                );
+              },
+              child: Text("تسجيل الدخول"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text("إلغاء"),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Sahib Com App'),
+          title: Text('صاحب Com'),
           centerTitle: true,
           backgroundColor: Colors.blueAccent,
         ),
@@ -142,9 +177,12 @@ class _HomeScreenState extends State<HomeScreen> {
         // ✅ زر الإضافة
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            print("إضافة إعلان جديد");
+            _requireLogin(() {
+              print("✅ إضافة إعلان جديد");
+              // يمكنك وضع التنقل هنا لصفحة إضافة إعلان
+            });
           },
-          child: Icon(Icons.add, size: 50),
+          child: Icon(Icons.add, size: 30),
           backgroundColor: Colors.blueAccent,
           shape: CircleBorder(),
         ),
@@ -165,13 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   children: [
                     TextButton(
-                      onPressed: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (context) => HomeScreen()),
-                              (Route<dynamic> route) => false, // حذف كل ما قبل الصفحة الجديدة
-                        );
-                      },
+                      onPressed: () => print("الرئيسية"),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -181,7 +213,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: () => print("المفضلة"),
+                      onPressed: () {
+                        _requireLogin(() {
+                          print("✅ المفضلة");
+                          // Navigator.push(context, MaterialPageRoute(builder: (_) => FavoritesScreen()));
+                        });
+                      },
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -197,7 +234,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   children: [
                     TextButton(
-                      onPressed: () => print("إعلاناتي"),
+                      onPressed: () {
+                        _requireLogin(() {
+                          print("✅ إعلاناتي");
+                          // Navigator.push(context, MaterialPageRoute(builder: (_) => MyAdsScreen()));
+                        });
+                      },
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
