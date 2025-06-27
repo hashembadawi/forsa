@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:sahbo_app/screens/home_screen.dart';
-import 'package:sahbo_app/screens/register_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'home_screen.dart';
+import 'register_screen.dart';
+import 'favorites_screen.dart';
+import 'my_ads_screen.dart';
+import 'add_ad_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,6 +22,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordEmailController = TextEditingController();
 
   bool _isLoading = false;
+  bool _showPasswordPhone = false;
+  bool _showPasswordEmail = false;
 
   Future<void> _login({required String method}) async {
     String apiUrl = 'http://localhost:10000/api/auth/login';
@@ -50,18 +55,112 @@ class _LoginScreenState extends State<LoginScreen> {
     final res = jsonDecode(response.body);
 
     if (response.statusCode == 200 && res['token'] != null) {
-      // ✅ نجاح: انتقل إلى الصفحة الرئيسية
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', res['token']);
+
+      String? redirect = prefs.getString('redirect_to');
+      prefs.remove('redirect_to');
+
+      Widget nextScreen;
+      switch (redirect) {
+        case 'favorites':
+          nextScreen = FavoritesScreen();
+          break;
+        case 'myAds':
+          nextScreen = MyAdsScreen();
+          break;
+        case 'addAd':
+          nextScreen = AddAdScreen();
+          break;
+        default:
+          nextScreen = HomeScreen();
+      }
+
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
+        MaterialPageRoute(builder: (_) => nextScreen),
             (route) => false,
       );
     } else {
       String message = res['message'] ?? 'حدث خطأ أثناء تسجيل الدخول';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     }
+  }
+
+  Widget _buildLoginTab({
+    required String label1,
+    required String label2,
+    required TextEditingController controller1,
+    required TextEditingController controller2,
+    required bool obscureText,
+    required VoidCallback toggleObscure,
+    required VoidCallback onLogin,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          TextField(
+            controller: controller1,
+            decoration: InputDecoration(
+              labelText: label1,
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              prefixIcon: Icon(label1.contains("الهاتف") ? Icons.phone : Icons.email,
+                  color: Colors.deepPurple),
+            ),
+            keyboardType: label1.contains("الهاتف")
+                ? TextInputType.phone
+                : TextInputType.emailAddress,
+          ),
+          SizedBox(height: 16),
+          TextField(
+            controller: controller2,
+            obscureText: obscureText,
+            decoration: InputDecoration(
+              labelText: label2,
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              prefixIcon: Icon(Icons.lock, color: Colors.deepPurple),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  obscureText ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.grey,
+                ),
+                onPressed: toggleObscure,
+              ),
+            ),
+          ),
+          SizedBox(height: 24),
+          _isLoading
+              ? CircularProgressIndicator()
+              : ElevatedButton(
+            onPressed: onLogin,
+            style: ElevatedButton.styleFrom(
+              minimumSize: Size(double.infinity, 50),
+              backgroundColor: Colors.deepPurple,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text('تسجيل الدخول', style: TextStyle(fontSize: 18, color: Colors.white)),
+          ),
+          SizedBox(height: 10),
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => RegisterScreen()),
+              );
+            },
+            child: Text(
+              "ليس لديك حساب؟ إنشاء حساب جديد",
+              style: TextStyle(color: Colors.deepPurple),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -71,115 +170,43 @@ class _LoginScreenState extends State<LoginScreen> {
       child: DefaultTabController(
         length: 2,
         child: Scaffold(
+          backgroundColor: Colors.grey[100],
           appBar: AppBar(
+            backgroundColor: Colors.deepPurpleAccent,
             title: Text('تسجيل الدخول'),
             leading: IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context),
             ),
             bottom: TabBar(
+              indicatorColor: Colors.white,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white70,
               tabs: [
-                Tab(text: 'برقم الهاتف', icon: Icon(Icons.phone_android)),
-                Tab(text: 'بالبريد الإلكتروني', icon: Icon(Icons.email_outlined)),
+                Tab(icon: Icon(Icons.phone_android), text: 'برقم الهاتف'),
+                Tab(icon: Icon(Icons.email_outlined), text: 'بالبريد الإلكتروني'),
               ],
             ),
           ),
           body: TabBarView(
             children: [
-              // ✅ تسجيل برقم الهاتف
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: phoneController,
-                      keyboardType: TextInputType.phone,
-                      decoration: InputDecoration(
-                        labelText: 'رقم الهاتف',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.phone),
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    TextField(
-                      controller: passwordPhoneController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: 'كلمة المرور',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.lock),
-                      ),
-                    ),
-                    SizedBox(height: 24),
-                    _isLoading
-                        ? CircularProgressIndicator()
-                        : ElevatedButton(
-                      onPressed: () => _login(method: 'phone'),
-                      child: Text('تسجيل الدخول'),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: Size(double.infinity, 50),
-                        backgroundColor: Colors.blueAccent,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => RegisterScreen()),
-                        );
-                      },
-                      child: Text("ليس لديك حساب؟ إنشاء حساب جديد"),
-                    ),
-                  ],
-                ),
+              _buildLoginTab(
+                label1: 'رقم الهاتف',
+                label2: 'كلمة المرور',
+                controller1: phoneController,
+                controller2: passwordPhoneController,
+                obscureText: !_showPasswordPhone,
+                toggleObscure: () => setState(() => _showPasswordPhone = !_showPasswordPhone),
+                onLogin: () => _login(method: 'phone'),
               ),
-
-              // ✅ تسجيل بالبريد الإلكتروني
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: 'البريد الإلكتروني',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.email),
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    TextField(
-                      controller: passwordEmailController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: 'كلمة المرور',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.lock),
-                      ),
-                    ),
-                    SizedBox(height: 24),
-                    _isLoading
-                        ? CircularProgressIndicator()
-                        : ElevatedButton(
-                      onPressed: () => _login(method: 'email'),
-                      child: Text('تسجيل الدخول'),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: Size(double.infinity, 50),
-                        backgroundColor: Colors.blueAccent,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => RegisterScreen()),
-                        );
-                      },
-                      child: Text("ليس لديك حساب؟ إنشاء حساب جديد"),
-                    ),
-                  ],
-                ),
+              _buildLoginTab(
+                label1: 'البريد الإلكتروني',
+                label2: 'كلمة المرور',
+                controller1: emailController,
+                controller2: passwordEmailController,
+                obscureText: !_showPasswordEmail,
+                toggleObscure: () => setState(() => _showPasswordEmail = !_showPasswordEmail),
+                onLogin: () => _login(method: 'email'),
               ),
             ],
           ),

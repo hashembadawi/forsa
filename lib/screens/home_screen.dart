@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'add_ad_screen.dart';
+import 'favorites_screen.dart';
 import 'login_screen.dart';
+import 'my_ads_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -40,13 +43,16 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  Future<void> _requireLogin(Function onSuccess) async {
+  Future<void> _requireLogin(Function onSuccess, {String? redirectTo}) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
 
     if (token != null) {
       onSuccess();
     } else {
+      if (redirectTo != null) {
+        await prefs.setString('redirect_to', redirectTo); // نحفظ الصفحة المراد الوصول إليها
+      }
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -73,104 +79,129 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        backgroundColor: Colors.grey[100],
         appBar: AppBar(
           title: Text('صاحب Com'),
           centerTitle: true,
-          backgroundColor: Colors.blueAccent,
+          backgroundColor: Colors.deepPurpleAccent,
+          elevation: 4,
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ✅ AnimatedSwitcher لعرض الصور المتغيرة
-              Container(
-                height: 180,
-                width: double.infinity,
-                child: AnimatedSwitcher(
-                  duration: Duration(milliseconds: 700),
-                  transitionBuilder: (Widget child, Animation<double> animation) {
-                    final offsetAnimation = Tween<Offset>(
-                      begin: const Offset(1.0, 0.0),
-                      end: Offset.zero,
-                    ).animate(animation);
-                    return SlideTransition(
-                      position: offsetAnimation,
-                      child: child,
-                    );
-                  },
-                  child: ClipRRect(
-                    key: ValueKey<String>(imagePaths[_currentImageIndex]),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ✅ عرض الصور المتغيرة
+                Container(
+                  height: 180,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      imagePaths[_currentImageIndex],
-                      fit: BoxFit.cover,
-                      width: double.infinity,
+                    boxShadow: [
+                      BoxShadow(color: Colors.black12, blurRadius: 6),
+                    ],
+                  ),
+                  child: AnimatedSwitcher(
+                    duration: Duration(milliseconds: 700),
+                    transitionBuilder: (child, animation) {
+                      final offset = Tween<Offset>(
+                        begin: Offset(1.0, 0.0),
+                        end: Offset.zero,
+                      ).animate(animation);
+                      return SlideTransition(position: offset, child: child);
+                    },
+                    child: ClipRRect(
+                      key: ValueKey(imagePaths[_currentImageIndex]),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.asset(
+                        imagePaths[_currentImageIndex],
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              SizedBox(height: 20),
+                SizedBox(height: 20),
 
-              // مربع البحث
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'ابحث هنا...',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  prefixIcon: Icon(Icons.search),
+                // مربع البحث
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'ابحث عن منتج أو خدمة...',
+                    filled: true,
+                    fillColor: Colors.white,
+                    prefixIcon: Icon(Icons.search, color: Colors.deepPurple),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
                 ),
-              ),
-              SizedBox(height: 16),
+                SizedBox(height: 20),
 
-              // اختيار الموقع
-              Row(
-                children: [
-                  Text('الموقع: ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
-                  SizedBox(width: 10),
-                  DropdownButton<String>(
-                    hint: Text('اختر المحافظة'),
-                    value: selectedCity,
-                    onChanged: (newValue) {
-                      setState(() {
-                        selectedCity = newValue;
-                      });
-                    },
-                    items: cities.map((city) {
-                      return DropdownMenuItem(
-                        value: city,
-                        child: Text(city),
+                // اختيار الموقع
+                Row(
+                  children: [
+                    Icon(Icons.location_on_outlined, color: Colors.deepPurple),
+                    SizedBox(width: 8),
+                    Text('الموقع:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                    SizedBox(width: 12),
+                    DropdownButton<String>(
+                      value: selectedCity,
+                      hint: Text('اختر المحافظة'),
+                      icon: Icon(Icons.arrow_drop_down),
+                      dropdownColor: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedCity = newValue;
+                        });
+                      },
+                      items: cities.map((city) {
+                        return DropdownMenuItem(
+                          value: city,
+                          child: Text(city),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 24),
+
+                // التصنيفات
+                Text('التصنيفات',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                SizedBox(height: 12),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: categories.map((category) {
+                      return Container(
+                        margin: EdgeInsets.symmetric(horizontal: 6),
+                        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.deepPurpleAccent, width: 1),
+                          boxShadow: [
+                            BoxShadow(color: Colors.black12, blurRadius: 4),
+                          ],
+                        ),
+                        child: Text(
+                          category,
+                          style: TextStyle(fontSize: 16, color: Colors.deepPurple[700]),
+                        ),
                       );
                     }).toList(),
                   ),
-                ],
-              ),
-              SizedBox(height: 20),
-
-              // التصنيفات
-              Text('التصنيفات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: categories.map((category) {
-                    return Container(
-                      margin: EdgeInsets.symmetric(horizontal: 8),
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: Colors.grey[200],
-                      ),
-                      child: Text(category, style: TextStyle(fontSize: 16)),
-                    );
-                  }).toList(),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
 
@@ -178,12 +209,11 @@ class _HomeScreenState extends State<HomeScreen> {
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             _requireLogin(() {
-              print("✅ إضافة إعلان جديد");
-              // يمكنك وضع التنقل هنا لصفحة إضافة إعلان
-            });
+              Navigator.push(context, MaterialPageRoute(builder: (_) => AddAdScreen()));
+            }, redirectTo: 'addAd');
           },
           child: Icon(Icons.add, size: 30),
-          backgroundColor: Colors.blueAccent,
+          backgroundColor: Colors.deepPurple,
           shape: CircleBorder(),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -193,77 +223,51 @@ class _HomeScreenState extends State<HomeScreen> {
           shape: CircularNotchedRectangle(),
           notchMargin: 8,
           color: Colors.white,
-          elevation: 8,
+          elevation: 10,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // الجهة اليمنى
                 Row(
                   children: [
-                    TextButton(
-                      onPressed: () => print("الرئيسية"),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.home, color: Colors.blueAccent),
-                          Text("الرئيسية", style: TextStyle(color: Colors.blueAccent, fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        _requireLogin(() {
-                          print("✅ المفضلة");
-                          // Navigator.push(context, MaterialPageRoute(builder: (_) => FavoritesScreen()));
-                        });
-                      },
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.favorite_border, color: Colors.blueAccent),
-                          Text("المفضلة", style: TextStyle(color: Colors.blueAccent, fontSize: 12)),
-                        ],
-                      ),
-                    ),
+                    _buildBottomBarItem(Icons.home, 'الرئيسية', () => print("الرئيسية")),
+                    _buildBottomBarItem(Icons.favorite_border, 'المفضلة', () {
+                      _requireLogin(() {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => FavoritesScreen()));
+                      }, redirectTo: 'favorites');
+                    }),
                   ],
                 ),
-
                 // الجهة اليسرى
                 Row(
                   children: [
-                    TextButton(
-                      onPressed: () {
-                        _requireLogin(() {
-                          print("✅ إعلاناتي");
-                          // Navigator.push(context, MaterialPageRoute(builder: (_) => MyAdsScreen()));
-                        });
-                      },
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.campaign_outlined, color: Colors.blueAccent),
-                          Text("إعلاناتي", style: TextStyle(color: Colors.blueAccent, fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => print("حسابي"),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.person_outline, color: Colors.blueAccent),
-                          Text("حسابي", style: TextStyle(color: Colors.blueAccent, fontSize: 12)),
-                        ],
-                      ),
-                    ),
+                    _buildBottomBarItem(Icons.campaign_outlined, 'إعلاناتي', () {
+                      _requireLogin(() {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => MyAdsScreen()));
+                      }, redirectTo: 'myAds');
+                    }),
+                    _buildBottomBarItem(Icons.person_outline, 'حسابي', () => print("حسابي")),
                   ],
                 ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBottomBarItem(IconData icon, String label, VoidCallback onTap) {
+    return TextButton(
+      onPressed: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.deepPurpleAccent),
+          Text(label, style: TextStyle(color: Colors.deepPurpleAccent, fontSize: 12)),
+        ],
       ),
     );
   }

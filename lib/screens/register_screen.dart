@@ -21,7 +21,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _showPassword = false;
   bool _showConfirmPassword = false;
-
   bool _isLoading = false;
 
   Future<void> registerUser() async {
@@ -38,7 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _isLoading = true;
     });
 
-    final url = Uri.parse('http://localhost:10000/api/auth/register'); // عدل هنا حسب عنوان السيرفر الحقيقي
+    final url = Uri.parse('http://localhost:10000/api/auth/register'); // 👈 عدله حسب السيرفر الحقيقي
 
     final response = await http.post(
       url,
@@ -60,7 +59,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("تم إنشاء الحساب بنجاح!")),
       );
-      Navigator.pop(context); // العودة لصفحة تسجيل الدخول
+      Navigator.pop(context); // العودة لتسجيل الدخول
     } else {
       var resBody = jsonDecode(response.body);
       String errorMsg = resBody['message'] ?? 'حدث خطأ، حاول مرة أخرى';
@@ -75,8 +74,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        backgroundColor: Colors.grey[100],
         appBar: AppBar(
           title: Text('إنشاء حساب جديد'),
+          backgroundColor: Colors.deepPurpleAccent,
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
@@ -88,15 +89,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             key: _formKey,
             child: Column(
               children: [
-                // البريد الإلكتروني
-                TextFormField(
+                _buildTextField(
+                  label: 'البريد الإلكتروني',
                   controller: emailController,
+                  icon: Icons.email,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: 'البريد الإلكتروني',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.email),
-                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'يرجى إدخال البريد الإلكتروني';
                     if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) return 'البريد الإلكتروني غير صالح';
@@ -104,73 +101,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 SizedBox(height: 16),
-
-                // الاسم الأول والاسم الأخير
                 Row(
                   children: [
                     Expanded(
-                      child: TextFormField(
+                      child: _buildTextField(
+                        label: 'الاسم الأول',
                         controller: firstNameController,
-                        decoration: InputDecoration(
-                          labelText: 'الاسم الأول',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) return 'يرجى إدخال الاسم الأول';
-                          return null;
-                        },
+                        validator: (value) =>
+                        value == null || value.isEmpty ? 'يرجى إدخال الاسم الأول' : null,
                       ),
                     ),
                     SizedBox(width: 10),
                     Expanded(
-                      child: TextFormField(
+                      child: _buildTextField(
+                        label: 'الاسم الأخير',
                         controller: lastNameController,
-                        decoration: InputDecoration(
-                          labelText: 'الاسم الأخير',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) return 'يرجى إدخال الاسم الأخير';
-                          return null;
-                        },
+                        validator: (value) =>
+                        value == null || value.isEmpty ? 'يرجى إدخال الاسم الأخير' : null,
                       ),
                     ),
                   ],
                 ),
                 SizedBox(height: 16),
-
-                // رقم الهاتف
-                TextFormField(
+                _buildTextField(
+                  label: 'رقم الهاتف',
                   controller: phoneController,
+                  icon: Icons.phone,
                   keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    labelText: 'رقم الهاتف',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.phone),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return 'يرجى إدخال رقم الهاتف';
-                    return null;
-                  },
+                  validator: (value) =>
+                  value == null || value.isEmpty ? 'يرجى إدخال رقم الهاتف' : null,
                 ),
                 SizedBox(height: 16),
-
-                // كلمة المرور
-                TextFormField(
+                _buildTextField(
+                  label: 'كلمة المرور',
                   controller: passwordController,
+                  icon: Icons.lock,
                   obscureText: !_showPassword,
-                  decoration: InputDecoration(
-                    labelText: 'كلمة المرور',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock),
-                    suffixIcon: IconButton(
-                      icon: Icon(_showPassword ? Icons.visibility : Icons.visibility_off),
-                      onPressed: () {
-                        setState(() {
-                          _showPassword = !_showPassword;
-                        });
-                      },
-                    ),
+                  suffixIcon: IconButton(
+                    icon: Icon(_showPassword ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () {
+                      setState(() => _showPassword = !_showPassword);
+                    },
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'يرجى إدخال كلمة المرور';
@@ -179,23 +150,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 SizedBox(height: 16),
-
-                // إعادة كلمة المرور
-                TextFormField(
+                _buildTextField(
+                  label: 'إعادة كلمة المرور',
                   controller: confirmPasswordController,
+                  icon: Icons.lock,
                   obscureText: !_showConfirmPassword,
-                  decoration: InputDecoration(
-                    labelText: 'إعادة كلمة المرور',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock),
-                    suffixIcon: IconButton(
-                      icon: Icon(_showConfirmPassword ? Icons.visibility : Icons.visibility_off),
-                      onPressed: () {
-                        setState(() {
-                          _showConfirmPassword = !_showConfirmPassword;
-                        });
-                      },
-                    ),
+                  suffixIcon: IconButton(
+                    icon: Icon(_showConfirmPassword ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () {
+                      setState(() => _showConfirmPassword = !_showConfirmPassword);
+                    },
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'يرجى إعادة كلمة المرور';
@@ -204,21 +168,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 SizedBox(height: 24),
-
                 _isLoading
                     ? CircularProgressIndicator()
                     : ElevatedButton(
                   onPressed: registerUser,
-                  child: Text('إنشاء حساب'),
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size(double.infinity, 50),
-                    backgroundColor: Colors.blueAccent,
+                    backgroundColor: Colors.deepPurple,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
+                  child: Text('إنشاء حساب', style: TextStyle(fontSize: 18, color: Colors.white)),
                 ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    IconData? icon,
+    TextInputType keyboardType = TextInputType.text,
+    bool obscureText = false,
+    Widget? suffixIcon,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      validator: validator,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.white,
+        prefixIcon: icon != null ? Icon(icon, color: Colors.deepPurple) : null,
+        suffixIcon: suffixIcon,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
