@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('صاحب Com'),
+          title: Text('Sahib Com App'),
           centerTitle: true,
           backgroundColor: Colors.blueAccent,
         ),
@@ -144,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressed: () {
             print("إضافة إعلان جديد");
           },
-          child: Icon(Icons.add, size: 30),
+          child: Icon(Icons.add, size: 50),
           backgroundColor: Colors.blueAccent,
           shape: CircleBorder(),
         ),
@@ -165,7 +165,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   children: [
                     TextButton(
-                      onPressed: () => print("الرئيسية"),
+                      onPressed: () {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => HomeScreen()),
+                              (Route<dynamic> route) => false, // حذف كل ما قبل الصفحة الجديدة
+                        );
+                      },
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
