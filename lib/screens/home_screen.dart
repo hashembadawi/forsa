@@ -4,9 +4,8 @@ import 'package:sahbo_app/screens/select_location_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
@@ -17,11 +16,22 @@ class _HomeScreenState extends State<HomeScreen> {
     'حيوانات',
     'المجتمع',
     'ملابس',
-    'معدات صناعية',
+    'معدات',
     'أثاث',
     'الكترونيات',
     'عقارات',
-    'مركبات'
+    'مركبات',
+  ];
+
+  List<IconData> categoryIcons = [
+    Icons.pets,
+    Icons.groups,
+    Icons.checkroom,
+    Icons.build,
+    Icons.chair,
+    Icons.devices,
+    Icons.home_work,
+    Icons.directions_car,
   ];
 
   List<String> imagePaths = [
@@ -37,12 +47,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.9);
+    _pageController = PageController(viewportFraction: 1.0);
     _startAutoSlide();
   }
 
   void _startAutoSlide() {
-    _sliderTimer = Timer.periodic(Duration(seconds: 3), (_) {
+    _sliderTimer = Timer.periodic(Duration(seconds: 4), (_) {
       if (_pageController.hasClients) {
         int nextPage = (_currentImageIndex + 1) % imagePaths.length;
         _pageController.animateToPage(
@@ -66,156 +76,251 @@ class _HomeScreenState extends State<HomeScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.grey[100],
-        appBar: AppBar(
-          title: Text('صاحب Com'),
-          centerTitle: true,
-          backgroundColor: Colors.deepPurpleAccent,
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
+        drawer: _buildDrawer(context),
+        body: SafeArea(
           child: SingleChildScrollView(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ✅ سلايدر الصور العصري
-                Container(
-                  height: 200,
-                  child: Stack(
-                    alignment: Alignment.bottomCenter,
+                // ✅ AppBar عصري
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+                  child: Row(
                     children: [
-                      PageView.builder(
-                        controller: _pageController,
-                        itemCount: imagePaths.length,
-                        onPageChanged: (index) {
-                          setState(() {
-                            _currentImageIndex = index;
-                          });
-                        },
-                        itemBuilder: (context, index) {
-                          return AnimatedContainer(
-                            duration: Duration(milliseconds: 500),
-                            margin: EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              image: DecorationImage(
-                                image: AssetImage(imagePaths[index]),
-                                fit: BoxFit.cover,
-                              ),
-                              boxShadow: [
-                                BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 4)),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                      // ✅ المؤشرات
-                      Positioned(
-                        bottom: 10,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: imagePaths.asMap().entries.map((entry) {
-                            return Container(
-                              width: 8,
-                              height: 8,
-                              margin: EdgeInsets.symmetric(horizontal: 4),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: _currentImageIndex == entry.key
-                                    ? Colors.deepPurple
-                                    : Colors.white70,
-                              ),
-                            );
-                          }).toList(),
+                      Builder(
+                        builder: (context) => IconButton(
+                          icon: Icon(Icons.menu, size: 28, color: Colors.deepPurple),
+                          onPressed: () => Scaffold.of(context).openDrawer(),
                         ),
                       ),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'صاحب Com',
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.deepPurple),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 40), // تعويض لأيقونة القائمة حتى يبقى العنوان بالوسط
                     ],
                   ),
                 ),
 
-                // ✅ الموقع أسفل الصور
-                SizedBox(height: 16),
-                Row(
+                // ✅ سلايدر مع الموقع والبحث
+                Stack(
                   children: [
-                    Icon(Icons.location_on_outlined, color: Colors.deepPurple),
-                    SizedBox(width: 8),
-                    Text('الموقع:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                    IconButton(
-                      icon: Icon(Icons.edit_location_alt_outlined, color: Colors.deepPurple),
-                      onPressed: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => LocationSelectionScreen()),
-                        );
-
-                        if (result != null) {
-                          setState(() {
-                            selectedCity = result['province'];
-                            selectedDistrict = result['district'];
-                          });
-                        }
-                      },
+                    Container(
+                      height: 250,
+                      child: PageView.builder(
+                        controller: _pageController,
+                        itemCount: imagePaths.length,
+                        onPageChanged: (index) {
+                          setState(() => _currentImageIndex = index);
+                        },
+                        itemBuilder: (context, index) {
+                          return Container(
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: AssetImage(imagePaths[index]),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 20,
+                      left: 20,
+                      right: 20,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'مرحباً بك في صاحب Com',
+                            style: TextStyle(
+                              fontSize: 22,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              shadows: [Shadow(blurRadius: 5, color: Colors.black54)],
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(Icons.location_on, color: Colors.white),
+                              SizedBox(width: 4),
+                              Text(
+                                selectedCity == 'كل المحافظات'
+                                    ? 'كل المحافظات'
+                                    : '$selectedCity - $selectedDistrict',
+                                style: TextStyle(color: Colors.white, fontSize: 16),
+                              ),
+                              Spacer(),
+                              IconButton(
+                                icon: Icon(Icons.edit_location_alt, color: Colors.white),
+                                onPressed: () async {
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => LocationSelectionScreen()),
+                                  );
+                                  if (result != null) {
+                                    setState(() {
+                                      selectedCity = result['province'];
+                                      selectedDistrict = result['district'];
+                                    });
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: 'ابحث عن منتج أو خدمة...',
+                                prefixIcon: Icon(Icons.search, color: Colors.deepPurple),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 4.0, right: 40),
-                  child: Text(
-                    selectedCity == 'كل المحافظات'
-                        ? 'كل المحافظات'
-                        : '$selectedCity - $selectedDistrict',
-                    style: TextStyle(fontSize: 16, color: Colors.deepPurple),
-                  ),
-                ),
 
-                // ✅ مربع البحث
-                SizedBox(height: 20),
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: 'ابحث عن منتج أو خدمة...',
-                    filled: true,
-                    fillColor: Colors.white,
-                    prefixIcon: Icon(Icons.search, color: Colors.deepPurple),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
+                // ✅ مؤشرات السلايدر
+                SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: imagePaths.asMap().entries.map((entry) {
+                    return Container(
+                      width: 10,
+                      height: 10,
+                      margin: EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _currentImageIndex == entry.key
+                            ? Colors.deepPurple
+                            : Colors.deepPurple.withOpacity(0.3),
+                      ),
+                    );
+                  }).toList(),
                 ),
 
                 // ✅ التصنيفات
                 SizedBox(height: 24),
-                Text('التصنيفات',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
-                SizedBox(height: 12),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Row(
-                    children: categories.map((category) {
-                      return Container(
-                        margin: EdgeInsets.symmetric(horizontal: 6),
-                        padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.deepPurpleAccent, width: 1),
-                          boxShadow: [
-                            BoxShadow(color: Colors.black12, blurRadius: 4),
-                          ],
-                        ),
-                        child: Text(
-                          category,
-                          style: TextStyle(fontSize: 16, color: Colors.deepPurple[700]),
-                        ),
-                      );
-                    }).toList(),
+                    children: [
+                      Text('التصنيفات',
+                          style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.deepPurple)),
+                    ],
                   ),
                 ),
+                SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: GridView.builder(
+                    physics: NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: categories.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 1,
+                    ),
+                    itemBuilder: (context, index) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(categoryIcons[index],
+                                color: Colors.deepPurple, size: 28),
+                            SizedBox(height: 8),
+                            Text(
+                              categories[index],
+                              style: TextStyle(fontSize: 14),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(height: 30),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  // ✅ Drawer عصري
+  Drawer _buildDrawer(BuildContext context) {
+    return Drawer(
+      backgroundColor: Colors.white,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.deepPurpleAccent, Colors.deepPurple],
+              ),
+            ),
+            child: Center(
+              child: Text(
+                'مرحبا بك 👋',
+                style: TextStyle(fontSize: 22, color: Colors.white),
+              ),
+            ),
+          ),
+          _drawerItem(Icons.home, 'الرئيسية', () {
+            Navigator.pop(context);
+          }),
+          _drawerItem(Icons.list_alt, 'إعلاناتي', () {
+            // TODO: Navigate to My Ads
+          }),
+          _drawerItem(Icons.add_circle_outline, 'إضافة إعلان', () {
+            // TODO: Navigate to Add Ad
+          }),
+          _drawerItem(Icons.person, 'حسابي', () {
+            // TODO: Navigate to Profile
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _drawerItem(IconData icon, String title, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.deepPurple),
+      title: Text(title, style: TextStyle(fontSize: 16)),
+      onTap: onTap,
     );
   }
 }
