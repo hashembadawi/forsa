@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sahbo_app/screens/select_location_screen.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'account_screen.dart';
+import 'add_ad_screen.dart';
+import 'login_screen.dart';
+import 'my_ads_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,14 +48,22 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentImageIndex = 0;
   late PageController _pageController;
   Timer? _sliderTimer;
+  String? _username;
 
   @override
   void initState() {
     super.initState();
+    _loadUsername();
     _pageController = PageController(viewportFraction: 1.0);
     _startAutoSlide();
   }
 
+  void _loadUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _username = prefs.getString('username');
+    });
+  }
   void _startAutoSlide() {
     _sliderTimer = Timer.periodic(Duration(seconds: 4), (_) {
       if (_pageController.hasClients) {
@@ -66,6 +77,57 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _handleProtectedNavigation(BuildContext context, String routeKey) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null || token.isEmpty) {
+      // المستخدم غير مسجل دخول
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('تسجيل الدخول مطلوب'),
+          content: Text('يجب تسجيل الدخول للوصول إلى هذه الصفحة.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('إلغاء'),
+            ),
+            TextButton(
+              onPressed: () async {
+                // خزّن الصفحة المستهدفة
+                await prefs.setString('redirect_to', routeKey);
+                Navigator.pop(context); // أغلق الحوار
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
+              },
+              child: Text('تسجيل دخول'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // المستخدم مسجل دخول
+      Widget targetPage;
+      switch (routeKey) {
+        case 'myAds':
+          targetPage = MyAdsScreen();
+          break;
+        case 'addAd':
+          targetPage = AddAdScreen();
+          break;
+        default:
+          return;
+      }
+      Navigator.pop(context); // إغلاق الدروار
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => targetPage),
+      );
+    }
+  }
   @override
   void dispose() {
     _sliderTimer?.cancel();
@@ -296,7 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Center(
               child: Text(
-                'مرحبا بك 👋',
+                _username != null ? 'مرحباً، $_username 👋' : 'مرحبا بك 👋',
                 style: TextStyle(fontSize: 22, color: Colors.white),
               ),
             ),
@@ -305,23 +367,37 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.pop(context);
           }),
           _drawerItem(Icons.list_alt, 'إعلاناتي', () {
-            // TODO: Navigate to My Ads
+            _handleProtectedNavigation(context, 'myAds');
           }),
           _drawerItem(Icons.add_circle_outline, 'إضافة إعلان', () {
-            // TODO: Navigate to Add Ad
+            _handleProtectedNavigation(context, 'addAd');
           }),
-          _drawerItem(Icons.person, 'حسابي', () {
+          _drawerItem(Icons.person, 'حسابي', () async {
             Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AccountScreen(
-                  isLoggedIn: true,
-                  userName: 'أحمد محمد',
-                  userEmail: 'ahmad@example.com',
+            final prefs = await SharedPreferences.getInstance();
+            final token = prefs.getString('token');
+            final username = prefs.getString('username') ?? '';
+            final email = prefs.getString('email') ?? ''; // إذا حفظت البريد
+
+            if (token == null || token.isEmpty) {
+              // غير مسجل دخول، أخذه لصفحة الدخول
+              await prefs.setString('redirect_to', 'account');
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AccountScreen(
+                    isLoggedIn: true,
+                    userName: username,
+                    userEmail: email,
+                  ),
                 ),
-              ),
-            );
+              );
+            }
           }),
         ],
       ),

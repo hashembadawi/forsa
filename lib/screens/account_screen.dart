@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'ad_terms_screen.dart';
 import 'contact_us_screen.dart';
+import 'home_screen.dart';
 
 class AccountScreen extends StatelessWidget {
   final String userName;
@@ -70,9 +71,17 @@ class AccountScreen extends StatelessWidget {
               }),
               Divider(),
 
-              _buildItem(context, Icons.logout, 'تسجيل الخروج', () {
-                // TODO: تنفيذ تسجيل الخروج
-                Navigator.pop(context);
+              _buildItem(context, Icons.logout, 'تسجيل الخروج', () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('token');
+                await prefs.remove('username');
+                await prefs.remove('email');
+
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => HomeScreen()),
+                      (route) => false,
+                );
               }),
             ],
           ),

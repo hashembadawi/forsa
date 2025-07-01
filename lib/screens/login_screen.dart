@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
-import 'favorites_screen.dart';
 import 'my_ads_screen.dart';
 import 'add_ad_screen.dart';
 
@@ -57,15 +56,18 @@ class _LoginScreenState extends State<LoginScreen> {
     if (response.statusCode == 200 && res['token'] != null) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', res['token']);
+      if (res['username'] != null) {
+        await prefs.setString('username', res['username']);
+      }
+      if (res['email'] != null) {
+        await prefs.setString('email', res['email']);
+      }
 
       String? redirect = prefs.getString('redirect_to');
       prefs.remove('redirect_to');
 
       Widget nextScreen;
       switch (redirect) {
-        case 'favorites':
-          nextScreen = FavoritesScreen();
-          break;
         case 'myAds':
           nextScreen = MyAdsScreen();
           break;
