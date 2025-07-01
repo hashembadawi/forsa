@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:sahbo_app/screens/select_location_screen.dart';
 
+import 'account_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
   @override
@@ -309,7 +311,17 @@ class _HomeScreenState extends State<HomeScreen> {
             // TODO: Navigate to Add Ad
           }),
           _drawerItem(Icons.person, 'حسابي', () {
-            // TODO: Navigate to Profile
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AccountScreen(
+                  isLoggedIn: true,
+                  userName: 'أحمد محمد',
+                  userEmail: 'ahmad@example.com',
+                ),
+              ),
+            );
           }),
         ],
       ),
