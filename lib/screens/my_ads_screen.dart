@@ -12,35 +12,70 @@ class MyAdsScreen extends StatefulWidget {
 
 class _MyAdsScreenState extends State<MyAdsScreen> {
   List<dynamic> myAds = [];
-  bool isLoading = true;
+  bool isLoading = false;
+  bool hasMore = true;
+  int currentPage = 1;
+  final int limit = 5;
+  late ScrollController _scrollController;
+  String? userId;
+  String? token;
 
   @override
   void initState() {
     super.initState();
-    fetchMyAds();
+    _scrollController = ScrollController()..addListener(_onScroll);
+    _initAndFetchAds();
+  }
+
+  Future<void> _initAndFetchAds() async {
+    final prefs = await SharedPreferences.getInstance();
+    token = prefs.getString('token') ?? '';
+    userId = prefs.getString('userId');
+
+    if (token == null || token!.isEmpty) return;
+    print(userId);
+    await fetchMyAds();
   }
 
   Future<void> fetchMyAds() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
+    
+    if (isLoading || !hasMore || userId == null) return;
 
-    final response = await http.get(
-      Uri.parse('http://192.168.1.120:10000/api/product/my-ads'),
-      headers: {
-        'Authorization': token,
-      },
+    setState(() {
+      isLoading = true;
+    });
+
+    final url = Uri.parse(
+      'http://192.168.1.120:10000/api/userProducts/$userId?page=$currentPage&limit=$limit',
     );
 
+    final response = await http.get(url, headers: {
+      'authorization': 'Bearer $token',
+    });
+
     if (response.statusCode == 200) {
-      final List<dynamic> ads = jsonDecode(response.body);
+      final decoded = jsonDecode(response.body);
+      final List<dynamic> ads = decoded['products'];
+
       setState(() {
-        myAds = ads;
+        myAds.addAll(ads);
         isLoading = false;
+        currentPage++;
+        if (ads.length < limit) {
+          hasMore = false; // لا مزيد من البيانات
+        }
       });
     } else {
       setState(() {
         isLoading = false;
+        hasMore = false;
       });
+    }
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      fetchMyAds();
     }
   }
 
@@ -49,15 +84,16 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
     final now = DateTime.now();
     final difference = now.difference(date);
 
-    if (difference.inDays >= 1) {
-      return 'منذ ${difference.inDays} يوم';
-    } else if (difference.inHours >= 1) {
-      return 'منذ ${difference.inHours} ساعة';
-    } else if (difference.inMinutes >= 1) {
-      return 'منذ ${difference.inMinutes} دقيقة';
-    } else {
-      return 'الآن';
-    }
+    if (difference.inDays >= 1) return 'منذ ${difference.inDays} يوم';
+    if (difference.inHours >= 1) return 'منذ ${difference.inHours} ساعة';
+    if (difference.inMinutes >= 1) return 'منذ ${difference.inMinutes} دقيقة';
+    return 'الآن';
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -68,14 +104,22 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
       ),
-      body: isLoading
+      body: myAds.isEmpty && isLoading
           ? Center(child: CircularProgressIndicator())
           : myAds.isEmpty
           ? Center(child: Text('لا توجد إعلانات بعد'))
           : ListView.builder(
+        controller: _scrollController,
         padding: EdgeInsets.all(16),
-        itemCount: myAds.length,
+        itemCount: myAds.length + (hasMore ? 1 : 0),
         itemBuilder: (context, index) {
+          if (index == myAds.length) {
+            return Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+
           final ad = myAds[index];
           final firstImageBase64 = (ad['images'] as List).isNotEmpty
               ? ad['images'][0]
