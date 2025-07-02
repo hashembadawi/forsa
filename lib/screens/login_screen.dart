@@ -72,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
           nextScreen = MyAdsScreen();
           break;
         case 'addAd':
-          nextScreen = AddAdScreen();
+          nextScreen = MultiStepAddAdScreen();
           break;
         default:
           nextScreen = HomeScreen();

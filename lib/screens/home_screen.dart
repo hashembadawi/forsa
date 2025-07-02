@@ -116,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
           targetPage = MyAdsScreen();
           break;
         case 'addAd':
-          targetPage = AddAdScreen();
+          targetPage = MultiStepAddAdScreen();
           break;
         default:
           return;
