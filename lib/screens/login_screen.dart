@@ -62,6 +62,10 @@ class _LoginScreenState extends State<LoginScreen> {
       if (res['email'] != null) {
         await prefs.setString('email', res['email']);
       }
+      if (res['userId'] != null) {
+        await prefs.setString('userId', res['userId']);
+      }
+
 
       String? redirect = prefs.getString('redirect_to');
       prefs.remove('redirect_to');

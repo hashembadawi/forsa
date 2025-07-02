@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+
 
 // الشاشة الرئيسية لإدارة المراحل
 class MultiStepAddAdScreen extends StatefulWidget {
@@ -26,7 +28,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
   String selectedProvince = '';
   String selectedCity = '';
   String description = '';
-
+  bool _isUploading = false;
   final List<String> stepTitles = [
     'إضافة الصور',
     'اختيار التصنيف',
@@ -183,23 +185,65 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         return Container();
     }
   }
+  void _showUploadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => WillPopScope(
+        onWillPop: () async => false,
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: 10),
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+              ),
+              SizedBox(height: 20),
+              Text(
+                'جارٍ رفع الإعلان...',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              Text(
+                'يرجى الانتظار حتى يتم إرسال البيانات.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              ),
+              SizedBox(height: 10),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   Future<void> _submitAd() async {
+    setState(() {
+      _isUploading = true;
+    });
+    _showUploadingDialog();
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token') ?? '';
 
-      // تحويل الصور إلى Base64
+      // ضغط الصور وتحويلها إلى Base64
       List<String> base64Images = [];
-      for (File? image in selectedImages) {
-        if (image != null) {
-          List<int> imageBytes = await image.readAsBytes();
-          String base64String = base64Encode(imageBytes);
-          base64Images.add(base64String);
+
+      for (File? image in selectedImages.where((img) => img != null)) {
+        final compressedBytes = await FlutterImageCompress.compressWithFile(
+          image!.path,
+          quality: 60,
+          format: CompressFormat.jpeg,
+        );
+
+        if (compressedBytes != null) {
+          base64Images.add(base64Encode(compressedBytes));
         }
       }
 
-      // تحويل أسماء التصنيفات إلى أرقام
       Map<String, int> categoryMapping = {
         'أثاث': 1,
       };
@@ -216,12 +260,14 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       };
 
       Map<String, dynamic> requestData = {
+        'userId': prefs.getString('userId'),
+        'productTitle': productTitle,
         'price': price,
         'currency': currency,
         'category': categoryMapping[selectedCategory] ?? 1,
         'subCategory': subCategoryMapping[selectedSubCategory] ?? 101,
-        'city': selectedProvince, // API يستخدم city للمحافظة
-        'region': selectedCity, // API يستخدم region للمدينة
+        'city': selectedProvince,
+        'region': selectedCity,
         'createDate': DateTime.now().toIso8601String(),
         'description': description,
         'images': base64Images,
@@ -236,13 +282,20 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         body: jsonEncode(requestData),
       );
 
+      Navigator.of(context).pop(); // إغلاق شريط التحميل
+
       if (response.statusCode == 201) {
         _showSuccessDialog();
       } else {
-        _showErrorDialog('فشل في نشر الإعلان. حاول مرة أخرى.');
+        _showErrorDialog('فشل في نشر الإعلان. حاول مرة أخرى.\n${response.body}');
       }
     } catch (e) {
-      _showErrorDialog('خطأ في الاتصال. تأكد من اتصالك بالإنترنت.');
+      Navigator.of(context).pop(); // إغلاق شريط التحميل
+      _showErrorDialog('حدث خطأ أثناء الاتصال بالخادم.');
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
     }
   }
 
@@ -308,6 +361,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       },
     );
   }
+
 }
 
 // المرحلة الأولى: اختيار الصور
