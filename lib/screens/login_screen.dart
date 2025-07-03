@@ -25,7 +25,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _showPasswordEmail = false;
 
   Future<void> _login({required String method}) async {
-    String apiUrl = 'http://192.168.1.120:10000/api/auth/login';
+    //String apiUrl = 'http://192.168.1.120:10000/api/auth/login';
+    String apiUrl = 'http://localhost:10000/api/auth/login';
 
     final body = method == 'phone'
         ? {

@@ -37,7 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _isLoading = true;
     });
 
-    final url = Uri.parse('http://localhost:10000/api/auth/register'); // 👈 عدله حسب السيرفر الحقيقي
+    final url = Uri.parse('http://localhost:10000/api/auth/register');
 
     final response = await http.post(
       url,
