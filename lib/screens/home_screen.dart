@@ -30,17 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
     {'icon': Icons.directions_car, 'name': 'مركبات'},
   ];
 
-  List<String> imagePaths = [
-    'assets/image1.jpg',
-    'assets/image2.jpg',
-    'assets/image3.jpg',
-  ];
-
-  int _currentImageIndex = 0;
-  late PageController _pageController;
-  Timer? _sliderTimer;
-  String? _username;
-
   // لإعلانات العرض
   List<dynamic> allAds = [];
   bool isLoadingAds = false;
@@ -48,22 +37,18 @@ class _HomeScreenState extends State<HomeScreen> {
   final int limitAds = 10;
   bool hasMoreAds = true;
   late ScrollController _adsScrollController;
+  String? _username;
 
   @override
   void initState() {
     super.initState();
     _loadUsername();
-    _pageController = PageController(viewportFraction: 1.0);
-    _startAutoSlide();
-
     _adsScrollController = ScrollController()..addListener(_onAdsScroll);
     fetchAllAds();
   }
 
   @override
   void dispose() {
-    _sliderTimer?.cancel();
-    _pageController.dispose();
     _adsScrollController.dispose();
     super.dispose();
   }
@@ -72,19 +57,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _username = prefs.getString('username');
-    });
-  }
-
-  void _startAutoSlide() {
-    _sliderTimer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (_pageController.hasClients) {
-        int nextPage = (_currentImageIndex + 1) % imagePaths.length;
-        _pageController.animateToPage(
-          nextPage,
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOut,
-        );
-      }
     });
   }
 
@@ -97,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final url = Uri.parse(
-        'http://localhost:10000/api/products?page=$currentPageAds&limit=$limitAds',
+        'http://192.168.1.120:10000/api/products?page=$currentPageAds&limit=$limitAds',
       );
 
       final response = await http.get(url);
@@ -159,102 +131,126 @@ class _HomeScreenState extends State<HomeScreen> {
       errorBuilder: (context, error, stackTrace) {
         return Container(
             color: Colors.grey[200],
-            child: const Icon(Icons.image, size: 60));
+            child: const Icon(Icons.image, size: 40));
       },
     )
         : Container(
         color: Colors.grey[200],
-        child: const Icon(Icons.image, size: 60));
+        child: const Icon(Icons.image, size: 40));
 
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
       elevation: 2,
-      margin: const EdgeInsets.all(8),
+      margin: const EdgeInsets.all(4), // Reduced margin
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {
           // يمكن إضافة تفاصيل الإعلان هنا
         },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16)),
-              child: SizedBox(
-                height: 120,
-                width: double.infinity,
-                child: image,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Dynamically adjust font sizes and icon sizes based on available height
+            final fontSize = constraints.maxHeight * 0.16; // Reduced to 16%
+            final iconSize = constraints.maxHeight * 0.13; // Reduced to 13%
+            return ClipRect(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '${ad['price'] ?? '0'} ${ad['currency'] ?? ''}',
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    ad['description'] ?? '',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[800],
-                        height: 1.4),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(Icons.location_on,
-                          size: 14, color: Colors.deepPurple),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          '${ad['city'] ?? ''} - ${ad['region'] ?? ''}',
-                          style: TextStyle(
-                              color: Colors.grey[700], fontSize: 12),
-                        ),
+                  Expanded(
+                    flex: 4, // Image takes 80% of available space
+                    child: ClipRRect(
+                      borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(16)),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: image,
                       ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(Icons.access_time,
-                          size: 14, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Text(
-                        ad['createDate'] != null
-                            ? formatDate(ad['createDate'])
-                            : 'غير محدد',
-                        style: TextStyle(
-                            color: Colors.grey[600], fontSize: 12),
+                  Expanded(
+                    flex: 1, // Text content takes 20% of available space
+                    child: Padding(
+                      padding: const EdgeInsets.all(4), // Reduced padding
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${ad['price'] ?? '0'} ${ad['currency'] ?? ''}',
+                            style: TextStyle(
+                                fontSize: fontSize.clamp(10, 12),
+                                fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2), // Reduced spacing
+                          Expanded(
+                            child: Text(
+                              ad['description'] ?? '',
+                              maxLines: 1, // Reduced to 1 line
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: fontSize.clamp(8, 10),
+                                  color: Colors.grey[800],
+                                  height: 1.1),
+                            ),
+                          ),
+                          const SizedBox(height: 2), // Reduced spacing
+                          Row(
+                            children: [
+                              Icon(Icons.location_on,
+                                  size: iconSize.clamp(8, 10),
+                                  color: Colors.deepPurple),
+                              const SizedBox(width: 2),
+                              Expanded(
+                                child: Text(
+                                  '${ad['city'] ?? ''} - ${ad['region'] ?? ''}',
+                                  style: TextStyle(
+                                      color: Colors.grey[700],
+                                      fontSize: fontSize.clamp(7, 9)),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2), // Reduced spacing
+                          Row(
+                            children: [
+                              Icon(Icons.access_time,
+                                  size: iconSize.clamp(8, 10),
+                                  color: Colors.grey),
+                              const SizedBox(width: 2),
+                              Expanded(
+                                child: Text(
+                                  ad['createDate'] != null
+                                      ? formatDate(ad['createDate'])
+                                      : 'غير محدد',
+                                  style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: fontSize.clamp(7, 9)),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
   }
 
-  void _handleProtectedNavigation(
-      BuildContext context, String routeKey) async {
+  void _handleProtectedNavigation(BuildContext context, String routeKey) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
 
     if (token == null || token.isEmpty) {
-      // المستخدم غير مسجل دخول
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -268,11 +264,10 @@ class _HomeScreenState extends State<HomeScreen> {
             TextButton(
               onPressed: () async {
                 await prefs.setString('redirect_to', routeKey);
-                Navigator.pop(context); // أغلق الحوار
+                Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (_) => const LoginScreen()),
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
                 );
               },
               child: const Text('تسجيل دخول'),
@@ -292,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
         default:
           return;
       }
-      Navigator.pop(context); // إغلاق الدروار
+      Navigator.pop(context);
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => targetPage),
@@ -307,8 +302,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         drawer: _buildDrawer(context),
         body: CustomScrollView(
+          controller: _adsScrollController,
           slivers: [
-            // AppBar مع زر القائمة
             SliverAppBar(
               floating: true,
               pinned: true,
@@ -332,150 +327,156 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
-            // محتوى الصفحة
-            SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // سلايدر الصور
-                  _buildImageSlider(),
-
-                  // حقل البحث
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
-                            spreadRadius: 2,
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'ابحث عن منتج أو خدمة...',
-                          prefixIcon: Icon(Icons.search,
-                              color: Colors.deepPurple),
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 14),
-                        ),
-                      ),
+            SliverToBoxAdapter(child: _buildLocationButton()),
+            SliverToBoxAdapter(child: _buildSearchField()),
+            SliverToBoxAdapter(child: _buildCategoriesSection()),
+            SliverToBoxAdapter(child: ImageSlider()),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const Text(
+                    'جميع الإعلانات',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-
-                  // التصنيفات
-                  _buildCategoriesSection(),
-
-                  // جميع الإعلانات
-                  _buildAllAdsSection(),
-                ],
+                  const SizedBox(height: 12),
+                  if (allAds.isEmpty && isLoadingAds)
+                    const Center(child: CircularProgressIndicator()),
+                ]),
               ),
             ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 0.9, // Increased to reduce card height
+                ),
+                delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                    if (index == allAds.length && hasMoreAds) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+                    return _buildAdCard(allAds[index]);
+                  },
+                  childCount: allAds.length + (hasMoreAds ? 1 : 0),
+                ),
+              ),
+            ),
+            if (!hasMoreAds && allAds.isNotEmpty)
+              SliverToBoxAdapter(
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  child: Center(
+                    child: Text(
+                      'لا يوجد المزيد من الإعلانات',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildImageSlider() {
-    return SizedBox(
-      height: 180,
-      child: Stack(
-        children: [
-          PageView.builder(
-            controller: _pageController,
-            itemCount: imagePaths.length,
-            onPageChanged: (index) {
-              setState(() => _currentImageIndex = index);
-            },
-            itemBuilder: (context, index) {
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  image: DecorationImage(
-                    image: AssetImage(imagePaths[index]),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              );
-            },
-          ),
-          Positioned(
-            bottom: 16,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                imagePaths.length,
-                    (index) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  width: _currentImageIndex == index ? 20 : 8,
-                  height: 8,
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    color: _currentImageIndex == index
-                        ? Colors.deepPurple
-                        : Colors.white.withOpacity(0.7),
-                  ),
-                ),
+  Widget _buildLocationButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: GestureDetector(
+        onTap: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => LocationSelectionScreen()),
+          );
+          if (result != null) {
+            setState(() {
+              selectedCity = result['province'];
+              selectedDistrict = result['district'];
+            });
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 2,
+                blurRadius: 8,
+                offset: const Offset(0, 3),
               ),
-            ),
+            ],
           ),
-          Positioned(
-            bottom: 16,
-            right: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Icon(Icons.location_on,
-                      size: 16, color: Colors.deepPurple),
-                  const SizedBox(width: 4),
-                  Text(
-                    selectedCity == 'كل المحافظات'
-                        ? 'كل المحافظات'
-                        : '$selectedCity - $selectedDistrict',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => LocationSelectionScreen()),
-                      );
-                      if (result != null) {
-                        setState(() {
-                          selectedCity = result['province'];
-                          selectedDistrict = result['district'];
-                        });
-                      }
-                    },
-                    child: Icon(Icons.edit,
-                        size: 16, color: Colors.deepPurple),
+                  Icon(Icons.location_on, size: 20, color: Colors.deepPurple),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'موقع',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.deepPurple,
+                    ),
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 4),
+              Text(
+                selectedCity == 'كل المحافظات'
+                    ? 'كل المحافظات'
+                    : '$selectedCity - $selectedDistrict',
+                style: const TextStyle(fontSize: 14, color: Colors.black87),
+              ),
+            ],
           ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 2,
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: TextField(
+          decoration: InputDecoration(
+            hintText: 'ابحث عن منتج أو خدمة...',
+            prefixIcon: Icon(Icons.search, color: Colors.deepPurple),
+            border: InputBorder.none,
+            contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
       ),
     );
   }
@@ -533,60 +534,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAllAdsSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'جميع الإعلانات',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          allAds.isEmpty && isLoadingAds
-              ? const Center(child: CircularProgressIndicator())
-              : GridView.builder(
-            controller: _adsScrollController,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.zero,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 0.7,
-            ),
-            itemCount: allAds.length + (hasMoreAds ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index == allAds.length) {
-                return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: CircularProgressIndicator(),
-                    ));
-              }
-              return _buildAdCard(allAds[index]);
-            },
-          ),
-          if (!hasMoreAds && allAds.isNotEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(
-                child: Text(
-                  'لا يوجد المزيد من الإعلانات',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
   Drawer _buildDrawer(BuildContext context) {
     return Drawer(
       backgroundColor: Colors.white,
@@ -617,8 +564,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 12),
                   Text(
                     _username != null ? 'مرحباً، $_username 👋' : 'مرحبا بك 👋',
-                    style: const TextStyle(
-                        fontSize: 18, color: Colors.white),
+                    style: const TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ],
               ),
@@ -648,8 +594,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     await prefs.setString('redirect_to', 'account');
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) => const LoginScreen()),
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
                     );
                   } else {
                     Navigator.push(
@@ -677,6 +622,105 @@ class _HomeScreenState extends State<HomeScreen> {
       leading: Icon(icon, color: Colors.deepPurple),
       title: Text(title),
       onTap: onTap,
+    );
+  }
+}
+
+class ImageSlider extends StatefulWidget {
+  const ImageSlider({super.key});
+
+  @override
+  State<ImageSlider> createState() => _ImageSliderState();
+}
+
+class _ImageSliderState extends State<ImageSlider> {
+  final List<String> imagePaths = [
+    'assets/image1.jpg',
+    'assets/image2.jpg',
+    'assets/image3.jpg',
+  ];
+
+  int _currentImageIndex = 0;
+  late PageController _pageController;
+  Timer? _sliderTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 1.0);
+    _startAutoSlide();
+  }
+
+  @override
+  void dispose() {
+    _sliderTimer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _startAutoSlide() {
+    _sliderTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (_pageController.hasClients) {
+        int nextPage = (_currentImageIndex + 1) % imagePaths.length;
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 180,
+      child: Stack(
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            itemCount: imagePaths.length,
+            onPageChanged: (index) {
+              setState(() => _currentImageIndex = index);
+            },
+            itemBuilder: (context, index) {
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  image: DecorationImage(
+                    image: AssetImage(imagePaths[index]),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              );
+            },
+          ),
+          Positioned(
+            bottom: 16,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                imagePaths.length,
+                    (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: _currentImageIndex == index ? 20 : 8,
+                  height: 8,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    color: _currentImageIndex == index
+                        ? Colors.deepPurple
+                        : Colors.white.withOpacity(0.7),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
