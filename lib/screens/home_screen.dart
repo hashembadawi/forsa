@@ -1,11 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:sahbo_app/screens/select_location_screen.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'account_screen.dart';
 import 'add_ad_screen.dart';
 import 'login_screen.dart';
 import 'my_ads_screen.dart';
+import 'select_location_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,17 +18,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String selectedCity = 'كل المحافظات';
   String selectedDistrict = 'كل المناطق';
-
-  List<String> categories = [
-    'حيوانات',
-    'المجتمع',
-    'ملابس',
-    'معدات',
-    'أثاث',
-    'الكترونيات',
-    'عقارات',
-    'مركبات',
-  ];
 
   List<IconData> categoryIcons = [
     Icons.pets,
@@ -50,12 +41,31 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _sliderTimer;
   String? _username;
 
+  // لإعلانات العرض
+  List<dynamic> allAds = [];
+  bool isLoadingAds = false;
+  int currentPageAds = 1;
+  final int limitAds = 10;
+  bool hasMoreAds = true;
+  late ScrollController _adsScrollController;
+
   @override
   void initState() {
     super.initState();
     _loadUsername();
     _pageController = PageController(viewportFraction: 1.0);
     _startAutoSlide();
+
+    _adsScrollController = ScrollController()..addListener(_onAdsScroll);
+    fetchAllAds();
+  }
+
+  @override
+  void dispose() {
+    _sliderTimer?.cancel();
+    _pageController.dispose();
+    _adsScrollController.dispose();
+    super.dispose();
   }
 
   void _loadUsername() async {
@@ -64,6 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _username = prefs.getString('username');
     });
   }
+
   void _startAutoSlide() {
     _sliderTimer = Timer.periodic(Duration(seconds: 4), (_) {
       if (_pageController.hasClients) {
@@ -75,6 +86,147 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
     });
+  }
+
+  Future<void> fetchAllAds() async {
+    if (isLoadingAds || !hasMoreAds) return;
+
+    setState(() {
+      isLoadingAds = true;
+    });
+
+    try {
+      final url = Uri.parse(
+        'http://localhost:10000/api/products?page=$currentPageAds&limit=$limitAds',
+      );
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        final List<dynamic> fetchedAds = decoded['products'] ?? [];
+
+        setState(() {
+          allAds.addAll(fetchedAds);
+          currentPageAds++;
+          isLoadingAds = false;
+          if (fetchedAds.length < limitAds) {
+            hasMoreAds = false;
+          }
+        });
+      } else {
+        setState(() {
+          isLoadingAds = false;
+          hasMoreAds = false;
+        });
+        print('Error fetching ads: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        isLoadingAds = false;
+        hasMoreAds = false;
+      });
+      print('Exception fetching ads: $e');
+    }
+  }
+
+  void _onAdsScroll() {
+    if (_adsScrollController.position.pixels >=
+        _adsScrollController.position.maxScrollExtent - 200) {
+      fetchAllAds();
+    }
+  }
+
+  String formatDate(String isoDate) {
+    final date = DateTime.parse(isoDate);
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays >= 1) return 'منذ ${difference.inDays} يوم';
+    if (difference.inHours >= 1) return 'منذ ${difference.inHours} ساعة';
+    if (difference.inMinutes >= 1) return 'منذ ${difference.inMinutes} دقيقة';
+    return 'الآن';
+  }
+
+  Widget _buildAdCard(dynamic ad) {
+    final List<dynamic> images = ad['images'] is List ? ad['images'] : [];
+    final firstImageBase64 = images.isNotEmpty ? images[0] : null;
+
+    final image = firstImageBase64 != null
+        ? Image.memory(
+      base64Decode(firstImageBase64),
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+            color: Colors.grey[200], child: Icon(Icons.image, size: 60));
+      },
+    )
+        : Container(
+        color: Colors.grey[200], child: Icon(Icons.image, size: 60));
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4,
+      margin: EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+            child: SizedBox(
+              height: 120,
+              width: double.infinity,
+              child: image,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${ad['price'] ?? '0'} ${ad['currency'] ?? ''}',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  ad['description'] ?? '',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 13, color: Colors.grey[800]),
+                ),
+                SizedBox(height: 6),
+                Row(
+                  children: [
+                    Icon(Icons.location_on, size: 14, color: Colors.deepPurple),
+                    SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        '${ad['city'] ?? ''} - ${ad['region'] ?? ''}',
+                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.access_time, size: 14, color: Colors.grey),
+                    SizedBox(width: 4),
+                    Text(
+                      ad['createDate'] != null
+                          ? formatDate(ad['createDate'])
+                          : 'غير محدد',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _handleProtectedNavigation(BuildContext context, String routeKey) async {
@@ -95,7 +247,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: () async {
-                // خزّن الصفحة المستهدفة
                 await prefs.setString('redirect_to', routeKey);
                 Navigator.pop(context); // أغلق الحوار
                 Navigator.push(
@@ -109,7 +260,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     } else {
-      // المستخدم مسجل دخول
       Widget targetPage;
       switch (routeKey) {
         case 'myAds':
@@ -128,12 +278,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
   }
-  @override
-  void dispose() {
-    _sliderTimer?.cancel();
-    _pageController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                // ✅ AppBar عصري
+                // AppBar مع زر القائمة
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
                   child: Row(
@@ -172,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                // ✅ سلايدر مع الموقع والبحث
+                // سلايدر الصور + الموقع + بحث
                 Stack(
                   children: [
                     Container(
@@ -261,7 +405,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
 
-                // ✅ مؤشرات السلايدر
+                // مؤشرات السلايدر
                 SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -280,13 +424,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   }).toList(),
                 ),
 
-                // ✅ التصنيفات
+                // التصنيفات
+                SizedBox(height: 24),
+
+                // عرض الإعلانات في GridView ثنائية الأعمدة
                 SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Row(
                     children: [
-                      Text('التصنيفات',
+                      Text('جميع الإعلانات',
                           style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -295,45 +442,31 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: GridView.builder(
-                    physics: NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: categories.length,
+
+
+                Container(
+                  height: 600, // يمكن تعديل الارتفاع حسب الحاجة
+                  child: allAds.isEmpty && isLoadingAds
+                      ? Center(child: CircularProgressIndicator())
+                      : GridView.builder(
+                    controller: _adsScrollController,
+                    padding: EdgeInsets.symmetric(horizontal: 12),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
+                      crossAxisCount: 2,
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 12,
-                      childAspectRatio: 1,
+                      childAspectRatio: 0.65,
                     ),
+                    itemCount: allAds.length + (hasMoreAds ? 1 : 0),
                     itemBuilder: (context, index) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(categoryIcons[index],
-                                color: Colors.deepPurple, size: 28),
-                            SizedBox(height: 8),
-                            Text(
-                              categories[index],
-                              style: TextStyle(fontSize: 14),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      );
+                      if (index == allAds.length) {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                      return _buildAdCard(allAds[index]);
                     },
                   ),
                 ),
+
                 SizedBox(height: 30),
               ],
             ),
@@ -343,7 +476,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ✅ Drawer عصري
   Drawer _buildDrawer(BuildContext context) {
     return Drawer(
       backgroundColor: Colors.white,
@@ -377,10 +509,9 @@ class _HomeScreenState extends State<HomeScreen> {
             final prefs = await SharedPreferences.getInstance();
             final token = prefs.getString('token');
             final username = prefs.getString('username') ?? '';
-            final email = prefs.getString('email') ?? ''; // إذا حفظت البريد
+            final email = prefs.getString('email') ?? '';
 
             if (token == null || token.isEmpty) {
-              // غير مسجل دخول، أخذه لصفحة الدخول
               await prefs.setString('redirect_to', 'account');
               Navigator.push(
                 context,

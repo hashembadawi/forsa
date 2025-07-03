@@ -241,6 +241,15 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
+                        ad['productTitle'] ?? '',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[800]),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
                         '${ad['price'] ?? '0'} ${ad['currency'] ?? ''}',
                         style: TextStyle(
                             fontSize: 18,
