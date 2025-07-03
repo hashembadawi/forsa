@@ -6,8 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
-
-// الشاشة الرئيسية لإدارة المراحل
 class MultiStepAddAdScreen extends StatefulWidget {
   const MultiStepAddAdScreen({super.key});
 
@@ -17,8 +15,6 @@ class MultiStepAddAdScreen extends StatefulWidget {
 
 class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
   int currentStep = 0;
-
-  // بيانات مشتركة بين المراحل
   List<File?> selectedImages = [];
   String selectedCategory = '';
   String selectedSubCategory = '';
@@ -29,97 +25,112 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
   String selectedCity = '';
   String description = '';
   bool _isUploading = false;
-  final List<String> stepTitles = [
-    'إضافة الصور',
-    'اختيار التصنيف',
-    'معلومات الإعلان'
-  ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('نشر إعلان جديد'),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
-      ),
-      body: Column(
-        children: [
-          // شريط التقدم
-          _buildProgressIndicator(),
-
-          // محتوى المرحلة الحالية
-          Expanded(
-            child: _buildCurrentStep(),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'نشر إعلان جديد',
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
-        ],
+          centerTitle: true,
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
+          elevation: 2,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.deepPurple.shade50,
+                Colors.deepPurple.shade100.withOpacity(0.3),
+              ],
+            ),
+          ),
+          child: Column(
+            children: [
+              _buildProgressIndicator(),
+              Expanded(
+                child: _buildCurrentStep(),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildProgressIndicator() {
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           Row(
             children: List.generate(3, (index) {
               return Expanded(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: index <= currentStep ? Colors.deepPurple : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    if (index < 2) SizedBox(width: 8),
-                  ],
+                child: Container(
+                  height: 4,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: index <= currentStep ? Colors.deepPurple : Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               );
             }),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(3, (index) {
-              return Column(
-                children: [
-                  Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: index <= currentStep ? Colors.deepPurple : Colors.grey[300],
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${index + 1}',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    stepTitles[index],
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: index <= currentStep ? Colors.deepPurple : Colors.grey[600],
-                      fontWeight: index == currentStep ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                ],
-              );
-            }),
+            children: [
+              _buildStepIndicator(0, 'إضافة الصور'),
+              _buildStepIndicator(1, 'اختيار التصنيف'),
+              _buildStepIndicator(2, 'معلومات الإعلان'),
+            ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStepIndicator(int stepIndex, String title) {
+    return Column(
+      children: [
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: stepIndex <= currentStep ? Colors.deepPurple : Colors.grey[300],
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              '${stepIndex + 1}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          title,
+          style: TextStyle(
+            color: stepIndex <= currentStep ? Colors.deepPurple : Colors.grey[600],
+            fontWeight: stepIndex == currentStep ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ],
     );
   }
 
@@ -128,33 +139,19 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       case 0:
         return ImagesSelectionStep(
           selectedImages: selectedImages,
-          onImagesChanged: (images) {
-            setState(() {
-              selectedImages = images;
-            });
-          },
-          onNext: () {
-            setState(() {
-              currentStep = 1;
-            });
-          },
+          onImagesChanged: (images) => setState(() => selectedImages = images),
+          onNext: () => setState(() => currentStep = 1),
         );
       case 1:
         return CategorySelectionStep(
           selectedCategory: selectedCategory,
           selectedSubCategory: selectedSubCategory,
-          onCategorySelected: (category, subCategory) {
-            setState(() {
-              selectedCategory = category;
-              selectedSubCategory = subCategory;
-              currentStep = 2;
-            });
-          },
-          onBack: () {
-            setState(() {
-              currentStep = 0;
-            });
-          },
+          onCategorySelected: (category, subCategory) => setState(() {
+            selectedCategory = category;
+            selectedSubCategory = subCategory;
+            currentStep = 2;
+          }),
+          onBack: () => setState(() => currentStep = 0),
         );
       case 2:
         return AdDetailsStep(
@@ -164,108 +161,49 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
           selectedProvince: selectedProvince,
           selectedCity: selectedCity,
           description: description,
-          onDetailsChanged: (title, p, c, province, city, desc) {
-            setState(() {
-              productTitle = title;
-              price = p;
-              currency = c;
-              selectedProvince = province;
-              selectedCity = city;
-              description = desc;
-            });
-          },
+          onDetailsChanged: (title, p, c, province, city, desc) => setState(() {
+            productTitle = title;
+            price = p;
+            currency = c;
+            selectedProvince = province;
+            selectedCity = city;
+            description = desc;
+          }),
           onSubmit: _submitAd,
-          onBack: () {
-            setState(() {
-              currentStep = 1;
-            });
-          },
+          onBack: () => setState(() => currentStep = 1),
         );
       default:
         return Container();
     }
   }
-  void _showUploadingDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => WillPopScope(
-        onWillPop: () async => false,
-        child: AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(height: 10),
-              CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
-              ),
-              SizedBox(height: 20),
-              Text(
-                'جارٍ رفع الإعلان...',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 10),
-              Text(
-                'يرجى الانتظار حتى يتم إرسال البيانات.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
-              ),
-              SizedBox(height: 10),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Future<void> _submitAd() async {
-    setState(() {
-      _isUploading = true;
-    });
+    setState(() => _isUploading = true);
     _showUploadingDialog();
 
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token') ?? '';
 
-      // ضغط الصور وتحويلها إلى Base64
       List<String> base64Images = [];
-
       for (File? image in selectedImages.where((img) => img != null)) {
         final compressedBytes = await FlutterImageCompress.compressWithFile(
           image!.path,
           quality: 60,
           format: CompressFormat.jpeg,
         );
-
         if (compressedBytes != null) {
           base64Images.add(base64Encode(compressedBytes));
         }
       }
-
-      Map<String, int> categoryMapping = {
-        'أثاث': 1,
-      };
-
-      Map<String, int> subCategoryMapping = {
-        'غرف نوم': 101,
-        'أثاث مكتب': 102,
-        'غرف ضيوف': 103,
-        'طاولات': 104,
-        'كراسي': 105,
-        'خزائن': 106,
-        'أثاث أطفال': 107,
-        'أثاث حدائق': 108,
-      };
 
       Map<String, dynamic> requestData = {
         'userId': prefs.getString('userId'),
         'productTitle': productTitle,
         'price': price,
         'currency': currency,
-        'category': categoryMapping[selectedCategory] ?? 1,
-        'subCategory': subCategoryMapping[selectedSubCategory] ?? 101,
+        'category': _getCategoryId(selectedCategory),
+        'subCategory': _getSubCategoryId(selectedSubCategory),
         'city': selectedProvince,
         'region': selectedCity,
         'createDate': DateTime.now().toIso8601String(),
@@ -274,7 +212,6 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       };
 
       final response = await http.post(
-        //Uri.parse('http://192.168.1.120:10000/api/userProducts/add'),
         Uri.parse('http://localhost:10000/api/userProducts/add'),
         headers: {
           'Content-Type': 'application/json',
@@ -283,89 +220,114 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         body: jsonEncode(requestData),
       );
 
-      Navigator.of(context).pop(); // إغلاق شريط التحميل
-
-      if (response.statusCode == 201) {
-        _showSuccessDialog();
-      } else {
-        _showErrorDialog('فشل في نشر الإعلان. حاول مرة أخرى.\n${response.body}');
-      }
+      Navigator.of(context).pop();
+      response.statusCode == 201 ? _showSuccessDialog() : _showErrorDialog('فشل في نشر الإعلان');
     } catch (e) {
-      Navigator.of(context).pop(); // إغلاق شريط التحميل
-      _showErrorDialog('حدث خطأ أثناء الاتصال بالخادم.');
+      Navigator.of(context).pop();
+      _showErrorDialog('حدث خطأ أثناء الاتصال بالخادم');
     } finally {
-      setState(() {
-        _isUploading = false;
-      });
+      setState(() => _isUploading = false);
     }
+  }
+
+  int _getCategoryId(String category) {
+    const categoryMapping = {'أثاث': 1};
+    return categoryMapping[category] ?? 1;
+  }
+
+  int _getSubCategoryId(String subCategory) {
+    const subCategoryMapping = {
+      'غرف نوم': 101,
+      'أثاث مكتب': 102,
+      'غرف ضيوف': 103,
+      'طاولات': 104,
+      'كراسي': 105,
+      'خزائن': 106,
+      'أثاث أطفال': 107,
+      'أثاث حدائق': 108,
+    };
+    return subCategoryMapping[subCategory] ?? 101;
+  }
+
+  void _showUploadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'جارٍ رفع الإعلان...',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'يرجى الانتظار حتى يتم إرسال البيانات',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showSuccessDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.green, size: 30),
-              SizedBox(width: 10),
-              Text('تم نشر الإعلان بنجاح'),
-            ],
-          ),
-          content: Text(
-            'شكراً لك! تم نشر إعلانك بنجاح.',
-            style: TextStyle(fontSize: 16),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
-              child: Text('موافق', style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.bold)),
-            ),
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green),
+            SizedBox(width: 10),
+            Text('تم بنجاح'),
           ],
-        );
-      },
+        ),
+        content: const Text('تم نشر إعلانك بنجاح'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
+            child: const Text('موافق', style: TextStyle(color: Colors.deepPurple)),
+          ),
+        ],
+      ),
     );
   }
 
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: Row(
-            children: [
-              Icon(Icons.error, color: Colors.red, size: 30),
-              SizedBox(width: 10),
-              Text('فشل في نشر الإعلان'),
-            ],
-          ),
-          content: Text(
-            message,
-            style: TextStyle(fontSize: 16),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('موافق', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-            ),
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Row(
+          children: [
+            Icon(Icons.error, color: Colors.red),
+            SizedBox(width: 10),
+            Text('خطأ'),
           ],
-        );
-      },
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('موافق', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
   }
-
 }
 
-// المرحلة الأولى: اختيار الصور
 class ImagesSelectionStep extends StatefulWidget {
   final List<File?> selectedImages;
   final Function(List<File?>) onImagesChanged;
@@ -434,7 +396,7 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
                 SizedBox(height: 30),
                 Expanded(
                   child: GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
                       crossAxisSpacing: 10,
                       mainAxisSpacing: 10,
@@ -524,7 +486,6 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
   }
 }
 
-// المرحلة الثانية: اختيار التصنيف
 class CategorySelectionStep extends StatelessWidget {
   final String selectedCategory;
   final String selectedSubCategory;
@@ -624,7 +585,6 @@ class CategorySelectionStep extends StatelessWidget {
   }
 }
 
-// شاشة التصنيفات الفرعية
 class SubCategoryScreen extends StatelessWidget {
   final Function(String) onSubCategorySelected;
 
@@ -652,7 +612,7 @@ class SubCategoryScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 15,
             mainAxisSpacing: 15,
@@ -691,7 +651,6 @@ class SubCategoryScreen extends StatelessWidget {
   }
 }
 
-// المرحلة الثالثة: تفاصيل الإعلان
 class AdDetailsStep extends StatefulWidget {
   final String productTitle;
   final String price;
@@ -725,7 +684,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
   late TextEditingController _priceController;
   late TextEditingController _descriptionController;
 
-  String _currency = 'سوري';
+  String _currency = 'ل.س';
   String _selectedProvince = '';
   String _selectedCity = '';
 
@@ -775,7 +734,6 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                   ),
                   SizedBox(height: 20),
 
-                  // عنوان المنتج
                   TextField(
                     controller: _titleController,
                     decoration: InputDecoration(
@@ -786,7 +744,6 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                   ),
                   SizedBox(height: 15),
 
-                  // السعر والعملة
                   Row(
                     children: [
                       Expanded(
@@ -829,7 +786,6 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                   ),
                   SizedBox(height: 15),
 
-                  // المحافظة
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
@@ -855,7 +811,6 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                   ),
                   SizedBox(height: 15),
 
-                  // المدينة
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
@@ -880,7 +835,6 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                   ),
                   SizedBox(height: 15),
 
-                  // الوصف
                   TextField(
                     controller: _descriptionController,
                     maxLines: 4,
@@ -898,7 +852,6 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
 
           SizedBox(height: 20),
 
-          // أزرار التنقل
           Row(
             children: [
               Expanded(

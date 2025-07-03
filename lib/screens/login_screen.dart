@@ -25,7 +25,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _showPasswordEmail = false;
 
   Future<void> _login({required String method}) async {
-    //String apiUrl = 'http://192.168.1.120:10000/api/auth/login';
     String apiUrl = 'http://localhost:10000/api/auth/login';
 
     final body = method == 'phone'
@@ -38,60 +37,65 @@ class _LoginScreenState extends State<LoginScreen> {
       'password': passwordEmailController.text,
     };
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    final res = jsonDecode(response.body);
-
-    if (response.statusCode == 200 && res['token'] != null) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', res['token']);
-      if (res['username'] != null) {
-        await prefs.setString('username', res['username']);
-      }
-      if (res['email'] != null) {
-        await prefs.setString('email', res['email']);
-      }
-      if (res['userId'] != null) {
-        await prefs.setString('userId', res['userId']);
-      }
-
-
-      String? redirect = prefs.getString('redirect_to');
-      prefs.remove('redirect_to');
-
-      Widget nextScreen;
-      switch (redirect) {
-        case 'myAds':
-          nextScreen = MyAdsScreen();
-          break;
-        case 'addAd':
-          nextScreen = MultiStepAddAdScreen();
-          break;
-        default:
-          nextScreen = HomeScreen();
-      }
-
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => nextScreen),
-            (route) => false,
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
       );
-    } else {
-      String message = res['message'] ?? 'حدث خطأ أثناء تسجيل الدخول';
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+
+      final res = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && res['token'] != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', res['token']);
+        if (res['username'] != null) await prefs.setString('username', res['username']);
+        if (res['email'] != null) await prefs.setString('email', res['email']);
+        if (res['userId'] != null) await prefs.setString('userId', res['userId']);
+
+        _navigateAfterLogin(prefs);
+      } else {
+        _showError(res['message'] ?? 'حدث خطأ أثناء تسجيل الدخول');
+      }
+    } catch (e) {
+      _showError('حدث خطأ في الاتصال بالخادم');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _navigateAfterLogin(SharedPreferences prefs) {
+    String? redirect = prefs.getString('redirect_to');
+    prefs.remove('redirect_to');
+
+    Widget nextScreen;
+    switch (redirect) {
+      case 'myAds':
+        nextScreen = const MyAdsScreen();
+        break;
+      case 'addAd':
+        nextScreen = const MultiStepAddAdScreen();
+        break;
+      default:
+        nextScreen = const HomeScreen();
+    }
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => nextScreen),
+          (route) => false,
+    );
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   Widget _buildLoginTab({
@@ -113,15 +117,20 @@ class _LoginScreenState extends State<LoginScreen> {
               labelText: label1,
               filled: true,
               fillColor: Colors.white,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              prefixIcon: Icon(label1.contains("الهاتف") ? Icons.phone : Icons.email,
-                  color: Colors.deepPurple),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              prefixIcon: Icon(
+                label1.contains("الهاتف") ? Icons.phone : Icons.email,
+                color: Colors.deepPurple,
+              ),
             ),
             keyboardType: label1.contains("الهاتف")
                 ? TextInputType.phone
                 : TextInputType.emailAddress,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           TextField(
             controller: controller2,
             obscureText: obscureText,
@@ -129,8 +138,11 @@ class _LoginScreenState extends State<LoginScreen> {
               labelText: label2,
               filled: true,
               fillColor: Colors.white,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              prefixIcon: Icon(Icons.lock, color: Colors.deepPurple),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              prefixIcon: const Icon(Icons.lock, color: Colors.deepPurple),
               suffixIcon: IconButton(
                 icon: Icon(
                   obscureText ? Icons.visibility_off : Icons.visibility,
@@ -140,27 +152,31 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           _isLoading
-              ? CircularProgressIndicator()
+              ? const CircularProgressIndicator()
               : ElevatedButton(
             onPressed: onLogin,
             style: ElevatedButton.styleFrom(
-              minimumSize: Size(double.infinity, 50),
+              minimumSize: const Size(double.infinity, 50),
               backgroundColor: Colors.deepPurple,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
             ),
-            child: Text('تسجيل الدخول', style: TextStyle(fontSize: 18, color: Colors.white)),
+            child: const Text(
+              'تسجيل الدخول',
+              style: TextStyle(fontSize: 18, color: Colors.white),
+            ),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           TextButton(
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => RegisterScreen()),
+                MaterialPageRoute(builder: (_) => const RegisterScreen()),
               );
             },
-            child: Text(
+            child: const Text(
               "ليس لديك حساب؟ إنشاء حساب جديد",
               style: TextStyle(color: Colors.deepPurple),
             ),
@@ -179,17 +195,19 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Scaffold(
           backgroundColor: Colors.grey[100],
           appBar: AppBar(
-            backgroundColor: Colors.deepPurpleAccent,
-            title: Text('تسجيل الدخول'),
+            title: const Text('تسجيل الدخول'),
+            centerTitle: true,
+            backgroundColor: Colors.deepPurple,
+            foregroundColor: Colors.white,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context),
             ),
             bottom: TabBar(
               indicatorColor: Colors.white,
               labelColor: Colors.white,
               unselectedLabelColor: Colors.white70,
-              tabs: [
+              tabs: const [
                 Tab(icon: Icon(Icons.phone_android), text: 'برقم الهاتف'),
                 Tab(icon: Icon(Icons.email_outlined), text: 'بالبريد الإلكتروني'),
               ],

@@ -11,13 +11,12 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController firstNameController = TextEditingController();
-  final TextEditingController lastNameController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final emailController = TextEditingController();
+  final firstNameController = TextEditingController();
+  final lastNameController = TextEditingController();
+  final phoneController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
 
   bool _showPassword = false;
   bool _showConfirmPassword = false;
@@ -27,46 +26,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     if (passwordController.text != confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("كلمتا المرور غير متطابقتين")),
-      );
+      _showError("كلمتا المرور غير متطابقتين");
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
-    final url = Uri.parse('http://localhost:10000/api/auth/register');
-
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'email': emailController.text.trim(),
-        'firstName': firstNameController.text.trim(),
-        'lastName': lastNameController.text.trim(),
-        'phoneNumber': phoneController.text.trim(),
-        'password': passwordController.text,
-      }),
-    );
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("تم إنشاء الحساب بنجاح!")),
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:10000/api/auth/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': emailController.text.trim(),
+          'firstName': firstNameController.text.trim(),
+          'lastName': lastNameController.text.trim(),
+          'phoneNumber': phoneController.text.trim(),
+          'password': passwordController.text,
+        }),
       );
-      Navigator.pop(context); // العودة لتسجيل الدخول
-    } else {
-      var resBody = jsonDecode(response.body);
-      String errorMsg = resBody['message'] ?? 'حدث خطأ، حاول مرة أخرى';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMsg)),
-      );
+
+      if (response.statusCode == 201) {
+        _showSuccess("تم إنشاء الحساب بنجاح!");
+        Navigator.pop(context);
+      } else {
+        final resBody = jsonDecode(response.body);
+        _showError(resBody['message'] ?? 'حدث خطأ، حاول مرة أخرى');
+      }
+    } catch (e) {
+      _showError('حدث خطأ في الاتصال بالخادم');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
   @override
@@ -76,10 +84,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: Scaffold(
         backgroundColor: Colors.grey[100],
         appBar: AppBar(
-          title: Text('إنشاء حساب جديد'),
-          backgroundColor: Colors.deepPurpleAccent,
+          title: const Text('إنشاء حساب جديد'),
+          centerTitle: true,
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -100,7 +110,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -111,7 +121,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         value == null || value.isEmpty ? 'يرجى إدخال الاسم الأول' : null,
                       ),
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: _buildTextField(
                         label: 'الاسم الأخير',
@@ -122,7 +132,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 _buildTextField(
                   label: 'رقم الهاتف',
                   controller: phoneController,
@@ -131,7 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: (value) =>
                   value == null || value.isEmpty ? 'يرجى إدخال رقم الهاتف' : null,
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 _buildTextField(
                   label: 'كلمة المرور',
                   controller: passwordController,
@@ -139,9 +149,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: !_showPassword,
                   suffixIcon: IconButton(
                     icon: Icon(_showPassword ? Icons.visibility : Icons.visibility_off),
-                    onPressed: () {
-                      setState(() => _showPassword = !_showPassword);
-                    },
+                    onPressed: () => setState(() => _showPassword = !_showPassword),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'يرجى إدخال كلمة المرور';
@@ -149,7 +157,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 _buildTextField(
                   label: 'إعادة كلمة المرور',
                   controller: confirmPasswordController,
@@ -157,9 +165,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: !_showConfirmPassword,
                   suffixIcon: IconButton(
                     icon: Icon(_showConfirmPassword ? Icons.visibility : Icons.visibility_off),
-                    onPressed: () {
-                      setState(() => _showConfirmPassword = !_showConfirmPassword);
-                    },
+                    onPressed: () => setState(() => _showConfirmPassword = !_showConfirmPassword),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'يرجى إعادة كلمة المرور';
@@ -167,19 +173,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
                 _isLoading
-                    ? CircularProgressIndicator()
+                    ? const CircularProgressIndicator()
                     : ElevatedButton(
                   onPressed: registerUser,
                   style: ElevatedButton.styleFrom(
-                    minimumSize: Size(double.infinity, 50),
+                    minimumSize: const Size(double.infinity, 50),
                     backgroundColor: Colors.deepPurple,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: Text('إنشاء حساب', style: TextStyle(fontSize: 18, color: Colors.white)),
+                  child: const Text(
+                    'إنشاء حساب',
+                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  ),
                 ),
               ],
             ),
@@ -209,7 +218,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         fillColor: Colors.white,
         prefixIcon: icon != null ? Icon(icon, color: Colors.deepPurple) : null,
         suffixIcon: suffixIcon,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
       ),
     );
   }

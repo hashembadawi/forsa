@@ -39,31 +39,51 @@ class _EditAdScreenState extends State<EditAdScreen> {
     _currency = widget.initialCurrency;
   }
 
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _priceController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
   Future<void> _updateAd() async {
+    if (_titleController.text.isEmpty ||
+        _priceController.text.isEmpty ||
+        _descriptionController.text.isEmpty) {
+      _showErrorDialog('يرجى ملء جميع الحقول المطلوبة');
+      return;
+    }
+
     setState(() => _isUpdating = true);
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
 
-    final response = await http.put(
-      Uri.parse('http://localhost:10000/api/userProducts/update/${widget.adId}'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({
-        'productTitle': _titleController.text,
-        'price': _priceController.text,
-        'currency': _currency,
-        'description': _descriptionController.text,
-      }),
-    );
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token') ?? '';
 
-    setState(() => _isUpdating = false);
+      final response = await http.put(
+        Uri.parse('http://localhost:10000/api/userProducts/update/${widget.adId}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'productTitle': _titleController.text,
+          'price': _priceController.text,
+          'currency': _currency,
+          'description': _descriptionController.text,
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      _showSuccessDialog();
-    } else {
-      _showErrorDialog('فشل في تحديث الإعلان: ${response.body}');
+      if (response.statusCode == 200) {
+        _showSuccessDialog();
+      } else {
+        _showErrorDialog('فشل في تحديث الإعلان: ${response.body}');
+      }
+    } catch (e) {
+      _showErrorDialog('حدث خطأ في الاتصال بالخادم');
+    } finally {
+      if (mounted) setState(() => _isUpdating = false);
     }
   }
 
@@ -71,15 +91,18 @@ class _EditAdScreenState extends State<EditAdScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('تم التحديث'),
-        content: Text('تم تعديل الإعلان بنجاح.'),
+        title: const Text('تم التحديث'),
+        content: const Text('تم تعديل الإعلان بنجاح.'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(); // يغلق الحوار
-              Navigator.of(context).pop(true); // يعود للشاشة السابقة ويشير إلى نجاح التعديل
+              Navigator.of(context).pop();
+              Navigator.of(context).pop(true);
             },
-            child: Text('موافق'),
+            child: const Text('موافق', style: TextStyle(color: Colors.deepPurple)),
           ),
         ],
       ),
@@ -90,12 +113,15 @@ class _EditAdScreenState extends State<EditAdScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('خطأ'),
+        title: const Text('خطأ'),
         content: Text(message),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('إغلاق'),
+            child: const Text('إغلاق', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -104,57 +130,110 @@ class _EditAdScreenState extends State<EditAdScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('تعديل الإعلان'),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: InputDecoration(labelText: 'عنوان الإعلان'),
-            ),
-            SizedBox(height: 15),
-            TextField(
-              controller: _priceController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'السعر'),
-            ),
-            SizedBox(height: 15),
-            DropdownButtonFormField<String>(
-              value: _currency,
-              decoration: InputDecoration(labelText: 'العملة'),
-              items: ['ل.س', 'دولار', 'ل.ت']
-                  .map((val) => DropdownMenuItem(value: val, child: Text(val)))
-                  .toList(),
-              onChanged: (val) => setState(() => _currency = val!),
-            ),
-            SizedBox(height: 15),
-            TextField(
-              controller: _descriptionController,
-              maxLines: 4,
-              decoration: InputDecoration(labelText: 'الوصف'),
-            ),
-            SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _isUpdating ? null : _updateAd,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  foregroundColor: Colors.white,
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('تعديل الإعلان'),
+          centerTitle: true,
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _titleController,
+                decoration: InputDecoration(
+                  labelText: 'عنوان الإعلان',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: _isUpdating
-                    ? CircularProgressIndicator(color: Colors.white)
-                    : Text('حفظ التعديلات'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'يرجى إدخال عنوان الإعلان';
+                  }
+                  return null;
+                },
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _priceController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'السعر',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'يرجى إدخال السعر';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _currency,
+                decoration: InputDecoration(
+                  labelText: 'العملة',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                items: ['ل.س', 'دولار', 'ل.ت']
+                    .map((val) => DropdownMenuItem(
+                  value: val,
+                  child: Text(val),
+                ))
+                    .toList(),
+                onChanged: (val) => setState(() => _currency = val!),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _descriptionController,
+                maxLines: 5,
+                decoration: InputDecoration(
+                  labelText: 'الوصف',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  alignLabelWithHint: true,
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'يرجى إدخال الوصف';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isUpdating ? null : _updateAd,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: _isUpdating
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('حفظ التعديلات'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

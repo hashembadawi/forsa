@@ -40,9 +40,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
   Future<void> fetchMyAds() async {
     if (isLoading || !hasMore || userId == null) return;
 
-    setState(() {
-      isLoading = true;
-    });
+    setState(() => isLoading = true);
 
     try {
       final url = Uri.parse(
@@ -60,21 +58,17 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
         setState(() {
           myAds.addAll(ads);
           currentPage++;
-          if (ads.length < limit) {
-            hasMore = false;
-          }
+          if (ads.length < limit) hasMore = false;
         });
       } else {
         hasMore = false;
-        print('Error: ${response.statusCode} - ${response.body}');
+        debugPrint('Error: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       hasMore = false;
-      print('Exception: $e');
+      debugPrint('Exception: $e');
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
@@ -95,14 +89,12 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
       );
 
       if (response.statusCode == 200) {
-        setState(() {
-          myAds.removeWhere((ad) => ad['_id'] == adId);
-        });
+        setState(() => myAds.removeWhere((ad) => ad['_id'] == adId));
       } else {
-        print('فشل في الحذف: ${response.body}');
+        _showError('فشل في حذف الإعلان');
       }
     } catch (e) {
-      print('خطأ أثناء الحذف: $e');
+      _showError('حدث خطأ أثناء الحذف');
     }
   }
 
@@ -110,19 +102,19 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('تأكيد الحذف'),
-        content: Text('هل أنت متأكد أنك تريد حذف هذا الإعلان؟'),
+        title: const Text('تأكيد الحذف'),
+        content: const Text('هل أنت متأكد أنك تريد حذف هذا الإعلان؟'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('إلغاء'),
+            child: const Text('إلغاء'),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _deleteAd(adId);
             },
-            child: Text('حذف', style: TextStyle(color: Colors.red)),
+            child: const Text('حذف', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -143,7 +135,6 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
       ),
     );
 
-    // إذا تم التعديل بنجاح، قم بإعادة تحميل الإعلانات
     if (updated == true) {
       setState(() {
         myAds.clear();
@@ -152,6 +143,15 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
       });
       fetchMyAds();
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   String formatDate(String isoDate) {
@@ -175,149 +175,166 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('إعلاناتي'),
+        title: const Text('إعلاناتي'),
+        centerTitle: true,
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
       ),
-      body: myAds.isEmpty && isLoading
-          ? Center(child: CircularProgressIndicator())
-          : myAds.isEmpty
-          ? Center(child: Text('لا توجد إعلانات بعد'))
-          : ListView.builder(
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (myAds.isEmpty && isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (myAds.isEmpty) {
+      return const Center(
+        child: Text(
+          'لا توجد إعلانات بعد',
+          style: TextStyle(fontSize: 18, color: Colors.grey),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        setState(() {
+          myAds.clear();
+          currentPage = 1;
+          hasMore = true;
+        });
+        await fetchMyAds();
+      },
+      child: ListView.builder(
         controller: _scrollController,
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         itemCount: myAds.length + (hasMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == myAds.length) {
-            return Padding(
+            return const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
               child: Center(child: CircularProgressIndicator()),
             );
           }
 
           final ad = myAds[index];
+          return _buildAdCard(ad);
+        },
+      ),
+    );
+  }
 
-          final List<dynamic> images =
-          ad['images'] is List ? ad['images'] : [];
-          final firstImageBase64 =
-          images.isNotEmpty ? images[0] : null;
+  Widget _buildAdCard(Map<String, dynamic> ad) {
+    final List<dynamic> images = ad['images'] is List ? ad['images'] : [];
+    final firstImageBase64 = images.isNotEmpty ? images[0] : null;
 
-          final image = firstImageBase64 != null
-              ? Image.memory(
-            base64Decode(firstImageBase64),
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 4,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            child: SizedBox(
+              height: 200,
+              width: double.infinity,
+              child: firstImageBase64 != null
+                  ? Image.memory(
+                base64Decode(firstImageBase64),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.image, size: 60),
+                  );
+                },
+              )
+                  : Container(
                 color: Colors.grey[200],
-                child: Icon(Icons.image, size: 60),
-              );
-            },
-          )
-              : Container(
-            color: Colors.grey[200],
-            child: Icon(Icons.image, size: 60),
-          );
-
-          return Card(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
-            margin: EdgeInsets.only(bottom: 16),
-            elevation: 4,
+                child: const Icon(Icons.image, size: 60),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(12)),
-                  child: SizedBox(
-                    height: 200,
-                    width: double.infinity,
-                    child: image,
+                Text(
+                  ad['productTitle'] ?? '',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[800],
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        ad['productTitle'] ?? '',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[800]),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        '${ad['price'] ?? '0'} ${ad['currency'] ?? ''}',
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        ad['description'] ?? '',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[800]),
-                      ),
-                      SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Icon(Icons.location_on,
-                              size: 18, color: Colors.deepPurple),
-                          SizedBox(width: 4),
-                          Text(
-                            '${ad['city'] ?? ''} - ${ad['region'] ?? ''}',
-                            style:
-                            TextStyle(color: Colors.grey[700]),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Icon(Icons.access_time,
-                              size: 18, color: Colors.grey),
-                          SizedBox(width: 4),
-                          Text(
-                            ad['createDate'] != null
-                                ? formatDate(ad['createDate'])
-                                : 'غير محدد',
-                            style:
-                            TextStyle(color: Colors.grey[600]),
-                          ),
-                        ],
-                      ),
-                      Divider(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton.icon(
-                            onPressed: () =>
-                                _navigateToEditAd(ad), // مؤقتًا
-                            icon: Icon(Icons.edit, color: Colors.blue),
-                            label: Text('تعديل'),
-                          ),
-                          TextButton.icon(
-                            onPressed: () =>
-                                _confirmDeleteAd(ad['_id']),
-                            icon:
-                            Icon(Icons.delete, color: Colors.red),
-                            label: Text('حذف'),
-                          ),
-                        ],
-                      ),
-                    ],
+                const SizedBox(height: 10),
+                Text(
+                  '${ad['price'] ?? '0'} ${ad['currency'] ?? ''}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  ad['description'] ?? '',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on, size: 18, color: Colors.deepPurple),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${ad['city'] ?? ''} - ${ad['region'] ?? ''}',
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.access_time, size: 18, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text(
+                      ad['createDate'] != null
+                          ? formatDate(ad['createDate'])
+                          : 'غير محدد',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+                const Divider(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton.icon(
+                      onPressed: () => _navigateToEditAd(ad),
+                      icon: const Icon(Icons.edit, color: Colors.blue),
+                      label: const Text('تعديل'),
+                    ),
+                    TextButton.icon(
+                      onPressed: () => _confirmDeleteAd(ad['_id']),
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      label: const Text('حذف'),
+                    ),
+                  ],
                 ),
               ],
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
