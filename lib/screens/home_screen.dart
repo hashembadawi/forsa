@@ -110,14 +110,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String formatDate(String isoDate) {
-    final date = DateTime.parse(isoDate);
-    final now = DateTime.now();
-    final difference = now.difference(date);
+    try {
+      final date = DateTime.parse(isoDate);
+      final now = DateTime.now();
+      final difference = now.difference(date);
 
-    if (difference.inDays >= 1) return 'منذ ${difference.inDays} يوم';
-    if (difference.inHours >= 1) return 'منذ ${difference.inHours} ساعة';
-    if (difference.inMinutes >= 1) return 'منذ ${difference.inMinutes} دقيقة';
-    return 'الآن';
+      if (difference.inDays >= 1) return 'منذ ${difference.inDays} يوم';
+      if (difference.inHours >= 1) return 'منذ ${difference.inHours} ساعة';
+      if (difference.inMinutes >= 1) return 'منذ ${difference.inMinutes} دقيقة';
+      return 'الآن';
+    } catch (e) {
+      return 'غير محدد';
+    }
   }
 
   Widget _buildAdCard(dynamic ad) {
@@ -143,104 +147,85 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(16),
       ),
       elevation: 2,
-      margin: const EdgeInsets.all(4), // Reduced margin
+      margin: const EdgeInsets.all(4),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {
           // يمكن إضافة تفاصيل الإعلان هنا
         },
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            // Dynamically adjust font sizes and icon sizes based on available height
-            final fontSize = constraints.maxHeight * 0.16; // Reduced to 16%
-            final iconSize = constraints.maxHeight * 0.13; // Reduced to 13%
-            return ClipRect(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 4, // Image takes 80% of available space
-                    child: ClipRRect(
-                      borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: image,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // صورة الإعلان
+            Expanded(
+              flex: 3,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: image,
+                ),
+              ),
+            ),
+            // محتوى النص
+            Expanded(
+              flex: 2,
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 80),
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // السعر
+                      Text(
+                        '${ad['price'] ?? '0'} ${ad['currency'] ?? ''}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1, // Text content takes 20% of available space
-                    child: Padding(
-                      padding: const EdgeInsets.all(4), // Reduced padding
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      // الوصف
+                      Text(
+                        ad['description'] ?? '',
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: Colors.grey[800],
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                      // الموقع والتاريخ في سطر واحد
+                      Row(
                         children: [
-                          Text(
-                            '${ad['price'] ?? '0'} ${ad['currency'] ?? ''}',
-                            style: TextStyle(
-                                fontSize: fontSize.clamp(10, 12),
-                                fontWeight: FontWeight.bold),
-                            overflow: TextOverflow.ellipsis,
+                          Icon(
+                            Icons.location_on,
+                            size: 8,
+                            color: Colors.deepPurple,
                           ),
-                          const SizedBox(height: 2), // Reduced spacing
+                          const SizedBox(width: 1),
                           Expanded(
                             child: Text(
-                              ad['description'] ?? '',
-                              maxLines: 1, // Reduced to 1 line
-                              overflow: TextOverflow.ellipsis,
+                              '${ad['city'] ?? ''} - ${formatDate(ad['createDate'] ?? '')}',
                               style: TextStyle(
-                                  fontSize: fontSize.clamp(8, 10),
-                                  color: Colors.grey[800],
-                                  height: 1.1),
+                                color: Colors.grey[600],
+                                fontSize: 8,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
-                          ),
-                          const SizedBox(height: 2), // Reduced spacing
-                          Row(
-                            children: [
-                              Icon(Icons.location_on,
-                                  size: iconSize.clamp(8, 10),
-                                  color: Colors.deepPurple),
-                              const SizedBox(width: 2),
-                              Expanded(
-                                child: Text(
-                                  '${ad['city'] ?? ''} - ${ad['region'] ?? ''}',
-                                  style: TextStyle(
-                                      color: Colors.grey[700],
-                                      fontSize: fontSize.clamp(7, 9)),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 2), // Reduced spacing
-                          Row(
-                            children: [
-                              Icon(Icons.access_time,
-                                  size: iconSize.clamp(8, 10),
-                                  color: Colors.grey),
-                              const SizedBox(width: 2),
-                              Expanded(
-                                child: Text(
-                                  ad['createDate'] != null
-                                      ? formatDate(ad['createDate'])
-                                      : 'غير محدد',
-                                  style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: fontSize.clamp(7, 9)),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
                           ),
                         ],
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
@@ -351,11 +336,11 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
                   mainAxisSpacing: 12,
                   crossAxisSpacing: 12,
-                  childAspectRatio: 0.9, // Increased to reduce card height
+                  childAspectRatio: 0.65, // تقليل النسبة لإعطاء ارتفاع أكبر
                 ),
                 delegate: SliverChildBuilderDelegate(
                       (context, index) {

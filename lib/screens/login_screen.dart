@@ -25,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _showPasswordEmail = false;
 
   Future<void> _login({required String method}) async {
-    String apiUrl = 'http://localhost:10000/api/auth/login';
+    String apiUrl = 'http://192.168.1.120:10000/api/auth/login';
 
     final body = method == 'phone'
         ? {
@@ -55,6 +55,10 @@ class _LoginScreenState extends State<LoginScreen> {
         if (res['email'] != null) await prefs.setString('email', res['email']);
         if (res['userId'] != null) await prefs.setString('userId', res['userId']);
 
+        print(res['token']);
+        print(res['username']);
+        print(res['email']);
+        print(res['userId']);
         _navigateAfterLogin(prefs);
       } else {
         _showError(res['message'] ?? 'حدث خطأ أثناء تسجيل الدخول');

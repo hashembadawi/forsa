@@ -62,7 +62,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
       final token = prefs.getString('token') ?? '';
 
       final response = await http.put(
-        Uri.parse('http://localhost:10000/api/userProducts/update/${widget.adId}'),
+        Uri.parse('http://192.168.1.120:10000/api/userProducts/update/${widget.adId}'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

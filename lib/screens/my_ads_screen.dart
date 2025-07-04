@@ -44,7 +44,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
 
     try {
       final url = Uri.parse(
-        'http://localhost:10000/api/userProducts/$userId?page=$currentPage&limit=$limit',
+        'http://192.168.1.120:10000/api/userProducts/$userId?page=$currentPage&limit=$limit',
       );
 
       final response = await http.get(url, headers: {
@@ -80,7 +80,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
   }
 
   Future<void> _deleteAd(String adId) async {
-    final url = Uri.parse('http://localhost:10000/api/userProducts/$adId');
+    final url = Uri.parse('http://192.168.1.120:10000/api/userProducts/$adId');
 
     try {
       final response = await http.delete(

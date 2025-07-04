@@ -184,6 +184,9 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token') ?? '';
+      final userId = prefs.getString('userId') ?? '';
+      print(token);
+      print(userId);
 
       List<String> base64Images = [];
       for (File? image in selectedImages.where((img) => img != null)) {
@@ -196,9 +199,8 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
           base64Images.add(base64Encode(compressedBytes));
         }
       }
-
       Map<String, dynamic> requestData = {
-        'userId': prefs.getString('userId'),
+        'userId': userId,
         'productTitle': productTitle,
         'price': price,
         'currency': currency,
@@ -212,15 +214,16 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       };
 
       final response = await http.post(
-        Uri.parse('http://localhost:10000/api/userProducts/add'),
+        Uri.parse('http://192.168.1.120:10000/api/userProducts/add'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': token,
+          'Authorization':'Bearer $token',
         },
         body: jsonEncode(requestData),
       );
 
       Navigator.of(context).pop();
+      print(response.statusCode);
       response.statusCode == 201 ? _showSuccessDialog() : _showErrorDialog('فشل في نشر الإعلان');
     } catch (e) {
       Navigator.of(context).pop();
