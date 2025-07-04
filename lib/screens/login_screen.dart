@@ -54,11 +54,8 @@ class _LoginScreenState extends State<LoginScreen> {
         if (res['username'] != null) await prefs.setString('username', res['username']);
         if (res['email'] != null) await prefs.setString('email', res['email']);
         if (res['userId'] != null) await prefs.setString('userId', res['userId']);
+        if (res['userPhone'] != null) await prefs.setString('userPhone', res['userPhone']);
 
-        print(res['token']);
-        print(res['username']);
-        print(res['email']);
-        print(res['userId']);
         _navigateAfterLogin(prefs);
       } else {
         _showError(res['message'] ?? 'حدث خطأ أثناء تسجيل الدخول');

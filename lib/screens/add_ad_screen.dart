@@ -185,8 +185,11 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token') ?? '';
       final userId = prefs.getString('userId') ?? '';
-      print(token);
-      print(userId);
+      final userPhone = prefs.getString('userPhone') ?? '';
+      final username = prefs.getString('username') ?? '';
+
+      print(userPhone);
+      print(username);
 
       List<String> base64Images = [];
       for (File? image in selectedImages.where((img) => img != null)) {
@@ -201,6 +204,8 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       }
       Map<String, dynamic> requestData = {
         'userId': userId,
+        'userPhone': userPhone,
+        'userName': username,
         'productTitle': productTitle,
         'price': price,
         'currency': currency,
@@ -212,7 +217,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         'description': description,
         'images': base64Images,
       };
-
+print(requestData);
       final response = await http.post(
         Uri.parse('http://192.168.1.120:10000/api/userProducts/add'),
         headers: {
