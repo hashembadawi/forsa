@@ -186,10 +186,13 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       final token = prefs.getString('token') ?? '';
       final userId = prefs.getString('userId') ?? '';
       final userPhone = prefs.getString('userPhone') ?? '';
-      final username = prefs.getString('username') ?? '';
+      final username = prefs.getString('userName') ?? '';
+      final userEmail = prefs.getString('userEmail') ?? '';
 
       print(userPhone);
       print(username);
+      print(userId);
+      print(userEmail);
 
       List<String> base64Images = [];
       for (File? image in selectedImages.where((img) => img != null)) {
@@ -217,7 +220,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         'description': description,
         'images': base64Images,
       };
-print(requestData);
+
       final response = await http.post(
         Uri.parse('http://192.168.1.120:10000/api/userProducts/add'),
         headers: {
