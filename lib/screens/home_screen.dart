@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'account_screen.dart';
+import 'ad_details_screen.dart';
 import 'add_ad_screen.dart';
 import 'login_screen.dart';
 import 'my_ads_screen.dart';
@@ -151,7 +152,12 @@ class _HomeScreenState extends State<HomeScreen> {
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {
-          // يمكن إضافة تفاصيل الإعلان هنا
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AdDetailsScreen(ad: ad),
+            ),
+          );
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
