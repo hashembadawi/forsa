@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'image_preview_screen.dart'; // تأكد من أنك أضفت هذا الملف
 
 class AdDetailsScreen extends StatelessWidget {
   final dynamic ad;
@@ -27,10 +28,23 @@ class AdDetailsScreen extends StatelessWidget {
                 itemCount: images.length,
                 itemBuilder: (context, index) {
                   final imgBase64 = images[index];
-                  return Image.memory(
-                    base64Decode(imgBase64),
-                    fit: BoxFit.cover,
-                    width: double.infinity,
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ImagePreviewScreen(
+                            images: images,
+                            initialIndex: index,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Image.memory(
+                      base64Decode(imgBase64),
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                    ),
                   );
                 },
               ),
@@ -41,7 +55,7 @@ class AdDetailsScreen extends StatelessWidget {
             ),
             const Divider(),
 
-            // السعر والموقع
+            // باقي التفاصيل
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -53,17 +67,12 @@ class AdDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text('تاريخ الإعلان: ${_formatDate(ad['createDate'])}'),
                   const SizedBox(height: 12),
-
-                  // معلومات المعلن
                   const Text('معلومات المعلن:', style: TextStyle(fontWeight: FontWeight.bold)),
                   Text('الاسم: ${ad['userName']}'),
                   Text('الهاتف: ${ad['userPhone']}'),
                   const SizedBox(height: 12),
-
-                  // التصنيف
                   Text('التصنيف: ${_categoryName(ad['category'])}'),
                   const SizedBox(height: 20),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
