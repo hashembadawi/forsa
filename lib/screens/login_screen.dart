@@ -64,18 +64,13 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200 && res['token'] != null) {
         final prefs = await SharedPreferences.getInstance();
 
-        if (_rememberMe) {
-          await prefs.setString('token', res['token']);
-          await prefs.setBool('rememberMe', true);
-        } else {
-          await prefs.remove('token');
-          await prefs.setBool('rememberMe', false);
-        }
-
-        if (res['userName'] != null) await prefs.setString('userName', res['userName']);
-        if (res['userEmail'] != null) await prefs.setString('userEmail', res['userEmail']);
-        if (res['userId'] != null) await prefs.setString('userId', res['userId']);
-        if (res['userPhone'] != null) await prefs.setString('userPhone', res['userPhone']);
+        // حفظ البيانات دائمًا، سواء كان "تذكرني" مفعلًا أم لا
+        await prefs.setString('token', res['token']);
+        await prefs.setBool('rememberMe', _rememberMe);
+        await prefs.setString('userName', res['userName'] ?? '');
+        await prefs.setString('userEmail', res['userEmail'] ?? '');
+        await prefs.setString('userId', res['userId'] ?? '');
+        await prefs.setString('userPhone', res['userPhone'] ?? '');
 
         _navigateAfterLogin(prefs);
       } else {

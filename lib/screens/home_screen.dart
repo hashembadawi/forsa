@@ -43,8 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUsername();
     _adsScrollController = ScrollController()..addListener(_onAdsScroll);
+    _checkLoginStatus();
     fetchAllAds();
   }
 
@@ -54,11 +54,51 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void _loadUsername() async {
+  Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _username = prefs.getString('username');
-    });
+    final token = prefs.getString('token');
+    final rememberMe = prefs.getBool('rememberMe') ?? false;
+
+    if (token != null) {
+      try {
+        final response = await http.get(
+          Uri.parse('http://192.168.1.120:10000/api/auth/validate-token'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          // التوكن صالح، تحميل اسم المستخدم
+          setState(() {
+            _username = prefs.getString('userName') ?? 'مستخدم';
+          });
+        } else {
+          // التوكن غير صالح، مسح البيانات
+          await prefs.clear();
+          setState(() {
+            _username = null;
+          });
+        }
+      } catch (e) {
+        // خطأ في الاتصال، مسح البيانات إذا لم يكن rememberMe مفعلًا
+        if (!rememberMe) {
+          await prefs.clear();
+        }
+        setState(() {
+          _username = null;
+        });
+      }
+    } else {
+      // لا يوجد توكن، مسح البيانات إذا لم يكن rememberMe مفعلًا
+      if (!rememberMe) {
+        await prefs.clear();
+      }
+      setState(() {
+        _username = null;
+      });
+    }
   }
 
   Future<void> fetchAllAds() async {
@@ -162,7 +202,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // صورة الإعلان
             Expanded(
               flex: 3,
               child: ClipRRect(
@@ -173,7 +212,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            // محتوى النص
             Expanded(
               flex: 2,
               child: Container(
@@ -184,7 +222,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      // السعر
                       Text(
                         '${ad['price'] ?? '0'} ${ad['currency'] ?? ''}',
                         style: const TextStyle(
@@ -194,7 +231,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
-                      // الوصف
                       Text(
                         ad['description'] ?? '',
                         style: TextStyle(
@@ -204,7 +240,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
-                      // الموقع والتاريخ في سطر واحد
                       Row(
                         children: [
                           Icon(
@@ -346,7 +381,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
                   mainAxisSpacing: 12,
                   crossAxisSpacing: 12,
-                  childAspectRatio: 0.65, // تقليل النسبة لإعطاء ارتفاع أكبر
+                  childAspectRatio: 0.65,
                 ),
                 delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -578,8 +613,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.pop(context);
                   final prefs = await SharedPreferences.getInstance();
                   final token = prefs.getString('token');
-                  final username = prefs.getString('username') ?? '';
-                  final email = prefs.getString('email') ?? '';
+                  final username = prefs.getString('userName') ?? '';
+                  final email = prefs.getString('userEmail') ?? '';
 
                   if (token == null || token.isEmpty) {
                     await prefs.setString('redirect_to', 'account');
