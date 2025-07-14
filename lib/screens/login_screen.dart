@@ -23,9 +23,22 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _showPasswordPhone = false;
   bool _showPasswordEmail = false;
+  bool _rememberMe = false;
 
   Future<void> _login({required String method}) async {
     String apiUrl = 'http://192.168.1.120:10000/api/auth/login';
+
+    if (method == 'phone') {
+      if (phoneController.text.isEmpty || passwordPhoneController.text.isEmpty) {
+        _showError('يرجى إدخال رقم الهاتف وكلمة المرور');
+        return;
+      }
+    } else {
+      if (emailController.text.isEmpty || passwordEmailController.text.isEmpty) {
+        _showError('يرجى إدخال البريد وكلمة المرور');
+        return;
+      }
+    }
 
     final body = method == 'phone'
         ? {
@@ -50,7 +63,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.statusCode == 200 && res['token'] != null) {
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', res['token']);
+
+        if (_rememberMe) {
+          await prefs.setString('token', res['token']);
+          await prefs.setBool('rememberMe', true);
+        } else {
+          await prefs.remove('token');
+          await prefs.setBool('rememberMe', false);
+        }
+
         if (res['userName'] != null) await prefs.setString('userName', res['userName']);
         if (res['userEmail'] != null) await prefs.setString('userEmail', res['userEmail']);
         if (res['userId'] != null) await prefs.setString('userId', res['userId']);
@@ -135,6 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
           TextField(
             controller: controller2,
             obscureText: obscureText,
+            onSubmitted: (_) => onLogin(),
             decoration: InputDecoration(
               labelText: label2,
               filled: true,
@@ -153,7 +175,15 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
+          CheckboxListTile(
+            value: _rememberMe,
+            onChanged: (val) => setState(() => _rememberMe = val ?? false),
+            title: const Text("تذكرني", style: TextStyle(color: Colors.black87)),
+            controlAffinity: ListTileControlAffinity.leading,
+            contentPadding: EdgeInsets.zero,
+          ),
+          const SizedBox(height: 16),
           _isLoading
               ? const CircularProgressIndicator()
               : ElevatedButton(
@@ -171,11 +201,14 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           const SizedBox(height: 10),
           TextButton(
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const RegisterScreen()),
               );
+              if (result == true) {
+                _showError('تم إنشاء الحساب، يمكنك تسجيل الدخول الآن');
+              }
             },
             child: const Text(
               "ليس لديك حساب؟ إنشاء حساب جديد",
@@ -204,11 +237,11 @@ class _LoginScreenState extends State<LoginScreen> {
               icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context),
             ),
-            bottom: TabBar(
+            bottom: const TabBar(
               indicatorColor: Colors.white,
               labelColor: Colors.white,
               unselectedLabelColor: Colors.white70,
-              tabs: const [
+              tabs: [
                 Tab(icon: Icon(Icons.phone_android), text: 'برقم الهاتف'),
                 Tab(icon: Icon(Icons.email_outlined), text: 'بالبريد الإلكتروني'),
               ],
