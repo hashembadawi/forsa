@@ -50,7 +50,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.120:10000/api/auth/verify'),
+        Uri.parse('https://sahbo-app-api.onrender.com:10000/api/auth/verify'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'emailOrPhone': widget.emailOrPhone,
@@ -84,7 +84,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.120:10000/api/auth/resend-code'),
+        Uri.parse('https://sahbo-app-api.onrender.com:10000/api/auth/resend-code'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'emailOrPhone': widget.emailOrPhone}),
       );

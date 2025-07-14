@@ -35,7 +35,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.120:10000/api/auth/register'),
+        Uri.parse('https://sahbo-app-api.onrender.com:10000/api/auth/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': emailController.text.trim(),

@@ -222,7 +222,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       };
 
       final response = await http.post(
-        Uri.parse('http://192.168.1.120:10000/api/userProducts/add'),
+        Uri.parse('https://sahbo-app-api.onrender.com:10000/api/userProducts/add'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization':'Bearer $token',
