@@ -44,7 +44,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
 
     try {
       final url = Uri.parse(
-        'https://sahbo-app-api.onrender.com:10000/api/userProducts/$userId?page=$currentPage&limit=$limit',
+        'https://sahbo-app-api.onrender.com/api/userProducts/$userId?page=$currentPage&limit=$limit',
       );
 
       final response = await http.get(url, headers: {
@@ -80,7 +80,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
   }
 
   Future<void> _deleteAd(String adId) async {
-    final url = Uri.parse('https://sahbo-app-api.onrender.com:10000/api/userProducts/$adId');
+    final url = Uri.parse('https://sahbo-app-api.onrender.com/api/userProducts/$adId');
 
     try {
       final response = await http.delete(

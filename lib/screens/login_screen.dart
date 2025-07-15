@@ -26,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _rememberMe = false;
 
   Future<void> _login({required String method}) async {
-    String apiUrl = 'https://sahbo-app-api.onrender.com:10000/api/auth/login';
+    String apiUrl = 'https://sahbo-app-api.onrender.com/api/auth/login';
 
     if (method == 'phone') {
       if (phoneController.text.isEmpty || passwordPhoneController.text.isEmpty) {

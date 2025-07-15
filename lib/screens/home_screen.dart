@@ -62,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (token != null) {
       try {
         final response = await http.get(
-          Uri.parse('https://sahbo-app-api.onrender.com:10000/api/auth/validate-token'),
+          Uri.parse('https://sahbo-app-api.onrender.com/api/auth/validate-token'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token',
@@ -110,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final url = Uri.parse(
-        'https://sahbo-app-api.onrender.com:10000/api/products?page=$currentPageAds&limit=$limitAds',
+        'https://sahbo-app-api.onrender.com/api/products?page=$currentPageAds&limit=$limitAds',
       );
 
       final response = await http.get(url);

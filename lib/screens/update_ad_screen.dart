@@ -62,7 +62,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
       final token = prefs.getString('token') ?? '';
 
       final response = await http.put(
-        Uri.parse('https://sahbo-app-api.onrender.com:10000/api/userProducts/update/${widget.adId}'),
+        Uri.parse('https://sahbo-app-api.onrender.com/api/userProducts/update/${widget.adId}'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
