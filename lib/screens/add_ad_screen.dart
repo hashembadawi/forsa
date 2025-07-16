@@ -16,18 +16,114 @@ class MultiStepAddAdScreen extends StatefulWidget {
 class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
   int currentStep = 0;
   List<File?> selectedImages = [];
-  String selectedCategory = '';
-  String selectedSubCategory = '';
   String productTitle = '';
   String price = '';
-  String currency = 'ل.س';
-  String selectedProvince = '';
-  String selectedCity = '';
   String description = '';
+
+  // Option data from server
+  List<Map<String, dynamic>> currencies = [];
+  List<Map<String, dynamic>> categories = [];
+  List<Map<String, dynamic>> subCategories = [];
+  List<Map<String, dynamic>> provinces = [];
+  List<Map<String, dynamic>> majorAreas = [];
+
+  // Selected values (IDs and Names)
+  Map<String, dynamic>? selectedCurrency;
+  Map<String, dynamic>? selectedCategory;
+  Map<String, dynamic>? selectedSubCategory;
+  Map<String, dynamic>? selectedProvince;
+  Map<String, dynamic>? selectedMajorArea;
+
   bool _isUploading = false;
+  bool _isLoadingOptions = true;
+  String? _optionsError;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOptions();
+  }
+
+  Future<void> _fetchOptions() async {
+    setState(() {
+      _isLoadingOptions = true;
+      _optionsError = null;
+    });
+    try {
+      final response = await http.get(Uri.parse('https://sahbo-app-api.onrender.com/api/options'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          currencies = List<Map<String, dynamic>>.from(data['currencies']);
+          categories = List<Map<String, dynamic>>.from(data['categories']);
+          subCategories = List<Map<String, dynamic>>.from(data['subCategories']);
+          provinces = List<Map<String, dynamic>>.from(data['Province']);
+          majorAreas = List<Map<String, dynamic>>.from(data['majorAreas']);
+          // Set defaults
+          selectedCurrency = currencies.isNotEmpty ? currencies[0] : null;
+          selectedCategory = categories.isNotEmpty ? categories[0] : null;
+          selectedSubCategory = null;
+          selectedProvince = provinces.isNotEmpty ? provinces[0] : null;
+          _updateMajorAreaDefault();
+          _isLoadingOptions = false;
+        });
+      } else {
+        setState(() {
+          _optionsError = 'فشل تحميل الخيارات من الخادم';
+          _isLoadingOptions = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _optionsError = 'حدث خطأ أثناء الاتصال بالخادم';
+        _isLoadingOptions = false;
+      });
+    }
+  }
+
+  void _updateMajorAreaDefault() {
+    if (selectedProvince != null) {
+      final filtered = majorAreas.where((area) => area['ProvinceId'] == selectedProvince!['id']).toList();
+      selectedMajorArea = filtered.isNotEmpty ? filtered[0] : null;
+    } else {
+      selectedMajorArea = null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingOptions) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('نشر إعلان جديد'),
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (_optionsError != null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('نشر إعلان جديد'),
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(_optionsError!, style: const TextStyle(color: Colors.red)),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _fetchOptions,
+                child: const Text('إعادة المحاولة'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -144,31 +240,40 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         );
       case 1:
         return CategorySelectionStep(
+          categories: categories,
+          subCategories: subCategories,
           selectedCategory: selectedCategory,
           selectedSubCategory: selectedSubCategory,
-          onCategorySelected: (category, subCategory) => setState(() {
-            selectedCategory = category;
-            selectedSubCategory = subCategory;
-            currentStep = 2;
-          }),
+          onCategorySelected: (cat, subCat) {
+            setState(() {
+              selectedCategory = cat;
+              selectedSubCategory = subCat;
+              currentStep = 2;
+            });
+          },
           onBack: () => setState(() => currentStep = 0),
         );
       case 2:
         return AdDetailsStep(
           productTitle: productTitle,
           price: price,
-          currency: currency,
-          selectedProvince: selectedProvince,
-          selectedCity: selectedCity,
           description: description,
-          onDetailsChanged: (title, p, c, province, city, desc) => setState(() {
-            productTitle = title;
-            price = p;
-            currency = c;
-            selectedProvince = province;
-            selectedCity = city;
-            description = desc;
-          }),
+          currencies: currencies,
+          selectedCurrency: selectedCurrency,
+          provinces: provinces,
+          selectedProvince: selectedProvince,
+          majorAreas: majorAreas,
+          selectedMajorArea: selectedMajorArea,
+          onDetailsChanged: (title, p, desc, currency, province, area) {
+            setState(() {
+              productTitle = title;
+              price = p;
+              description = desc;
+              selectedCurrency = currency;
+              selectedProvince = province;
+              selectedMajorArea = area;
+            });
+          },
           onSubmit: _submitAd,
           onBack: () => setState(() => currentStep = 1),
         );
@@ -189,11 +294,6 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       final username = prefs.getString('userName') ?? '';
       final userEmail = prefs.getString('userEmail') ?? '';
 
-      print(userPhone);
-      print(username);
-      print(userId);
-      print(userEmail);
-
       List<String> base64Images = [];
       for (File? image in selectedImages.where((img) => img != null)) {
         final compressedBytes = await FlutterImageCompress.compressWithFile(
@@ -205,18 +305,19 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
           base64Images.add(base64Encode(compressedBytes));
         }
       }
+
       Map<String, dynamic> requestData = {
         'userId': userId,
         'userPhone': userPhone,
         'userName': username,
         'productTitle': productTitle,
         'price': price,
-        'currency': currency,
-        'category': _getCategoryId(selectedCategory),
-        'subCategory': _getSubCategoryId(selectedSubCategory),
-        'city': selectedProvince,
-        'region': selectedCity,
-        'createDate': DateTime.now().toIso8601String(),
+        'currencyId': selectedCurrency?['id'],
+        'currencyName': selectedCurrency?['name'],
+        'category': selectedCategory?['id'],
+        'subCategory': selectedSubCategory?['id'],
+        'city': selectedProvince?['id'],
+        'region': selectedMajorArea?['id'],
         'description': description,
         'images': base64Images,
       };
@@ -225,13 +326,12 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         Uri.parse('https://sahbo-app-api.onrender.com/api/userProducts/add'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization':'Bearer $token',
+          'Authorization': 'Bearer $token',
         },
         body: jsonEncode(requestData),
       );
 
       Navigator.of(context).pop();
-      print(response.statusCode);
       response.statusCode == 201 ? _showSuccessDialog() : _showErrorDialog('فشل في نشر الإعلان');
     } catch (e) {
       Navigator.of(context).pop();
@@ -239,25 +339,6 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
     } finally {
       setState(() => _isUploading = false);
     }
-  }
-
-  int _getCategoryId(String category) {
-    const categoryMapping = {'أثاث': 1};
-    return categoryMapping[category] ?? 1;
-  }
-
-  int _getSubCategoryId(String subCategory) {
-    const subCategoryMapping = {
-      'غرف نوم': 101,
-      'أثاث مكتب': 102,
-      'غرف ضيوف': 103,
-      'طاولات': 104,
-      'كراسي': 105,
-      'خزائن': 106,
-      'أثاث أطفال': 107,
-      'أثاث حدائق': 108,
-    };
-    return subCategoryMapping[subCategory] ?? 101;
   }
 
   void _showUploadingDialog() {
@@ -338,6 +419,8 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
     );
   }
 }
+
+// --- ImagesSelectionStep remains unchanged ---
 
 class ImagesSelectionStep extends StatefulWidget {
   final List<File?> selectedImages;
@@ -497,19 +580,54 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
   }
 }
 
-class CategorySelectionStep extends StatelessWidget {
-  final String selectedCategory;
-  final String selectedSubCategory;
-  final Function(String, String) onCategorySelected;
+// --- CategorySelectionStep updated to use server data ---
+class CategorySelectionStep extends StatefulWidget {
+  final List<Map<String, dynamic>> categories;
+  final List<Map<String, dynamic>> subCategories;
+  final Map<String, dynamic>? selectedCategory;
+  final Map<String, dynamic>? selectedSubCategory;
+  final Function(Map<String, dynamic>, Map<String, dynamic>) onCategorySelected;
   final VoidCallback onBack;
 
   const CategorySelectionStep({
     super.key,
+    required this.categories,
+    required this.subCategories,
     required this.selectedCategory,
     required this.selectedSubCategory,
     required this.onCategorySelected,
     required this.onBack,
   });
+
+  @override
+  State<CategorySelectionStep> createState() => _CategorySelectionStepState();
+}
+
+class _CategorySelectionStepState extends State<CategorySelectionStep> {
+  Map<String, dynamic>? _selectedCategory;
+  Map<String, dynamic>? _selectedSubCategory;
+  List<Map<String, dynamic>> _filteredSubCategories = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCategory = widget.selectedCategory ?? (widget.categories.isNotEmpty ? widget.categories[0] : null);
+    _filterSubCategories();
+    _selectedSubCategory = widget.selectedSubCategory;
+  }
+
+  void _filterSubCategories() {
+    if (_selectedCategory != null) {
+      _filteredSubCategories = widget.subCategories
+          .where((s) => s['categoryId'] == _selectedCategory!['id'])
+          .toList();
+    } else {
+      _filteredSubCategories = [];
+    }
+    if (!_filteredSubCategories.contains(_selectedSubCategory)) {
+      _selectedSubCategory = null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -531,64 +649,78 @@ class CategorySelectionStep extends StatelessWidget {
                   style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 ),
                 SizedBox(height: 30),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SubCategoryScreen(
-                          onSubCategorySelected: (subCategory) {
-                            onCategorySelected('أثاث', subCategory);
-                          },
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.chair, size: 40, color: Colors.deepPurple),
-                        SizedBox(width: 20),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'أثاث',
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                'غرف نوم، مكاتب، كراسي، طاولات وأكثر',
-                                style: TextStyle(color: Colors.grey[600]),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(Icons.arrow_forward_ios, color: Colors.grey),
-                      ],
-                    ),
+                DropdownButtonFormField<Map<String, dynamic>>(
+                  value: _selectedCategory,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: 'التصنيف الرئيسي',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                   ),
+                  items: widget.categories
+                      .map((cat) => DropdownMenuItem(
+                    value: cat,
+                    child: Text(cat['name']),
+                  ))
+                      .toList(),
+                  onChanged: (cat) {
+                    setState(() {
+                      _selectedCategory = cat;
+                      _selectedSubCategory = null;
+                      _filterSubCategories();
+                    });
+                  },
+                ),
+                SizedBox(height: 20),
+                DropdownButtonFormField<Map<String, dynamic>>(
+                  value: _selectedSubCategory,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: 'التصنيف الفرعي',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  items: _filteredSubCategories
+                      .map((subCat) => DropdownMenuItem(
+                    value: subCat,
+                    child: Text(subCat['name']),
+                  ))
+                      .toList(),
+                  onChanged: (subCat) {
+                    setState(() {
+                      _selectedSubCategory = subCat;
+                    });
+                  },
                 ),
               ],
             ),
           ),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: onBack,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[300],
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: widget.onBack,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[300],
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: Text('رجوع', style: TextStyle(fontSize: 18)),
+                ),
               ),
-              child: Text('رجوع', style: TextStyle(fontSize: 18)),
-            ),
+              SizedBox(width: 15),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: (_selectedCategory != null && _selectedSubCategory != null)
+                      ? () => widget.onCategorySelected(_selectedCategory!, _selectedSubCategory!)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: Text('متابعة', style: TextStyle(fontSize: 18)),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -596,80 +728,26 @@ class CategorySelectionStep extends StatelessWidget {
   }
 }
 
-class SubCategoryScreen extends StatelessWidget {
-  final Function(String) onSubCategorySelected;
-
-  const SubCategoryScreen({super.key, required this.onSubCategorySelected});
-
-  final List<Map<String, dynamic>> subCategories = const [
-    {'name': 'غرف نوم', 'icon': Icons.bed},
-    {'name': 'أثاث مكتب', 'icon': Icons.desk},
-    {'name': 'غرف ضيوف', 'icon': Icons.weekend},
-    {'name': 'طاولات', 'icon': Icons.table_restaurant},
-    {'name': 'كراسي', 'icon': Icons.chair},
-    {'name': 'خزائن', 'icon': Icons.storage},
-    {'name': 'أثاث أطفال', 'icon': Icons.child_care},
-    {'name': 'أثاث حدائق', 'icon': Icons.grass},
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('اختر التصنيف الفرعي'),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 15,
-            mainAxisSpacing: 15,
-          ),
-          itemCount: subCategories.length,
-          itemBuilder: (context, index) {
-            final subCategory = subCategories[index];
-            return GestureDetector(
-              onTap: () {
-                onSubCategorySelected(subCategory['name']);
-                Navigator.pop(context);
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(subCategory['icon'], size: 50, color: Colors.deepPurple),
-                    SizedBox(height: 10),
-                    Text(
-                      subCategory['name'],
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
+// --- AdDetailsStep updated to use server data ---
 
 class AdDetailsStep extends StatefulWidget {
   final String productTitle;
   final String price;
-  final String currency;
-  final String selectedProvince;
-  final String selectedCity;
   final String description;
-  final Function(String, String, String, String, String, String) onDetailsChanged;
+  final List<Map<String, dynamic>> currencies;
+  final Map<String, dynamic>? selectedCurrency;
+  final List<Map<String, dynamic>> provinces;
+  final Map<String, dynamic>? selectedProvince;
+  final List<Map<String, dynamic>> majorAreas;
+  final Map<String, dynamic>? selectedMajorArea;
+  final Function(
+      String,
+      String,
+      String,
+      Map<String, dynamic>?,
+      Map<String, dynamic>?,
+      Map<String, dynamic>?,
+      ) onDetailsChanged;
   final VoidCallback onSubmit;
   final VoidCallback onBack;
 
@@ -677,10 +755,13 @@ class AdDetailsStep extends StatefulWidget {
     super.key,
     required this.productTitle,
     required this.price,
-    required this.currency,
-    required this.selectedProvince,
-    required this.selectedCity,
     required this.description,
+    required this.currencies,
+    required this.selectedCurrency,
+    required this.provinces,
+    required this.selectedProvince,
+    required this.majorAreas,
+    required this.selectedMajorArea,
     required this.onDetailsChanged,
     required this.onSubmit,
     required this.onBack,
@@ -695,16 +776,9 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
   late TextEditingController _priceController;
   late TextEditingController _descriptionController;
 
-  String _currency = 'ل.س';
-  String _selectedProvince = '';
-  String _selectedCity = '';
-
-  final Map<String, List<String>> locations = {
-    'إدلب': ['معرة النعمان', 'جسر الشغور', 'سراقب', 'أريحا'],
-    'دمشق': ['المزة', 'البرامكة', 'باب توما', 'المالكي'],
-    'حلب': ['الحمدانية', 'الفرقان', 'الشهباء', 'الصالحين'],
-    'اللاذقية': ['الرمل الجنوبي', 'الرمل الشمالي', 'المشروع', 'الأزهري'],
-  };
+  Map<String, dynamic>? _selectedCurrency;
+  Map<String, dynamic>? _selectedProvince;
+  Map<String, dynamic>? _selectedMajorArea;
 
   @override
   void initState() {
@@ -712,19 +786,28 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
     _titleController = TextEditingController(text: widget.productTitle);
     _priceController = TextEditingController(text: widget.price);
     _descriptionController = TextEditingController(text: widget.description);
-    _currency = widget.currency.isEmpty ? 'ل.س' : widget.currency;
-    _selectedProvince = widget.selectedProvince.isEmpty ? 'إدلب' : widget.selectedProvince;
-    _selectedCity = widget.selectedCity.isEmpty ? locations[_selectedProvince]!.first : widget.selectedCity;
+    _selectedCurrency = widget.selectedCurrency ?? (widget.currencies.isNotEmpty ? widget.currencies[0] : null);
+    _selectedProvince = widget.selectedProvince ?? (widget.provinces.isNotEmpty ? widget.provinces[0] : null);
+    _updateMajorAreaDefault();
+  }
+
+  void _updateMajorAreaDefault() {
+    if (_selectedProvince != null) {
+      final filtered = widget.majorAreas.where((area) => area['ProvinceId'] == _selectedProvince!['id']).toList();
+      _selectedMajorArea = filtered.isNotEmpty ? filtered[0] : null;
+    } else {
+      _selectedMajorArea = null;
+    }
   }
 
   void _updateData() {
     widget.onDetailsChanged(
       _titleController.text,
       _priceController.text,
-      _currency,
-      _selectedProvince,
-      _selectedCity,
       _descriptionController.text,
+      _selectedCurrency,
+      _selectedProvince,
+      _selectedMajorArea,
     );
   }
 
@@ -777,16 +860,16 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                             border: Border.all(color: Colors.grey),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: DropdownButton<String>(
-                            value: _currency,
+                          child: DropdownButton<Map<String, dynamic>>(
+                            value: _selectedCurrency,
                             isExpanded: true,
                             underline: SizedBox(),
-                            items: ['ل.س', 'دولار', 'ل.ت']
-                                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                            items: widget.currencies
+                                .map((c) => DropdownMenuItem(value: c, child: Text(c['name'])))
                                 .toList(),
                             onChanged: (value) {
                               setState(() {
-                                _currency = value!;
+                                _selectedCurrency = value;
                               });
                               _updateData();
                             },
@@ -797,52 +880,51 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                   ),
                   SizedBox(height: 15),
 
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(10),
+                  DropdownButtonFormField<Map<String, dynamic>>(
+                    value: _selectedProvince,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: 'اختر المحافظة',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: DropdownButton<String>(
-                      value: _selectedProvince,
-                      isExpanded: true,
-                      underline: SizedBox(),
-                      hint: Text('اختر المحافظة'),
-                      items: locations.keys
-                          .map((province) => DropdownMenuItem(value: province, child: Text(province)))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedProvince = value!;
-                          _selectedCity = locations[_selectedProvince]!.first;
-                        });
-                        _updateData();
-                      },
-                    ),
+                    items: widget.provinces
+                        .map((province) => DropdownMenuItem(
+                      value: province,
+                      child: Text(province['name']),
+                    ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedProvince = value;
+                        // Update major area
+                        final filtered = widget.majorAreas.where((area) => area['ProvinceId'] == _selectedProvince!['id']).toList();
+                        _selectedMajorArea = filtered.isNotEmpty ? filtered[0] : null;
+                      });
+                      _updateData();
+                    },
                   ),
                   SizedBox(height: 15),
 
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(10),
+                  DropdownButtonFormField<Map<String, dynamic>>(
+                    value: _selectedMajorArea,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                      labelText: 'اختر المدينة/المنطقة',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: DropdownButton<String>(
-                      value: _selectedCity,
-                      isExpanded: true,
-                      underline: SizedBox(),
-                      hint: Text('اختر المدينة'),
-                      items: locations[_selectedProvince]!
-                          .map((city) => DropdownMenuItem(value: city, child: Text(city)))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedCity = value!;
-                        });
-                        _updateData();
-                      },
-                    ),
+                    items: widget.majorAreas
+                        .where((area) => _selectedProvince != null && area['ProvinceId'] == _selectedProvince!['id'])
+                        .map((area) => DropdownMenuItem(
+                      value: area,
+                      child: Text(area['name']),
+                    ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedMajorArea = value;
+                      });
+                      _updateData();
+                    },
                   ),
                   SizedBox(height: 15),
 
@@ -901,7 +983,8 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
   bool _canSubmit() {
     return _titleController.text.isNotEmpty &&
         _priceController.text.isNotEmpty &&
-        _selectedProvince.isNotEmpty &&
-        _selectedCity.isNotEmpty;
+        _selectedCurrency != null &&
+        _selectedProvince != null &&
+        _selectedMajorArea != null;
   }
 }
