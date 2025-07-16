@@ -60,6 +60,7 @@ class AdDetailsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text('${ad['productTitle']}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   Text('السعر: ${ad['price']} ${ad['currencyName']}', style: const TextStyle(fontSize: 18)),
                   const SizedBox(height: 8),
                   Text('الموقع: ${ad['cityName']} - ${ad['regionName']}'),

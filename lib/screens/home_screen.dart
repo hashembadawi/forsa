@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic>? selectedSubCategory;
   int? selectedCategoryId;
   int? selectedSubCategoryId;
-
+  
   final List<Map<String, dynamic>> categories = [
     {'icon': Icons.pets, 'name': 'حيوانات'},
     {'icon': Icons.groups, 'name': 'خدمات'},
@@ -457,6 +457,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Text(
+                        '${ad['productTitle'] ?? ''}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                      Text(
                         '${ad['price'] ?? '0'} ${ad['currencyName'] ?? ''}',
                         style: const TextStyle(
                           fontSize: 11,
@@ -465,6 +474,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
+
                       Text(
                         ad['description'] ?? '',
                         style: TextStyle(
@@ -588,9 +598,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             SliverToBoxAdapter(child: _buildLocationButton()),
-            SliverToBoxAdapter(child: _buildSearchField()),
             SliverToBoxAdapter(child: _buildCategoryFilterSection()),
             SliverToBoxAdapter(child: ImageSlider()),
+            SliverToBoxAdapter(child: _buildSearchField()),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               sliver: SliverList(
@@ -702,7 +712,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
+  
   Widget _buildCategoryFilterSection() {
   List<Map<String, dynamic>> filteredSubCategories = selectedCategory == null
       ? []
@@ -783,6 +793,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   );
 }
+  
   Widget _buildSearchField() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
