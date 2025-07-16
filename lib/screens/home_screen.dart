@@ -19,6 +19,16 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String selectedCity = 'كل المحافظات';
   String selectedDistrict = 'كل المناطق';
+  int? selectedCityId;
+  int? selectedRegionId;
+  List<Map<String, dynamic>> provinces = [];
+  List<Map<String, dynamic>> majorAreas = [];
+  List<Map<String, dynamic>> categoriesList = [];
+  List<Map<String, dynamic>> subCategoriesList = [];
+  Map<String, dynamic>? selectedCategory;
+  Map<String, dynamic>? selectedSubCategory;
+  int? selectedCategoryId;
+  int? selectedSubCategoryId;
 
   final List<Map<String, dynamic>> categories = [
     {'icon': Icons.pets, 'name': 'حيوانات'},
@@ -45,6 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _adsScrollController = ScrollController()..addListener(_onAdsScroll);
     _checkLoginStatus();
+    _fetchOptions();
     fetchAllAds();
   }
 
@@ -52,6 +63,23 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _adsScrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchOptions() async {
+    try {
+      final response = await http.get(Uri.parse('https://sahbo-app-api.onrender.com/api/options'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          provinces = List<Map<String, dynamic>>.from(data['Province']);
+          majorAreas = List<Map<String, dynamic>>.from(data['majorAreas']);
+          categoriesList = List<Map<String, dynamic>>.from(data['categories']);
+        subCategoriesList = List<Map<String, dynamic>>.from(data['subCategories']);
+        });
+      }
+    } catch (e) {
+      // handle error if needed
+    }
   }
 
   Future<void> _checkLoginStatus() async {
@@ -143,10 +171,216 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _showLocationFilterDialog() async {
+    Map<String, dynamic>? tempSelectedProvince;
+    Map<String, dynamic>? tempSelectedArea;
+    List<Map<String, dynamic>> filteredAreas = [];
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text('تصفية حسب الموقع'),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<Map<String, dynamic>>(
+                      value: tempSelectedProvince,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'اختر المحافظة',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: [
+                        DropdownMenuItem<Map<String, dynamic>>(
+                          value: null,
+                          child: Text('كل المحافظات'),
+                        ),
+                        ...provinces.map((province) => DropdownMenuItem(
+                              value: province,
+                              child: Text(province['name']),
+                            )),
+                      ],
+                      onChanged: (value) {
+                        setStateDialog(() {
+                          tempSelectedProvince = value;
+                          tempSelectedArea = null;
+                          filteredAreas = value == null
+                              ? []
+                              : majorAreas.where((area) => area['ProvinceId'] == value['id']).toList();
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<Map<String, dynamic>>(
+                      value: tempSelectedArea,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'اختر المدينة/المنطقة',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: [
+                        DropdownMenuItem<Map<String, dynamic>>(
+                          value: null,
+                          child: Text('كل المناطق'),
+                        ),
+                        ...filteredAreas.map((area) => DropdownMenuItem(
+                              value: area,
+                              child: Text(area['name']),
+                            )),
+                      ],
+                      onChanged: (value) {
+                        setStateDialog(() {
+                          tempSelectedArea = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('إلغاء'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedCity = tempSelectedProvince?['name'] ?? 'كل المحافظات';
+                      selectedDistrict = tempSelectedArea?['name'] ?? 'كل المناطق';
+                      selectedCityId = tempSelectedProvince?['id'];
+                      selectedRegionId = tempSelectedArea?['id'];
+                      allAds.clear();
+                      currentPageAds = 1;
+                      hasMoreAds = true;
+                    });
+                    Navigator.pop(context);
+                    if (selectedCityId != null || selectedRegionId != null) {
+                      fetchFilteredAds(reset: true);
+                    } else {
+                      fetchAllAds();
+                    }
+                  },
+                  child: const Text('تطبيق'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> fetchFilteredAds({bool reset = false}) async {
+    if (isLoadingAds || !hasMoreAds) return;
+
+    setState(() {
+      isLoadingAds = true;
+    });
+
+    try {
+      final params = <String, String>{
+        'page': '$currentPageAds',
+        'limit': '$limitAds',
+      };
+      if (selectedCityId != null) params['cityId'] = selectedCityId.toString();
+      if (selectedRegionId != null) params['regionId'] = selectedRegionId.toString();
+
+      final uri = Uri.https('sahbo-app-api.onrender.com', '/api/products/search', params);
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        final List<dynamic> fetchedAds = decoded['products'] ?? [];
+
+        setState(() {
+          if (reset) allAds.clear();
+          allAds.addAll(fetchedAds);
+          currentPageAds++;
+          isLoadingAds = false;
+          if (fetchedAds.length < limitAds) {
+            hasMoreAds = false;
+          }
+        });
+      } else {
+        setState(() {
+          isLoadingAds = false;
+          hasMoreAds = false;
+        });
+        debugPrint('Error fetching filtered ads: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        isLoadingAds = false;
+        hasMoreAds = false;
+      });
+      debugPrint('Exception fetching filtered ads: $e');
+    }
+  }
+
+  Future<void> fetchCategoryFilteredAds({bool reset = false}) async {
+  if (isLoadingAds || !hasMoreAds) return;
+
+  setState(() {
+    isLoadingAds = true;
+  });
+
+  try {
+    final params = <String, String>{
+      'page': '$currentPageAds',
+      'limit': '$limitAds',
+    };
+    if (selectedCategoryId != null) params['categoryId'] = selectedCategoryId.toString();
+    if (selectedSubCategoryId != null) params['subCategoryId'] = selectedSubCategoryId.toString();
+
+    final uri = Uri.https('sahbo-app-api.onrender.com', '/api/products/search-by-category', params);
+
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      final List<dynamic> fetchedAds = decoded['products'] ?? [];
+
+      setState(() {
+        if (reset) allAds.clear();
+        allAds.addAll(fetchedAds);
+        currentPageAds++;
+        isLoadingAds = false;
+        if (fetchedAds.length < limitAds) {
+          hasMoreAds = false;
+        }
+      });
+    } else {
+      setState(() {
+        isLoadingAds = false;
+        hasMoreAds = false;
+      });
+      debugPrint('Error fetching filtered ads: ${response.statusCode}');
+    }
+  } catch (e) {
+    setState(() {
+      isLoadingAds = false;
+      hasMoreAds = false;
+    });
+    debugPrint('Exception fetching filtered ads: $e');
+  }
+}
   void _onAdsScroll() {
     if (_adsScrollController.position.pixels >=
-        _adsScrollController.position.maxScrollExtent - 200) {
-      fetchAllAds();
+      _adsScrollController.position.maxScrollExtent - 200) {
+      if (selectedCategoryId != null || selectedSubCategoryId != null) {
+        fetchCategoryFilteredAds();
+      } else if (selectedCityId != null || selectedRegionId != null) {
+        fetchFilteredAds();
+      } else {
+        fetchAllAds();
+      }
     }
   }
 
@@ -355,7 +589,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SliverToBoxAdapter(child: _buildLocationButton()),
             SliverToBoxAdapter(child: _buildSearchField()),
-            SliverToBoxAdapter(child: _buildCategoriesSection()),
+            SliverToBoxAdapter(child: _buildCategoryFilterSection()),
             SliverToBoxAdapter(child: ImageSlider()),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -422,16 +656,7 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: GestureDetector(
         onTap: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => LocationSelectionScreen()),
-          );
-          if (result != null) {
-            setState(() {
-              selectedCity = result['province'];
-              selectedDistrict = result['district'];
-            });
-          }
+          await _showLocationFilterDialog();
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -478,6 +703,86 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildCategoryFilterSection() {
+  List<Map<String, dynamic>> filteredSubCategories = selectedCategory == null
+      ? []
+      : subCategoriesList.where((s) => s['categoryId'] == selectedCategory!['id']).toList();
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    child: Row(
+      children: [
+        Expanded(
+          child: DropdownButtonFormField<Map<String, dynamic>>(
+            value: selectedCategory,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'التصنيف الرئيسي',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              DropdownMenuItem<Map<String, dynamic>>(
+                value: null,
+                child: Text('كل التصنيفات'),
+              ),
+              ...categoriesList.map((cat) => DropdownMenuItem(
+                    value: cat,
+                    child: Text(cat['name']),
+                  )),
+            ],
+            onChanged: (value) {
+              setState(() {
+                selectedCategory = value;
+                selectedCategoryId = value?['id'];
+                selectedSubCategory = null;
+                selectedSubCategoryId = null;
+              });
+            },
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: DropdownButtonFormField<Map<String, dynamic>>(
+            value: selectedSubCategory,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'التصنيف الفرعي',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              DropdownMenuItem<Map<String, dynamic>>(
+                value: null,
+                child: Text('كل الفروع'),
+              ),
+              ...filteredSubCategories.map((subCat) => DropdownMenuItem(
+                    value: subCat,
+                    child: Text(subCat['name']),
+                  )),
+            ],
+            onChanged: (value) {
+              setState(() {
+                selectedSubCategory = value;
+                selectedSubCategoryId = value?['id'];
+              });
+            },
+          ),
+        ),
+        const SizedBox(width: 8),
+        ElevatedButton(
+          onPressed: () {
+            setState(() {
+              allAds.clear();
+              currentPageAds = 1;
+              hasMoreAds = true;
+            });
+            fetchCategoryFilteredAds(reset: true);
+          },
+          child: const Text('بحث'),
+        ),
+      ],
+    ),
+  );
+}
   Widget _buildSearchField() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
