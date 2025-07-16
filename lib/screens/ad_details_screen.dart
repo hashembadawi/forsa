@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'image_preview_screen.dart'; // تأكد من أنك أضفت هذا الملف
-
+import 'image_preview_screen.dart';
 class AdDetailsScreen extends StatelessWidget {
   final dynamic ad;
 
@@ -61,9 +60,9 @@ class AdDetailsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('السعر: ${ad['price']} ${ad['currency']}', style: const TextStyle(fontSize: 18)),
+                  Text('السعر: ${ad['price']} ${ad['currencyName']}', style: const TextStyle(fontSize: 18)),
                   const SizedBox(height: 8),
-                  Text('الموقع: ${ad['city']} - ${ad['region']}'),
+                  Text('الموقع: ${ad['cityName']} - ${ad['regionName']}'),
                   const SizedBox(height: 8),
                   Text('تاريخ الإعلان: ${_formatDate(ad['createDate'])}'),
                   const SizedBox(height: 12),
@@ -71,7 +70,7 @@ class AdDetailsScreen extends StatelessWidget {
                   Text('الاسم: ${ad['userName']}'),
                   Text('الهاتف: ${ad['userPhone']}'),
                   const SizedBox(height: 12),
-                  Text('التصنيف: ${_categoryName(ad['category'])}'),
+                  Text('التصنيف: ${ad['categoryName']} - ${ad['subCategoryName'] ?? 'غير متوفر'}'),
                   const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,

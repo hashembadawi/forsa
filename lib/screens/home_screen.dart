@@ -223,7 +223,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Text(
-                        '${ad['price'] ?? '0'} ${ad['currency'] ?? ''}',
+                        '${ad['price'] ?? '0'} ${ad['currencyName'] ?? ''}',
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
@@ -250,7 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(width: 1),
                           Expanded(
                             child: Text(
-                              '${ad['city'] ?? ''} - ${formatDate(ad['createDate'] ?? '')}',
+                              '${ad['cityName'] ?? ''} - ${formatDate(ad['createDate'] ?? '')}',
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 8,
