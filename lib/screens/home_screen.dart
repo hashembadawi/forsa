@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, dynamic>? selectedSubCategory;
   int? selectedCategoryId;
   int? selectedSubCategoryId;
-  
+  final TextEditingController _searchController = TextEditingController();
   final List<Map<String, dynamic>> categories = [
     {'icon': Icons.pets, 'name': 'حيوانات'},
     {'icon': Icons.groups, 'name': 'خدمات'},
@@ -325,10 +325,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> fetchCategoryFilteredAds({bool reset = false}) async {
-  if (isLoadingAds || !hasMoreAds) return;
+    if (isLoadingAds || !hasMoreAds) return;
 
-  setState(() {
-    isLoadingAds = true;
+    setState(() {
+      isLoadingAds = true;
   });
 
   try {
@@ -384,6 +384,54 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> fetchTitleFilteredAds({bool reset = false}) async {
+    if (isLoadingAds || !hasMoreAds) return;
+    final searchText = _searchController.text.trim();
+    if (searchText.isEmpty) return;
+
+    setState(() {
+      isLoadingAds = true;
+    });
+
+    try {
+      final params = <String, String>{
+        'title': searchText,
+        'page': '$currentPageAds',
+        'limit': '$limitAds',
+      };
+
+      final uri = Uri.https('sahbo-app-api.onrender.com', '/api/products/search-by-title', params);
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        final List<dynamic> fetchedAds = decoded['products'] ?? [];
+
+        setState(() {
+          if (reset) allAds.clear();
+          allAds.addAll(fetchedAds);
+          currentPageAds++;
+          isLoadingAds = false;
+          if (fetchedAds.length < limitAds) {
+            hasMoreAds = false;
+          }
+        });
+      } else {
+        setState(() {
+          isLoadingAds = false;
+          hasMoreAds = false;
+        });
+        debugPrint('Error fetching title filtered ads: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        isLoadingAds = false;
+        hasMoreAds = false;
+      });
+      debugPrint('Exception fetching title filtered ads: $e');
+    }
+  }
   String formatDate(String isoDate) {
     try {
       final date = DateTime.parse(isoDate);
@@ -811,67 +859,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         child: TextField(
+          controller: _searchController,
           decoration: InputDecoration(
             hintText: 'ابحث عن منتج أو خدمة...',
             prefixIcon: Icon(Icons.search, color: Colors.deepPurple),
             border: InputBorder.none,
-            contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
+          onSubmitted: (value) {
+            setState(() {
+              allAds.clear();
+              currentPageAds = 1;
+              hasMoreAds = true;
+            });
+            fetchTitleFilteredAds(reset: true);
+          },
         ),
-      ),
-    );
-  }
-
-  Widget _buildCategoriesSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'التصنيفات',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 100,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.deepPurple.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          categories[index]['icon'],
-                          size: 30,
-                          color: Colors.deepPurple,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        categories[index]['name'],
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
       ),
     );
   }
