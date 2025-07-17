@@ -9,6 +9,7 @@ import 'add_ad_screen.dart';
 import 'login_screen.dart';
 import 'my_ads_screen.dart';
 import 'select_location_screen.dart';
+import 'search_results_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -844,39 +845,41 @@ class _HomeScreenState extends State<HomeScreen> {
   
   Widget _buildSearchField() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 2,
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: TextField(
-          controller: _searchController,
-          decoration: InputDecoration(
-            hintText: 'ابحث عن منتج أو خدمة...',
-            prefixIcon: Icon(Icons.search, color: Colors.deepPurple),
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    child: Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 2,
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
-          onSubmitted: (value) {
-            setState(() {
-              allAds.clear();
-              currentPageAds = 1;
-              hasMoreAds = true;
-            });
-            fetchTitleFilteredAds(reset: true);
-          },
-        ),
+        ],
       ),
-    );
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'ابحث عن منتج أو خدمة...',
+          prefixIcon: Icon(Icons.search, color: Colors.deepPurple),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
+        onSubmitted: (value) {
+          if (value.trim().isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => SearchResultsScreen(searchText: value.trim()),
+              ),
+            );
+          }
+        },
+      ),
+    ),
+  );
   }
 
   Drawer _buildDrawer(BuildContext context) {
