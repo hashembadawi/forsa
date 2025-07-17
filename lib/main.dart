@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sahbo_app/screens/start_screen.dart';
 import 'screens/home_screen.dart';
 
 void main() {
@@ -16,7 +17,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.deepPurple,
         fontFamily: 'Arabic',
       ),
-      home: const HomeScreen(),
+      home: const StartScreen(),
+      debugShowCheckedModeBanner: false
     );
   }
 }
