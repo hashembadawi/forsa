@@ -12,7 +12,8 @@ import 'select_location_screen.dart';
 import 'search_results_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool refreshOnStart;
+  const HomeScreen({super.key, this.refreshOnStart = false});
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }

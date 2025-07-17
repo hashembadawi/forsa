@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:sahbo_app/screens/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
@@ -375,29 +376,34 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
 
   void _showSuccessDialog() {
     showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 10),
-            Text('تم بنجاح'),
-          ],
-        ),
-        content: const Text('تم نشر إعلانك بنجاح'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-            },
-            child: const Text('موافق', style: TextStyle(color: Colors.deepPurple)),
-          ),
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      title: const Row(
+        children: [
+          Icon(Icons.check_circle, color: Colors.green),
+          SizedBox(width: 10),
+          Text('تم بنجاح'),
         ],
       ),
-    );
+      content: const Text('تم نشر إعلانك بنجاح'),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(); // Close dialog
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (_) => const HomeScreen(refreshOnStart: true),
+              ),
+              (route) => false,
+            );
+          },
+          child: const Text('موافق', style: TextStyle(color: Colors.deepPurple)),
+        ),
+      ],
+    ),
+  );
   }
 
   void _showErrorDialog(String message) {
