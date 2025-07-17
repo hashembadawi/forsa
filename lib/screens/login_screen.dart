@@ -217,34 +217,42 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: DefaultTabController(
-        length: 2,
-        child: Scaffold(
-          backgroundColor: Colors.grey[100],
-          appBar: AppBar(
-            title: const Text('تسجيل الدخول'),
-            centerTitle: true,
-            backgroundColor: Colors.deepPurple,
-            foregroundColor: Colors.white,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.pop(context),
-            ),
-            bottom: const TabBar(
-              indicatorColor: Colors.white,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
-              tabs: [
-                Tab(icon: Icon(Icons.phone_android), text: 'برقم الهاتف'),
-                Tab(icon: Icon(Icons.email_outlined), text: 'بالبريد الإلكتروني'),
-              ],
-            ),
+  return Directionality(
+    textDirection: TextDirection.rtl,
+    child: DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: Colors.grey[100],
+        resizeToAvoidBottomInset: true, // Add this line
+        appBar: AppBar(
+          title: const Text('تسجيل الدخول'),
+          centerTitle: true,
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
           ),
-          body: TabBarView(
-            children: [
-              _buildLoginTab(
+          bottom: const TabBar(
+            indicatorColor: Colors.white,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            tabs: [
+              Tab(icon: Icon(Icons.phone_android), text: 'برقم الهاتف'),
+              Tab(icon: Icon(Icons.email_outlined), text: 'بالبريد الإلكتروني'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
+              child: _buildLoginTab(
                 label1: 'رقم الهاتف',
                 label2: 'كلمة المرور',
                 controller1: phoneController,
@@ -253,7 +261,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 toggleObscure: () => setState(() => _showPasswordPhone = !_showPasswordPhone),
                 onLogin: () => _login(method: 'phone'),
               ),
-              _buildLoginTab(
+            ),
+            SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
+              child: _buildLoginTab(
                 label1: 'البريد الإلكتروني',
                 label2: 'كلمة المرور',
                 controller1: emailController,
@@ -262,10 +278,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 toggleObscure: () => setState(() => _showPasswordEmail = !_showPasswordEmail),
                 onLogin: () => _login(method: 'email'),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
