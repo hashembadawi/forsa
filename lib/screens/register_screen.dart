@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:sahbo_app/screens/verification_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -12,16 +11,39 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final emailController = TextEditingController();
+  final phoneController = TextEditingController();
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
-  final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
   bool _showPassword = false;
   bool _showConfirmPassword = false;
   bool _isLoading = false;
+
+  // Country list
+  final List<Map<String, String>> countries = [
+    {'name': 'سوريا', 'code': '+963', 'flag': '🇸🇾'},
+    {'name': 'تركيا', 'code': '+90', 'flag': '🇹🇷'},
+    {'name': 'الأردن', 'code': '+962', 'flag': '🇯🇴'},
+    {'name': 'السعودية', 'code': '+966', 'flag': '🇸🇦'},
+    {'name': 'مصر', 'code': '+20', 'flag': '🇪🇬'},
+    {'name': 'العراق', 'code': '+964', 'flag': '🇮🇶'},
+    {'name': 'لبنان', 'code': '+961', 'flag': '🇱🇧'},
+    {'name': 'فلسطين', 'code': '+970', 'flag': '🇵🇸'},
+    {'name': 'الإمارات', 'code': '+971', 'flag': '🇦🇪'},
+    {'name': 'قطر', 'code': '+974', 'flag': '🇶🇦'},
+    {'name': 'الكويت', 'code': '+965', 'flag': '🇰🇼'},
+    {'name': 'عمان', 'code': '+968', 'flag': '🇴🇲'},
+    {'name': 'البحرين', 'code': '+973', 'flag': '🇧🇭'},
+  ];
+  Map<String, String>? selectedCountry;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedCountry = countries[0];
+  }
 
   Future<void> registerUser() async {
     if (!_formKey.currentState!.validate()) return;
@@ -34,31 +56,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
 
     try {
+      final fullPhone = '${selectedCountry?['code'] ?? ''}${phoneController.text.trim()}';
       final response = await http.post(
-        Uri.parse('https://sahbo-app-api.onrender.com/api/auth/register'),
+        Uri.parse('https://sahbo-app-api.onrender.com/api/auth/register-phone'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'email': emailController.text.trim(),
+          'phoneNumber': fullPhone,
           'firstName': firstNameController.text.trim(),
           'lastName': lastNameController.text.trim(),
-          'phoneNumber': phoneController.text.trim(),
           'password': passwordController.text,
         }),
       );
 
       if (response.statusCode == 201) {
-        // توجيه شاشة التحقق بعد التسجيل
-        final emailOrPhone = emailController.text.trim().isNotEmpty
-            ? emailController.text.trim()
-            : phoneController.text.trim();
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                VerificationScreen(emailOrPhone: emailOrPhone),
-          ),
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تم إنشاء الحساب بنجاح')),
         );
+        Navigator.pop(context);
       } else {
         final resBody = jsonDecode(response.body);
         _showError(resBody['message'] ?? 'حدث خطأ، حاول مرة أخرى');
@@ -75,15 +89,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: Colors.red,
-      ),
-    );
-  }
-
-  void _showSuccess(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
       ),
     );
   }
@@ -110,17 +115,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
             key: _formKey,
             child: Column(
               children: [
-                _buildTextField(
-                  label: 'البريد الإلكتروني',
-                  controller: emailController,
-                  icon: Icons.email,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return 'يرجى إدخال البريد الإلكتروني';
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) return 'البريد الإلكتروني غير صالح';
-                    return null;
-                  },
-                ),
+                // Country picker + phone field
+                Row(
+  children: [
+    // Phone number field (right)
+    Expanded(
+      child: _buildTextField(
+        label: 'رقم الهاتف',
+        controller: phoneController,
+        keyboardType: TextInputType.phone,
+        validator: (value) =>
+            value == null || value.isEmpty ? 'يرجى إدخال رقم الهاتف' : null,
+      ),
+    ),
+    const SizedBox(width: 10),
+    // Country code dropdown (left)
+    SizedBox(
+      width: 120,
+      child: DropdownButtonFormField<Map<String, String>>(
+        value: selectedCountry,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+        ),
+        items: countries.map((country) {
+          return DropdownMenuItem<Map<String, String>>(
+            value: country,
+            child: Row(
+              children: [
+                Text(country['name']!, style: const TextStyle(fontSize: 10)),
+                const SizedBox(width: 6),
+                Text(country['code']!, style: const TextStyle(fontSize: 10)),
+              ],
+            ),
+          );
+        }).toList(),
+        onChanged: (value) {
+          setState(() {
+            selectedCountry = value;
+          });
+        },
+      ),
+    ),
+  ],
+),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -129,7 +171,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         label: 'الاسم الأول',
                         controller: firstNameController,
                         validator: (value) =>
-                        value == null || value.isEmpty ? 'يرجى إدخال الاسم الأول' : null,
+                            value == null || value.isEmpty ? 'يرجى إدخال الاسم الأول' : null,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -138,19 +180,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         label: 'الاسم الأخير',
                         controller: lastNameController,
                         validator: (value) =>
-                        value == null || value.isEmpty ? 'يرجى إدخال الاسم الأخير' : null,
+                            value == null || value.isEmpty ? 'يرجى إدخال الاسم الأخير' : null,
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  label: 'رقم الهاتف',
-                  controller: phoneController,
-                  icon: Icons.phone,
-                  keyboardType: TextInputType.phone,
-                  validator: (value) =>
-                  value == null || value.isEmpty ? 'يرجى إدخال رقم الهاتف' : null,
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
@@ -188,19 +221,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 _isLoading
                     ? const CircularProgressIndicator()
                     : ElevatedButton(
-                  onPressed: registerUser,
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
-                    backgroundColor: Colors.deepPurple,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'إنشاء حساب',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
-                ),
+                        onPressed: registerUser,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 50),
+                          backgroundColor: Colors.deepPurple,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          'إنشاء حساب',
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
+                      ),
               ],
             ),
           ),
