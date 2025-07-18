@@ -15,39 +15,46 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final List<Map<String, String>> countries = [
+    {'name': 'سوريا', 'code': '+963'},
+    {'name': 'تركيا', 'code': '+90'},
+    {'name': 'الأردن', 'code': '+962'},
+    {'name': 'السعودية', 'code': '+966'},
+    {'name': 'مصر', 'code': '+20'},
+    {'name': 'العراق', 'code': '+964'},
+    {'name': 'لبنان', 'code': '+961'},
+    {'name': 'فلسطين', 'code': '+970'},
+    {'name': 'الإمارات', 'code': '+971'},
+    {'name': 'قطر', 'code': '+974'},
+    {'name': 'الكويت', 'code': '+965'},
+    {'name': 'عمان', 'code': '+968'},
+    {'name': 'البحرين', 'code': '+973'},
+  ];
+  Map<String, String>? selectedCountry;
   final phoneController = TextEditingController();
-  final emailController = TextEditingController();
   final passwordPhoneController = TextEditingController();
-  final passwordEmailController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    selectedCountry = countries[0];
+  }
 
   bool _isLoading = false;
   bool _showPasswordPhone = false;
-  bool _showPasswordEmail = false;
   bool _rememberMe = false;
 
-  Future<void> _login({required String method}) async {
+  Future<void> _login() async {
     String apiUrl = 'https://sahbo-app-api.onrender.com/api/auth/login';
 
-    if (method == 'phone') {
-      if (phoneController.text.isEmpty || passwordPhoneController.text.isEmpty) {
-        _showError('يرجى إدخال رقم الهاتف وكلمة المرور');
-        return;
-      }
-    } else {
-      if (emailController.text.isEmpty || passwordEmailController.text.isEmpty) {
-        _showError('يرجى إدخال البريد وكلمة المرور');
-        return;
-      }
+    if (phoneController.text.isEmpty || passwordPhoneController.text.isEmpty) {
+      _showError('يرجى إدخال رقم الهاتف وكلمة المرور');
+      return;
     }
 
-    final body = method == 'phone'
-        ? {
-      'phoneNumber': phoneController.text.trim(),
+    final body = {
+      'phoneNumber': '${selectedCountry?['code'] ?? ''}${phoneController.text.trim()}',
       'password': passwordPhoneController.text,
-    }
-        : {
-      'email': emailController.text.trim(),
-      'password': passwordEmailController.text,
     };
 
     setState(() => _isLoading = true);
@@ -64,7 +71,6 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200 && res['token'] != null) {
         final prefs = await SharedPreferences.getInstance();
 
-        // حفظ البيانات دائمًا، سواء كان "تذكرني" مفعلًا أم لا
         await prefs.setString('token', res['token']);
         await prefs.setBool('rememberMe', _rememberMe);
         await prefs.setString('userName', res['userName'] ?? '');
@@ -102,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => nextScreen),
-          (route) => false,
+      (route) => false,
     );
   }
 
@@ -115,115 +121,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLoginTab({
-    required String label1,
-    required String label2,
-    required TextEditingController controller1,
-    required TextEditingController controller2,
-    required bool obscureText,
-    required VoidCallback toggleObscure,
-    required VoidCallback onLogin,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          TextField(
-            controller: controller1,
-            decoration: InputDecoration(
-              labelText: label1,
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              prefixIcon: Icon(
-                label1.contains("الهاتف") ? Icons.phone : Icons.email,
-                color: Colors.deepPurple,
-              ),
-            ),
-            keyboardType: label1.contains("الهاتف")
-                ? TextInputType.phone
-                : TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: controller2,
-            obscureText: obscureText,
-            onSubmitted: (_) => onLogin(),
-            decoration: InputDecoration(
-              labelText: label2,
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              prefixIcon: const Icon(Icons.lock, color: Colors.deepPurple),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  obscureText ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.grey,
-                ),
-                onPressed: toggleObscure,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          CheckboxListTile(
-            value: _rememberMe,
-            onChanged: (val) => setState(() => _rememberMe = val ?? false),
-            title: const Text("تذكرني", style: TextStyle(color: Colors.black87)),
-            controlAffinity: ListTileControlAffinity.leading,
-            contentPadding: EdgeInsets.zero,
-          ),
-          const SizedBox(height: 16),
-          _isLoading
-              ? const CircularProgressIndicator()
-              : ElevatedButton(
-            onPressed: onLogin,
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 50),
-              backgroundColor: Colors.deepPurple,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text(
-              'تسجيل الدخول',
-              style: TextStyle(fontSize: 18, color: Colors.white),
-            ),
-          ),
-          const SizedBox(height: 10),
-          TextButton(
-            onPressed: () async {
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const RegisterScreen()),
-              );
-              if (result == true) {
-                _showError('تم إنشاء الحساب، يمكنك تسجيل الدخول الآن');
-              }
-            },
-            child: const Text(
-              "ليس لديك حساب؟ إنشاء حساب جديد",
-              style: TextStyle(color: Colors.deepPurple),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-  return Directionality(
-    textDirection: TextDirection.rtl,
-    child: DefaultTabController(
-      length: 2,
+    return Directionality(
+      textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.grey[100],
-        resizeToAvoidBottomInset: true, // Add this line
+        resizeToAvoidBottomInset: true,
         appBar: AppBar(
           title: const Text('تسجيل الدخول'),
           centerTitle: true,
@@ -233,56 +137,137 @@ class _LoginScreenState extends State<LoginScreen> {
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
           ),
-          bottom: const TabBar(
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            tabs: [
-              Tab(icon: Icon(Icons.phone_android), text: 'برقم الهاتف'),
-              Tab(icon: Icon(Icons.email_outlined), text: 'بالبريد الإلكتروني'),
+        ),
+        body: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  // Phone number field (right)
+                  Expanded(
+                    child: TextField(
+                      controller: phoneController,
+                      decoration: InputDecoration(
+                        labelText: 'رقم الهاتف',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        prefixIcon: const Icon(Icons.phone, color: Colors.deepPurple),
+                      ),
+                      keyboardType: TextInputType.phone,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // Country code dropdown (left)
+                  SizedBox(
+                    width: 120,
+                    child: DropdownButtonFormField<Map<String, String>>(
+                      value: selectedCountry,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      items: countries.map((country) {
+                        return DropdownMenuItem<Map<String, String>>(
+                          value: country,
+                          child: Row(
+                            children: [
+                              Text(country['name']!, style: const TextStyle(fontSize: 10)),
+                              const SizedBox(width: 6),
+                              Text(country['code']!, style: const TextStyle(fontSize: 10)),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedCountry = value;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passwordPhoneController,
+                obscureText: !_showPasswordPhone,
+                onSubmitted: (_) => _login(),
+                decoration: InputDecoration(
+                  labelText: 'كلمة المرور',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  prefixIcon: const Icon(Icons.lock, color: Colors.deepPurple),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      !_showPasswordPhone ? Icons.visibility_off : Icons.visibility,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () => setState(() => _showPasswordPhone = !_showPasswordPhone),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              CheckboxListTile(
+                value: _rememberMe,
+                onChanged: (val) => setState(() => _rememberMe = val ?? false),
+                title: const Text("تذكرني", style: TextStyle(color: Colors.black87)),
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
+              ),
+              const SizedBox(height: 16),
+              _isLoading
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton(
+                      onPressed: _login,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                        backgroundColor: Colors.deepPurple,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: const Text(
+                        'تسجيل الدخول',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
+                    ),
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                  );
+                  if (result == true) {
+                    _showError('تم إنشاء الحساب، يمكنك تسجيل الدخول الآن');
+                  }
+                },
+                child: const Text(
+                  "ليس لديك حساب؟ إنشاء حساب جديد",
+                  style: TextStyle(color: Colors.deepPurple),
+                ),
+              ),
             ],
           ),
         ),
-        body: TabBarView(
-          children: [
-            SingleChildScrollView(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 16,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-              ),
-              child: _buildLoginTab(
-                label1: 'رقم الهاتف',
-                label2: 'كلمة المرور',
-                controller1: phoneController,
-                controller2: passwordPhoneController,
-                obscureText: !_showPasswordPhone,
-                toggleObscure: () => setState(() => _showPasswordPhone = !_showPasswordPhone),
-                onLogin: () => _login(method: 'phone'),
-              ),
-            ),
-            SingleChildScrollView(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 16,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-              ),
-              child: _buildLoginTab(
-                label1: 'البريد الإلكتروني',
-                label2: 'كلمة المرور',
-                controller1: emailController,
-                controller2: passwordEmailController,
-                obscureText: !_showPasswordEmail,
-                toggleObscure: () => setState(() => _showPasswordEmail = !_showPasswordEmail),
-                onLogin: () => _login(method: 'email'),
-              ),
-            ),
-          ],
-        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
