@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:sahbo_app/screens/verification_screen.dart';
+import 'package:sahbo_app/screens/login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -70,7 +71,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (response.statusCode == 201) {
-        Navigator.pushReplacement(
+        //show success 
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تم إضافة المستخدم بنجاح'),
+            duration: Duration(seconds: 3), // سيختفي بعد 3 ثواني
+            behavior: SnackBarBehavior.floating, // لجعله عائمًا بدلاً من أن يكون ملتصقًا بالأسفل
+          ),
+        );
+        Future.delayed(Duration(seconds: 3), () {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => LoginScreen()), // استبدل LoginScreen بشاشة تسجيل الدخول الخاصة بك
+          );
+        }
+      });
+        /* Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (_) => VerificationScreen(
@@ -78,7 +95,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ),
         );
-        Navigator.pop(context);
+        Navigator.pop(context); */
       } else {
         final resBody = jsonDecode(response.body);
         _showError(resBody['message'] ?? 'حدث خطأ، حاول مرة أخرى');
