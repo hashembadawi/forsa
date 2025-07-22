@@ -14,9 +14,9 @@ class FAQScreen extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: const Color(0xFF1E4A47),
           foregroundColor: Colors.white,
-          elevation: 2,
+          elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
@@ -24,13 +24,13 @@ class FAQScreen extends StatelessWidget {
         ),
         body: Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.deepPurple.shade50,
-                Colors.deepPurple.shade100.withOpacity(0.3),
+                Color(0xFF7FE8E4),
+                Colors.white,
               ],
             ),
           ),
@@ -68,32 +68,60 @@ class FAQScreen extends StatelessWidget {
   }
 
   Widget _buildFAQItem({required String question, required String answer}) {
-    return Card(
-      elevation: 2,
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            Color(0xFFF8FDFD),
+          ],
+        ),
+        border: Border.all(
+          color: const Color(0xFF4DD0CC),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         title: Text(
           question,
           style: const TextStyle(
             fontWeight: FontWeight.bold,
-            color: Colors.deepPurple,
+            color: Color(0xFF1E4A47),
           ),
         ),
+        iconColor: const Color(0xFF2E7D78),
+        collapsedIconColor: const Color(0xFF2E7D78),
         children: [
-          Padding(
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.symmetric(horizontal: 16),
             padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF7FE8E4).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Text(
               answer,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
-                color: Colors.grey[700],
+                color: Color(0xFF1E4A47),
                 height: 1.6,
               ),
             ),
           ),
+          const SizedBox(height: 16),
         ],
       ),
     );
