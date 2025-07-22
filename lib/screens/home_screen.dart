@@ -469,12 +469,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Card(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(color: Colors.amber[200]!, width: 1),
       ),
-      elevation: 2,
+      elevation: 4,
       margin: const EdgeInsets.all(4),
+      shadowColor: Colors.amber.withOpacity(0.3),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         onTap: () {
           Navigator.push(
             context,
@@ -489,7 +491,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               flex: 3,
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
                 child: SizedBox(
                   width: double.infinity,
                   child: image,
@@ -508,18 +510,20 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         '${ad['productTitle'] ?? ''}',
-                        style: const TextStyle(
-                          fontSize: 11,
+                        style: TextStyle(
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
                         ),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
                       Text(
                         '${ad['price'] ?? '0'} ${ad['currencyName'] ?? ''}',
-                        style: const TextStyle(
-                          fontSize: 11,
+                        style: TextStyle(
+                          fontSize: 12,
                           fontWeight: FontWeight.bold,
+                          color: Colors.amber[700],
                         ),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
@@ -538,8 +542,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           Icon(
                             Icons.location_on,
-                            size: 8,
-                            color: Colors.deepPurple,
+                            size: 10,
+                            color: Colors.blue[700],
                           ),
                           const SizedBox(width: 1),
                           Expanded(
@@ -620,6 +624,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        backgroundColor: Colors.grey[50],
         drawer: _buildDrawer(context),
         body: CustomScrollView(
           controller: _adsScrollController,
@@ -628,21 +633,21 @@ class _HomeScreenState extends State<HomeScreen> {
               floating: true,
               pinned: true,
               snap: false,
-              elevation: 1,
+              elevation: 4,
               backgroundColor: Colors.white,
               title: Text(
-                'صاحب Com',
+                'إعلانك معنا',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.deepPurple[800],
+                  color: Colors.amber[700],
                 ),
               ),
               centerTitle: true,
               leading: Builder(
                 builder: (context) => IconButton(
                   icon: Icon(Icons.menu,
-                      size: 28, color: Colors.deepPurple[800]),
+                      size: 28, color: Colors.blue[800]),
                   onPressed: () => Scaffold.of(context).openDrawer(),
                 ),
               ),
@@ -655,16 +660,21 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  const Text(
+                  Text(
                     'جميع الإعلانات',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: Colors.blue[800],
                     ),
                   ),
                   const SizedBox(height: 12),
                   if (allAds.isEmpty && isLoadingAds)
-                    const Center(child: CircularProgressIndicator()),
+                    Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[600]!),
+                      ),
+                    ),
                 ]),
               ),
             ),
@@ -680,10 +690,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 delegate: SliverChildBuilderDelegate(
                       (context, index) {
                     if (index == allAds.length && hasMoreAds) {
-                      return const Center(
+                      return Center(
                         child: Padding(
                           padding: EdgeInsets.all(16),
-                          child: CircularProgressIndicator(),
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[600]!),
+                          ),
                         ),
                       );
                     }
@@ -719,15 +731,16 @@ class _HomeScreenState extends State<HomeScreen> {
           await _showLocationFilterDialog();
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: Colors.amber[300]!, width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.amber.withOpacity(0.2),
                 spreadRadius: 2,
-                blurRadius: 8,
+                blurRadius: 10,
                 offset: const Offset(0, 3),
               ),
             ],
@@ -737,24 +750,24 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.location_on, size: 20, color: Colors.deepPurple),
+                  Icon(Icons.location_on, size: 22, color: Colors.amber[700]),
                   const SizedBox(width: 8),
-                  const Text(
+                  Text(
                     'موقع',
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 17,
                       fontWeight: FontWeight.bold,
-                      color: Colors.deepPurple,
+                      color: Colors.blue[800],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 selectedCity == 'كل المحافظات'
                     ? 'كل المحافظات'
                     : '$selectedCity - $selectedDistrict',
-                style: const TextStyle(fontSize: 14, color: Colors.black87),
+                style: TextStyle(fontSize: 15, color: Colors.grey[700]),
               ),
             ],
           ),
@@ -776,9 +789,21 @@ class _HomeScreenState extends State<HomeScreen> {
           child: DropdownButtonFormField<Map<String, dynamic>>(
             value: selectedCategory,
             isExpanded: true,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'التصنيف الرئيسي',
-              border: OutlineInputBorder(),
+              labelStyle: TextStyle(color: Colors.blue[800]),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.amber[300]!),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.amber[300]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.amber[600]!, width: 2),
+              ),
             ),
             items: [
               DropdownMenuItem<Map<String, dynamic>>(
@@ -805,9 +830,21 @@ class _HomeScreenState extends State<HomeScreen> {
           child: DropdownButtonFormField<Map<String, dynamic>>(
             value: selectedSubCategory,
             isExpanded: true,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: 'التصنيف الفرعي',
-              border: OutlineInputBorder(),
+              labelStyle: TextStyle(color: Colors.blue[800]),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.amber[300]!),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.amber[300]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.amber[600]!, width: 2),
+              ),
             ),
             items: [
               DropdownMenuItem<Map<String, dynamic>>(
@@ -837,7 +874,18 @@ class _HomeScreenState extends State<HomeScreen> {
             });
             fetchCategoryFilteredAds(reset: true);
           },
-          child: const Text('بحث'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.amber[600],
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: const Text(
+            'بحث',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
       ],
     ),
@@ -850,12 +898,13 @@ class _HomeScreenState extends State<HomeScreen> {
     child: Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.amber[300]!, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.amber.withOpacity(0.2),
             spreadRadius: 2,
-            blurRadius: 8,
+            blurRadius: 10,
             offset: const Offset(0, 3),
           ),
         ],
@@ -864,9 +913,10 @@ class _HomeScreenState extends State<HomeScreen> {
         controller: _searchController,
         decoration: InputDecoration(
           hintText: 'ابحث عن منتج أو خدمة...',
-          prefixIcon: Icon(Icons.search, color: Colors.deepPurple),
+          hintStyle: TextStyle(color: Colors.grey[600]),
+          prefixIcon: Icon(Icons.search, color: Colors.amber[700]),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
         onSubmitted: (value) {
           if (value.trim().isNotEmpty) {
@@ -892,8 +942,8 @@ class _HomeScreenState extends State<HomeScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.deepPurple.shade800,
-                  Colors.deepPurple.shade600
+                  Colors.amber[600]!,
+                  Colors.amber[400]!
                 ],
               ),
             ),
@@ -902,18 +952,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CircleAvatar(
-                    radius: 30,
+                    radius: 32,
                     backgroundColor: Colors.white,
                     child: Icon(
                       Icons.person,
-                      size: 30,
-                      color: Colors.deepPurple,
+                      size: 32,
+                      color: Colors.blue[800],
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     _username != null ? 'مرحباً، $_username 👋' : 'مرحبا بك 👋',
-                    style: const TextStyle(fontSize: 18, color: Colors.white),
+                    style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -968,8 +1018,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _drawerItem(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
-      leading: Icon(icon, color: Colors.deepPurple),
-      title: Text(title),
+      leading: Icon(icon, color: Colors.blue[800]),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: Colors.grey[800],
+          fontWeight: FontWeight.w500,
+        ),
+      ),
       onTap: onTap,
     );
   }
@@ -1061,7 +1117,7 @@ class _ImageSliderState extends State<ImageSlider> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
                     color: _currentImageIndex == index
-                        ? Colors.deepPurple
+                        ? Colors.amber[600]
                         : Colors.white.withOpacity(0.7),
                   ),
                 ),

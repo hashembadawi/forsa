@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:sahbo_app/screens/verification_screen.dart';
 import 'package:sahbo_app/screens/login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
