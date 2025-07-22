@@ -1256,6 +1256,7 @@ class _ImageSliderState extends State<ImageSlider> {
     'assets/image1.jpg',
     'assets/image2.jpg',
     'assets/image3.jpg',
+    'assets/image4.jpg',
   ];
 
   int _currentImageIndex = 0;
