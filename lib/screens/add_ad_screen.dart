@@ -97,17 +97,17 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('نشر إعلان جديد'),
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: const Color(0xFF1E4A47),
           foregroundColor: Colors.white,
         ),
-        body: const Center(child: CircularProgressIndicator()),
+        body: const Center(child: CircularProgressIndicator(color: Color(0xFF4DD0CC))),
       );
     }
     if (_optionsError != null) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('نشر إعلان جديد'),
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: const Color(0xFF1E4A47),
           foregroundColor: Colors.white,
         ),
         body: Center(
@@ -118,6 +118,11 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _fetchOptions,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E4A47),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
                 child: const Text('إعادة المحاولة'),
               ),
             ],
@@ -134,7 +139,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: const Color(0xFF1E4A47),
           foregroundColor: Colors.white,
           elevation: 2,
           leading: IconButton(
@@ -143,13 +148,13 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
           ),
         ),
         body: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.deepPurple.shade50,
-                Colors.deepPurple.shade100.withOpacity(0.3),
+                Color(0xFF7FE8E4),
+                Colors.white,
               ],
             ),
           ),
@@ -178,7 +183,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
                   height: 4,
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
-                    color: index <= currentStep ? Colors.deepPurple : Colors.grey[300],
+                    color: index <= currentStep ? const Color(0xFF1E4A47) : Colors.grey[300],
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -206,7 +211,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
           width: 30,
           height: 30,
           decoration: BoxDecoration(
-            color: stepIndex <= currentStep ? Colors.deepPurple : Colors.grey[300],
+            color: stepIndex <= currentStep ? const Color(0xFF1E4A47) : Colors.grey[300],
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -223,7 +228,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         Text(
           title,
           style: TextStyle(
-            color: stepIndex <= currentStep ? Colors.deepPurple : Colors.grey[600],
+            color: stepIndex <= currentStep ? const Color(0xFF1E4A47) : Colors.grey[600],
             fontWeight: stepIndex == currentStep ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -293,7 +298,6 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       final userId = prefs.getString('userId') ?? '';
       final userPhone = prefs.getString('userPhone') ?? '';
       final username = prefs.getString('userName') ?? '';
-      final userEmail = prefs.getString('userEmail') ?? '';
 
       List<String> base64Images = [];
       for (File? image in selectedImages.where((img) => img != null)) {
@@ -356,7 +360,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+              color: Color(0xFF1E4A47),
             ),
             const SizedBox(height: 20),
             const Text(
@@ -399,7 +403,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
               (route) => false,
             );
           },
-          child: const Text('موافق', style: TextStyle(color: Colors.deepPurple)),
+          child: const Text('موافق', style: TextStyle(color: Color(0xFF1E4A47))),
         ),
       ],
     ),
@@ -422,7 +426,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('موافق', style: TextStyle(color: Colors.red)),
+            child: const Text('موافق', style: TextStyle(color: Color(0xFFFF7A59))),
           ),
         ],
       ),
@@ -577,7 +581,7 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
             child: ElevatedButton(
               onPressed: _images.any((image) => image != null) ? widget.onNext : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
+                backgroundColor: const Color(0xFF1E4A47),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
@@ -723,7 +727,7 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
                       ? () => widget.onCategorySelected(_selectedCategory!, _selectedSubCategory!)
                       : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: const Color(0xFF1E4A47),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
@@ -975,12 +979,12 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                 child: ElevatedButton(
                   onPressed: _canSubmit() ? widget.onSubmit : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: const Color(0xFF1E4A47),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: EdgeInsets.symmetric(vertical: 15),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
                   ),
-                  child: Text('نشر الإعلان', style: TextStyle(fontSize: 16)),
+                  child: const Text('نشر الإعلان', style: TextStyle(fontSize: 16)),
                 ),
               ),
             ],

@@ -1204,7 +1204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         builder: (_) => AccountScreen(
                           isLoggedIn: true,
                           userName: username,
-                          userEmail: email,
+                          userEmail: email, phoneNumber: prefs.getString('userPhone') ?? '',
                         ),
                       ),
                     );

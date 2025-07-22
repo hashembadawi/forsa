@@ -9,12 +9,14 @@ import 'login_screen.dart';
 class AccountScreen extends StatelessWidget {
   final String userName;
   final String userEmail;
+  final String phoneNumber;
   final bool isLoggedIn;
 
   const AccountScreen({
     super.key,
     required this.userName,
     required this.userEmail,
+    required this.phoneNumber,
     required this.isLoggedIn,
   });
 
@@ -27,8 +29,8 @@ class AccountScreen extends StatelessWidget {
           title: const Text('حسابي'),
           centerTitle: true,
           elevation: 0,
-          backgroundColor: Colors.transparent,
-          foregroundColor: Colors.deepPurple,
+          backgroundColor: const Color(0xFF1E4A47),
+          foregroundColor: Colors.white,
           actions: [
             IconButton(
               icon: const Icon(Icons.home),
@@ -42,25 +44,37 @@ class AccountScreen extends StatelessWidget {
             ),
           ],
         ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // بطاقة معلومات المستخدم
-                _buildUserCard(context),
-                const SizedBox(height: 24),
-
-                // قسم المعلومات
-                const SizedBox(height: 16),
-                _buildSectionTitle('المعلومات'),
-                _buildInfoList(context),
-
-                // زر تسجيل الدخول/الخروج
-                const SizedBox(height: 32),
-                _buildAuthButton(context),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFF7FE8E4),
+                Colors.white,
               ],
+            ),
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // بطاقة معلومات المستخدم
+                  _buildUserCard(context),
+                  const SizedBox(height: 24),
+
+                  // قسم المعلومات
+                  const SizedBox(height: 16),
+                  _buildSectionTitle('المعلومات'),
+                  _buildInfoList(context),
+
+                  // زر تسجيل الدخول/الخروج
+                  const SizedBox(height: 32),
+                  _buildAuthButton(context),
+                ],
+              ),
             ),
           ),
         ),
@@ -69,10 +83,28 @@ class AccountScreen extends StatelessWidget {
   }
 
   Widget _buildUserCard(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF4DD0CC),
+            Color(0xFF7FE8E4),
+          ],
+        ),
+        border: Border.all(
+          color: const Color(0xFF4DD0CC),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -81,11 +113,11 @@ class AccountScreen extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 30,
-              backgroundColor: Colors.deepPurple[100],
+              backgroundColor: Colors.white.withOpacity(0.8),
               child: Icon(
                 Icons.person,
                 size: 30,
-                color: Colors.deepPurple[800],
+                color: const Color(0xFF1E4A47),
               ),
             ),
             const SizedBox(width: 16),
@@ -98,6 +130,7 @@ class AccountScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -105,9 +138,22 @@ class AccountScreen extends StatelessWidget {
                     userEmail,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color: Colors.white.withOpacity(0.9),
                     ),
                   ),
+                  if (phoneNumber.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Text(
+                        phoneNumber,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -117,11 +163,11 @@ class AccountScreen extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 30,
-              backgroundColor: Colors.deepPurple[100],
+              backgroundColor: Colors.white.withOpacity(0.8),
               child: const Icon(
                 Icons.person_outline,
                 size: 30,
-                color: Colors.deepPurple,
+                color: Color(0xFF1E4A47),
               ),
             ),
             const SizedBox(height: 16),
@@ -130,6 +176,7 @@ class AccountScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 8),
@@ -137,7 +184,7 @@ class AccountScreen extends StatelessWidget {
               'سجل الدخول للوصول إلى جميع الميزات',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: Colors.white.withOpacity(0.9),
               ),
               textAlign: TextAlign.center,
             ),
@@ -152,20 +199,38 @@ class AccountScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: Colors.grey[700],
+          color: Color(0xFF1E4A47),
         ),
       ),
     );
   }
 
   Widget _buildInfoList(BuildContext context) {
-    return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            Color(0xFFF8FDFD),
+          ],
+        ),
+        border: Border.all(
+          color: const Color(0xFF4DD0CC),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -180,7 +245,7 @@ class AccountScreen extends StatelessWidget {
               );
             },
           ),
-          const Divider(height: 1, indent: 16, endIndent: 16),
+          Divider(height: 1, indent: 16, endIndent: 16, color: const Color(0xFF7FE8E4)),
           _buildListItem(
             context,
             icon: Icons.help_center,
@@ -192,7 +257,7 @@ class AccountScreen extends StatelessWidget {
               );
             },
           ),
-          const Divider(height: 1, indent: 16, endIndent: 16),
+          Divider(height: 1, indent: 16, endIndent: 16, color: const Color(0xFF7FE8E4)),
           _buildListItem(
             context,
             icon: Icons.call,
@@ -216,12 +281,12 @@ class AccountScreen extends StatelessWidget {
         required VoidCallback onTap,
       }) {
     return ListTile(
-      leading: Icon(icon, color: Colors.deepPurple),
-      title: Text(title),
+      leading: Icon(icon, color: const Color(0xFF2E7D78)),
+      title: Text(title, style: const TextStyle(color: Color(0xFF1E4A47))),
       trailing: Icon(
         Icons.arrow_forward_ios,
         size: 16,
-        color: Colors.grey[400],
+        color: const Color(0xFF7FE8E4),
       ),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
@@ -233,8 +298,8 @@ class AccountScreen extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: isLoggedIn ? Colors.red[50] : Colors.deepPurple,
-          foregroundColor: isLoggedIn ? Colors.red : Colors.white,
+          backgroundColor: isLoggedIn ? const Color(0xFFFF7A59) : const Color(0xFF1E4A47),
+          foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

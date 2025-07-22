@@ -14,9 +14,9 @@ class AdTermsScreen extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: const Color(0xFF1E4A47),
           foregroundColor: Colors.white,
-          elevation: 2,
+          elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
@@ -24,23 +24,41 @@ class AdTermsScreen extends StatelessWidget {
         ),
         body: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Colors.deepPurple.shade50,
-                Colors.deepPurple.shade100.withOpacity(0.3),
+                Color(0xFF7FE8E4),
+                Colors.white,
               ],
             ),
           ),
           child: SingleChildScrollView(
             child: Column(
               children: [
-                Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.white,
+                        Color(0xFFF8FDFD),
+                      ],
+                    ),
+                    border: Border.all(
+                      color: const Color(0xFF4DD0CC),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(20),
@@ -57,7 +75,7 @@ class AdTermsScreen extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 16,
                         height: 1.8,
-                        color: Colors.black87,
+                        color: Color(0xFF1E4A47),
                       ),
                     ),
                   ),
