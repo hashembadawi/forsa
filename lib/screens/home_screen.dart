@@ -813,30 +813,40 @@ class _HomeScreenState extends State<HomeScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.grey[50],
         drawer: _buildDrawer(context),
-        body: CustomScrollView(
-          controller: _adsScrollController,
-          slivers: [
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFF7FE8E4),
+                Colors.white,
+              ],
+            ),
+          ),
+          child: CustomScrollView(
+            controller: _adsScrollController,
+            slivers: [
             SliverAppBar(
               floating: true,
               pinned: true,
               snap: false,
-              elevation: 4,
-              backgroundColor: Colors.white,
-              title: Text(
+              elevation: 0,
+              backgroundColor: const Color(0xFF1E4A47),
+              title: const Text(
                 'اعلانك',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF2E7D78),
+                  color: Colors.white,
                 ),
               ),
               centerTitle: true,
               leading: Builder(
                 builder: (context) => IconButton(
-                  icon: Icon(Icons.menu,
-                      size: 28, color: Color(0xFF1E4A47)),
+                  icon: const Icon(Icons.menu,
+                      size: 28, color: Colors.white),
                   onPressed: () => Scaffold.of(context).openDrawer(),
                 ),
               ),
@@ -921,13 +931,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
           ],
         ),
+        ),
       ),
     );
   }
 
   Widget _buildLocationButton() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: GestureDetector(
         onTap: () async {
           await _showLocationFilterDialog();
@@ -1096,7 +1107,7 @@ class _HomeScreenState extends State<HomeScreen> {
   
   Widget _buildSearchField() {
     return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     child: Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1281,7 +1292,7 @@ class _ImageSliderState extends State<ImageSlider> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 180,
+      height: 220,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Stack(
@@ -1297,6 +1308,15 @@ class _ImageSliderState extends State<ImageSlider> {
                 margin: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Color(0xFF4DD0CC), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xFF4DD0CC).withOpacity(0.2),
+                      spreadRadius: 2,
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                   image: DecorationImage(
                     image: AssetImage(imagePaths[index]),
                     fit: BoxFit.cover,

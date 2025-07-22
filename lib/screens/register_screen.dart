@@ -74,6 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('تم إضافة المستخدم بنجاح'),
+            backgroundColor: const Color(0xFF4DD0CC),
             duration: Duration(seconds: 3), // سيختفي بعد 3 ثواني
             behavior: SnackBarBehavior.floating, // لجعله عائمًا بدلاً من أن يكون ملتصقًا بالأسفل
           ),
@@ -110,7 +111,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: const Color(0xFFFF7A59),
       ),
     );
   }
@@ -120,20 +121,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.grey[100],
         appBar: AppBar(
           title: const Text('إنشاء حساب جديد'),
           centerTitle: true,
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: const Color(0xFF1E4A47),
           foregroundColor: Colors.white,
+          elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFF7FE8E4),
+                Colors.white,
+              ],
+            ),
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
             key: _formKey,
             child: Column(
               children: [
@@ -241,15 +253,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 24),
                 _isLoading
-                    ? const CircularProgressIndicator()
+                    ? const CircularProgressIndicator(color: Color(0xFF4DD0CC))
                     : ElevatedButton(
                         onPressed: registerUser,
                         style: ElevatedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 50),
-                          backgroundColor: Colors.deepPurple,
+                          backgroundColor: const Color(0xFF1E4A47),
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(12),
                           ),
+                          elevation: 0,
                         ),
                         child: const Text(
                           'إنشاء حساب',
@@ -260,6 +274,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
@@ -282,7 +297,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         labelText: label,
         filled: true,
         fillColor: Colors.white,
-        prefixIcon: icon != null ? Icon(icon, color: Colors.deepPurple) : null,
+        prefixIcon: icon != null ? Icon(icon, color: const Color(0xFF2E7D78)) : null,
         suffixIcon: suffixIcon,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
