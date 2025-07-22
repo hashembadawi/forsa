@@ -8,7 +8,6 @@ import 'ad_details_screen.dart';
 import 'add_ad_screen.dart';
 import 'login_screen.dart';
 import 'my_ads_screen.dart';
-import 'select_location_screen.dart';
 import 'search_results_screen.dart';
 
 class HomeScreen extends StatefulWidget {
