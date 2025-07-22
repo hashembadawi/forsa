@@ -184,8 +184,19 @@ class _HomeScreenState extends State<HomeScreen> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: const Text('تصفية حسب الموقع'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(color: Colors.amber[300]!, width: 1.5),
+              ),
+              backgroundColor: Colors.white,
+              title: Text(
+                'تصفية حسب الموقع',
+                style: TextStyle(
+                  color: Colors.blue[800],
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
               content: SizedBox(
                 width: double.maxFinite,
                 child: Column(
@@ -194,9 +205,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     DropdownButtonFormField<Map<String, dynamic>>(
                       value: tempSelectedProvince,
                       isExpanded: true,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'اختر المحافظة',
-                        border: OutlineInputBorder(),
+                        labelStyle: TextStyle(color: Colors.blue[800]),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.amber[300]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.amber[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.amber[600]!, width: 2),
+                        ),
                       ),
                       items: [
                         DropdownMenuItem<Map<String, dynamic>>(
@@ -222,9 +245,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     DropdownButtonFormField<Map<String, dynamic>>(
                       value: tempSelectedArea,
                       isExpanded: true,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'اختر المدينة/المنطقة',
-                        border: OutlineInputBorder(),
+                        labelStyle: TextStyle(color: Colors.blue[800]),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.amber[300]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.amber[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.amber[600]!, width: 2),
+                        ),
                       ),
                       items: [
                         DropdownMenuItem<Map<String, dynamic>>(
@@ -248,7 +283,14 @@ class _HomeScreenState extends State<HomeScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('إلغاء'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.grey[600],
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  ),
+                  child: const Text(
+                    'إلغاء',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -268,7 +310,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       fetchAllAds();
                     }
                   },
-                  child: const Text('تطبيق'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber[600],
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                  ),
+                  child: const Text(
+                    'تطبيق',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             );
