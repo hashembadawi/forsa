@@ -207,28 +207,51 @@ class _HomeScreenState extends State<HomeScreen> {
                       isExpanded: true,
                       decoration: InputDecoration(
                         labelText: 'اختر المحافظة',
-                        labelStyle: TextStyle(color: Color(0xFF1E4A47)),
+                        labelStyle: TextStyle(color: Color(0xFF2E7D78)),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Color(0xFF4DD0CC)),
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Color(0xFF4DD0CC)),
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(15),
                           borderSide: BorderSide(color: Color(0xFF2E7D78), width: 2),
                         ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      ),
+                      dropdownColor: Colors.white,
+                      style: TextStyle(
+                        color: Color(0xFF1E4A47),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
                       ),
                       items: [
                         DropdownMenuItem<Map<String, dynamic>>(
                           value: null,
-                          child: Text('كل المحافظات'),
+                          child: Text(
+                            'كل المحافظات',
+                            style: TextStyle(
+                              color: Color(0xFF1E4A47),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
                         ...provinces.map((province) => DropdownMenuItem(
                               value: province,
-                              child: Text(province['name']),
+                              child: Text(
+                                province['name'],
+                                style: TextStyle(
+                                  color: Color(0xFF1E4A47),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             )),
                       ],
                       onChanged: (value) {
@@ -247,28 +270,51 @@ class _HomeScreenState extends State<HomeScreen> {
                       isExpanded: true,
                       decoration: InputDecoration(
                         labelText: 'اختر المدينة/المنطقة',
-                        labelStyle: TextStyle(color: Color(0xFF1E4A47)),
+                        labelStyle: TextStyle(color: Color(0xFF2E7D78)),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Color(0xFF4DD0CC)),
+                          borderRadius: BorderRadius.circular(25),
+                          borderSide: BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Color(0xFF4DD0CC)),
+                          borderRadius: BorderRadius.circular(25),
+                          borderSide: BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(25),
                           borderSide: BorderSide(color: Color(0xFF2E7D78), width: 2),
                         ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      ),
+                      dropdownColor: Colors.white,
+                      style: TextStyle(
+                        color: Color(0xFF1E4A47),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
                       ),
                       items: [
                         DropdownMenuItem<Map<String, dynamic>>(
                           value: null,
-                          child: Text('كل المناطق'),
+                          child: Text(
+                            'كل المناطق',
+                            style: TextStyle(
+                              color: Color(0xFF1E4A47),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
                         ...filteredAreas.map((area) => DropdownMenuItem(
                               value: area,
-                              child: Text(area['name']),
+                              child: Text(
+                                area['name'],
+                                style: TextStyle(
+                                  color: Color(0xFF1E4A47),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             )),
                       ],
                       onChanged: (value) {
