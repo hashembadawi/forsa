@@ -825,7 +825,7 @@ class _HomeScreenState extends State<HomeScreen> {
               elevation: 4,
               backgroundColor: Colors.white,
               title: Text(
-                'إعلانك معنا',
+                'اعلانك',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
