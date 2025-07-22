@@ -116,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: const Color(0xFFFF7A59),
       ),
     );
   }
@@ -126,26 +126,37 @@ class _LoginScreenState extends State<LoginScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.grey[100],
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
           title: const Text('تسجيل الدخول'),
           centerTitle: true,
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: const Color(0xFF1E4A47),
           foregroundColor: Colors.white,
+          elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        body: SingleChildScrollView(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFF7FE8E4),
+                Colors.white,
+              ],
+            ),
           ),
-          child: Column(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+            ),
+            child: Column(
             children: [
               Row(
                 children: [
@@ -161,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        prefixIcon: const Icon(Icons.phone, color: Colors.deepPurple),
+                        prefixIcon: const Icon(Icons.phone, color: Color(0xFF2E7D78)),
                       ),
                       keyboardType: TextInputType.phone,
                     ),
@@ -185,9 +196,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           value: country,
                           child: Row(
                             children: [
-                              Text(country['name']!, style: const TextStyle(fontSize: 10)),
+                              Text(country['name']!, style: const TextStyle(fontSize: 11)),
                               const SizedBox(width: 6),
-                              Text(country['code']!, style: const TextStyle(fontSize: 10)),
+                              Text(country['code']!, style: const TextStyle(fontSize: 11)),
                             ],
                           ),
                         );
@@ -214,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
                   ),
-                  prefixIcon: const Icon(Icons.lock, color: Colors.deepPurple),
+                  prefixIcon: const Icon(Icons.lock, color: Color(0xFF2E7D78)),
                   suffixIcon: IconButton(
                     icon: Icon(
                       !_showPasswordPhone ? Icons.visibility_off : Icons.visibility,
@@ -234,14 +245,16 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16),
               _isLoading
-                  ? const CircularProgressIndicator()
+                  ? const CircularProgressIndicator(color: Color(0xFF4DD0CC))
                   : ElevatedButton(
                       onPressed: _login,
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 50),
-                        backgroundColor: Colors.deepPurple,
+                        backgroundColor: const Color(0xFF1E4A47),
+                        foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
+                            borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
                       ),
                       child: const Text(
                         'تسجيل الدخول',
@@ -261,12 +274,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
                 child: const Text(
                   "ليس لديك حساب؟ إنشاء حساب جديد",
-                  style: TextStyle(color: Colors.deepPurple),
+                  style: TextStyle(color: Color(0xFF1E4A47)),
                 ),
               ),
             ],
           ),
         ),
+      ),
       ),
     );
   }
