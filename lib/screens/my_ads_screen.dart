@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:sahbo_app/screens/update_ad_screen.dart';
+import 'package:sahbo_app/screens/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MyAdsScreen extends StatefulWidget {
@@ -102,19 +103,56 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تأكيد الحذف'),
-        content: const Text('هل أنت متأكد أنك تريد حذف هذا الإعلان؟'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
+        ),
+        backgroundColor: Colors.white,
+        title: Text(
+          'تأكيد الحذف',
+          style: TextStyle(
+            color: Color(0xFF1E4A47),
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        content: Text(
+          'هل أنت متأكد أنك تريد حذف هذا الإعلان؟',
+          style: TextStyle(
+            color: Color(0xFF2E7D78),
+            fontSize: 16,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey[600],
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            child: Text(
+              'إلغاء',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               _deleteAd(adId);
             },
-            child: const Text('حذف', style: TextStyle(color: Colors.red)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFE74C3C),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+            child: Text(
+              'حذف',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -173,32 +211,62 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('إعلاناتي'),
-        centerTitle: true,
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          title: Text(
+            'إعلاناتي',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2E7D78),
+            ),
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.white,
+          elevation: 4,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Color(0xFF1E4A47)),
+            onPressed: () {
+              // Navigate back to home screen instead of just popping
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => HomeScreen()),
+                (Route<dynamic> route) => false,
+              );
+            },
+          ),
+        ),
+        body: _buildBody(),
       ),
-      body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
     if (myAds.isEmpty && isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4DD0CC)),
+        ),
+      );
     }
 
     if (myAds.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           'لا توجد إعلانات بعد',
-          style: TextStyle(fontSize: 18, color: Colors.grey),
+          style: TextStyle(
+            fontSize: 18,
+            color: Color(0xFF2E7D78),
+            fontWeight: FontWeight.w500,
+          ),
         ),
       );
     }
 
     return RefreshIndicator(
+      color: Color(0xFF4DD0CC),
       onRefresh: () async {
         setState(() {
           myAds.clear();
@@ -213,9 +281,13 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
         itemCount: myAds.length + (hasMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == myAds.length) {
-            return const Padding(
+            return Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4DD0CC)),
+                ),
+              ),
             );
           }
 
@@ -230,37 +302,111 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
     final List<dynamic> images = ad['images'] is List ? ad['images'] : [];
     final firstImageBase64 = images.isNotEmpty ? images[0] : null;
 
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    final image = firstImageBase64 != null
+        ? Image.memory(
+            base64Decode(firstImageBase64),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFF0FAFA),
+                      Color(0xFFE8F5F5),
+                    ],
+                  ),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.image,
+                        size: 60,
+                        color: Color(0xFF4DD0CC),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'صورة',
+                        style: TextStyle(
+                          color: Color(0xFF2E7D78),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          )
+        : Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFF0FAFA),
+                  Color(0xFFE8F5F5),
+                ],
+              ),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.image,
+                    size: 60,
+                    color: Color(0xFF4DD0CC),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'لا توجد صورة',
+                    style: TextStyle(
+                      color: Color(0xFF2E7D78),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      elevation: 4,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            Color(0xFFF8FDFD),
+            Color(0xFFF0FAFA),
+          ],
+        ),
+        border: Border.all(
+          color: Color(0xFF4DD0CC),
+          width: 1.5,
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
             child: SizedBox(
               height: 200,
               width: double.infinity,
-              child: firstImageBase64 != null
-                  ? Image.memory(
-                base64Decode(firstImageBase64),
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.image, size: 60),
-                  );
-                },
-              )
-                  : Container(
-                color: Colors.grey[200],
-                child: const Icon(Icons.image, size: 60),
-              ),
+              child: image,
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -269,65 +415,128 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[800],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  '${ad['price'] ?? '0'} ${ad['currency'] ?? ''}',
-                  style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E4A47),
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFFF7A59).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Color(0xFFFF7A59).withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    '${ad['price'] ?? '0'} ${ad['currencyName'] ?? ad['currency'] ?? ''}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFFF7A59),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Text(
                   ad['description'] ?? '',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[800],
+                    color: Color(0xFF2E7D78),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Icon(Icons.location_on, size: 18, color: Colors.deepPurple),
+                    Icon(Icons.location_on, size: 16, color: Color(0xFF2E7D78)),
                     const SizedBox(width: 4),
-                    Text(
-                      '${ad['city'] ?? ''} - ${ad['region'] ?? ''}',
-                      style: TextStyle(color: Colors.grey[700]),
+                    Expanded(
+                      child: Text(
+                        '${ad['city'] ?? ''} - ${ad['region'] ?? ''}',
+                        style: TextStyle(
+                          color: Color(0xFF1E4A47),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.access_time, size: 18, color: Colors.grey),
+                    Icon(Icons.access_time, size: 16, color: Color(0xFF2E7D78)),
                     const SizedBox(width: 4),
                     Text(
                       ad['createDate'] != null
                           ? formatDate(ad['createDate'])
                           : 'غير محدد',
-                      style: TextStyle(color: Colors.grey[600]),
+                      style: TextStyle(
+                        color: Color(0xFF1E4A47),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
-                const Divider(height: 24),
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 16),
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF4DD0CC), Color(0xFF7FE8E4)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                  ),
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton.icon(
+                    ElevatedButton.icon(
                       onPressed: () => _navigateToEditAd(ad),
-                      icon: const Icon(Icons.edit, color: Colors.blue),
-                      label: const Text('تعديل'),
+                      icon: Icon(Icons.edit, size: 18, color: Colors.white),
+                      label: Text(
+                        'تعديل',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF2E7D78),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                      ),
                     ),
-                    TextButton.icon(
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
                       onPressed: () => _confirmDeleteAd(ad['_id']),
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      label: const Text('حذف'),
+                      icon: Icon(Icons.delete, size: 18, color: Colors.white),
+                      label: Text(
+                        'حذف',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFE74C3C),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                      ),
                     ),
                   ],
                 ),
