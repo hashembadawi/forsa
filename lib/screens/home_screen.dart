@@ -186,13 +186,13 @@ class _HomeScreenState extends State<HomeScreen> {
             return AlertDialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
-                side: BorderSide(color: Colors.amber[300]!, width: 1.5),
+                side: BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
               ),
               backgroundColor: Colors.white,
               title: Text(
                 'تصفية حسب الموقع',
                 style: TextStyle(
-                  color: Colors.blue[800],
+                  color: Color(0xFF1E4A47),
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
                 ),
@@ -207,18 +207,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       isExpanded: true,
                       decoration: InputDecoration(
                         labelText: 'اختر المحافظة',
-                        labelStyle: TextStyle(color: Colors.blue[800]),
+                        labelStyle: TextStyle(color: Color(0xFF1E4A47)),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.amber[300]!),
+                          borderSide: BorderSide(color: Color(0xFF4DD0CC)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.amber[300]!),
+                          borderSide: BorderSide(color: Color(0xFF4DD0CC)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.amber[600]!, width: 2),
+                          borderSide: BorderSide(color: Color(0xFF2E7D78), width: 2),
                         ),
                       ),
                       items: [
@@ -247,18 +247,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       isExpanded: true,
                       decoration: InputDecoration(
                         labelText: 'اختر المدينة/المنطقة',
-                        labelStyle: TextStyle(color: Colors.blue[800]),
+                        labelStyle: TextStyle(color: Color(0xFF1E4A47)),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.amber[300]!),
+                          borderSide: BorderSide(color: Color(0xFF4DD0CC)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.amber[300]!),
+                          borderSide: BorderSide(color: Color(0xFF4DD0CC)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.amber[600]!, width: 2),
+                          borderSide: BorderSide(color: Color(0xFF2E7D78), width: 2),
                         ),
                       ),
                       items: [
@@ -311,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber[600],
+                    backgroundColor: Color(0xFFFF7A59),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -524,11 +524,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return Card(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
-        side: BorderSide(color: Colors.amber[200]!, width: 1),
+        side: BorderSide(color: Color(0xFF7FE8E4), width: 1),
       ),
       elevation: 4,
       margin: const EdgeInsets.all(4),
-      shadowColor: Colors.amber.withOpacity(0.3),
+      shadowColor: Color(0xFF4DD0CC).withOpacity(0.3),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: () {
@@ -577,7 +577,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: Colors.amber[700],
+                          color: Color(0xFFFF7A59),
                         ),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
@@ -597,7 +597,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Icon(
                             Icons.location_on,
                             size: 10,
-                            color: Colors.blue[700],
+                            color: Color(0xFF2E7D78),
                           ),
                           const SizedBox(width: 1),
                           Expanded(
@@ -694,14 +694,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.amber[700],
+                  color: Color(0xFF2E7D78),
                 ),
               ),
               centerTitle: true,
               leading: Builder(
                 builder: (context) => IconButton(
                   icon: Icon(Icons.menu,
-                      size: 28, color: Colors.blue[800]),
+                      size: 28, color: Color(0xFF1E4A47)),
                   onPressed: () => Scaffold.of(context).openDrawer(),
                 ),
               ),
@@ -711,7 +711,7 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(child: _buildSearchField()),
             SliverToBoxAdapter(child: ImageSlider()),
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   Text(
@@ -719,14 +719,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue[800],
+                      color: Color(0xFF1E4A47),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 3,
+                    width: 80,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF4DD0CC), Color(0xFF7FE8E4)],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                   const SizedBox(height: 12),
                   if (allAds.isEmpty && isLoadingAds)
                     Center(
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[600]!),
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4DD0CC)),
                       ),
                     ),
                 ]),
@@ -748,7 +761,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Padding(
                           padding: EdgeInsets.all(16),
                           child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.amber[600]!),
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4DD0CC)),
                           ),
                         ),
                       );
@@ -779,7 +792,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildLocationButton() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: GestureDetector(
         onTap: () async {
           await _showLocationFilterDialog();
@@ -789,10 +802,10 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.amber[300]!, width: 1.5),
+            border: Border.all(color: Color(0xFF4DD0CC), width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: Colors.amber.withOpacity(0.2),
+                color: Color(0xFF4DD0CC).withOpacity(0.2),
                 spreadRadius: 2,
                 blurRadius: 10,
                 offset: const Offset(0, 3),
@@ -804,14 +817,14 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.location_on, size: 22, color: Colors.amber[700]),
+                  Icon(Icons.location_on, size: 22, color: Color(0xFFFF7A59)),
                   const SizedBox(width: 8),
                   Text(
                     'موقع',
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue[800],
+                      color: Color(0xFF1E4A47),
                     ),
                   ),
                 ],
@@ -836,7 +849,7 @@ class _HomeScreenState extends State<HomeScreen> {
       : subCategoriesList.where((s) => s['categoryId'] == selectedCategory!['id']).toList();
 
   return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     child: Row(
       children: [
         Expanded(
@@ -845,18 +858,18 @@ class _HomeScreenState extends State<HomeScreen> {
             isExpanded: true,
             decoration: InputDecoration(
               labelText: 'التصنيف الرئيسي',
-              labelStyle: TextStyle(color: Colors.blue[800]),
+              labelStyle: TextStyle(color: Color(0xFF1E4A47)),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.amber[300]!),
+                borderSide: BorderSide(color: Color(0xFF4DD0CC)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.amber[300]!),
+                borderSide: BorderSide(color: Color(0xFF4DD0CC)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.amber[600]!, width: 2),
+                borderSide: BorderSide(color: Color(0xFF2E7D78), width: 2),
               ),
             ),
             items: [
@@ -886,18 +899,18 @@ class _HomeScreenState extends State<HomeScreen> {
             isExpanded: true,
             decoration: InputDecoration(
               labelText: 'التصنيف الفرعي',
-              labelStyle: TextStyle(color: Colors.blue[800]),
+              labelStyle: TextStyle(color: Color(0xFF1E4A47)),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.amber[300]!),
+                borderSide: BorderSide(color: Color(0xFF4DD0CC)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.amber[300]!),
+                borderSide: BorderSide(color: Color(0xFF4DD0CC)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.amber[600]!, width: 2),
+                borderSide: BorderSide(color: Color(0xFF2E7D78), width: 2),
               ),
             ),
             items: [
@@ -948,15 +961,15 @@ class _HomeScreenState extends State<HomeScreen> {
   
   Widget _buildSearchField() {
     return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     child: Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.amber[300]!, width: 1.5),
+        border: Border.all(color: Color(0xFF4DD0CC), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.amber.withOpacity(0.2),
+            color: Color(0xFF4DD0CC).withOpacity(0.2),
             spreadRadius: 2,
             blurRadius: 10,
             offset: const Offset(0, 3),
@@ -968,7 +981,7 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: InputDecoration(
           hintText: 'ابحث عن منتج أو خدمة...',
           hintStyle: TextStyle(color: Colors.grey[600]),
-          prefixIcon: Icon(Icons.search, color: Colors.amber[700]),
+          prefixIcon: Icon(Icons.search, color: Color(0xFFFF7A59)),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
@@ -996,8 +1009,8 @@ class _HomeScreenState extends State<HomeScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Colors.amber[600]!,
-                  Colors.amber[400]!
+                  Color(0xFF2E7D78),
+                  Color(0xFF4DD0CC)
                 ],
               ),
             ),
@@ -1011,7 +1024,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Icon(
                       Icons.person,
                       size: 32,
-                      color: Colors.blue[800],
+                      color: Color(0xFF1E4A47),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1072,7 +1085,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _drawerItem(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
-      leading: Icon(icon, color: Colors.blue[800]),
+      leading: Icon(icon, color: Color(0xFF2E7D78)),
       title: Text(
         title,
         style: TextStyle(
@@ -1134,7 +1147,9 @@ class _ImageSliderState extends State<ImageSlider> {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 180,
-      child: Stack(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Stack(
         children: [
           PageView.builder(
             controller: _pageController,
@@ -1171,7 +1186,7 @@ class _ImageSliderState extends State<ImageSlider> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
                     color: _currentImageIndex == index
-                        ? Colors.amber[600]
+                        ? Color(0xFF4DD0CC)
                         : Colors.white.withOpacity(0.7),
                   ),
                 ),
@@ -1180,6 +1195,7 @@ class _ImageSliderState extends State<ImageSlider> {
           ),
         ],
       ),
+        ),
     );
   }
 }
