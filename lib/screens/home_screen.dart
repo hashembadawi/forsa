@@ -707,9 +707,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             SliverToBoxAdapter(child: _buildLocationButton()),
-            SliverToBoxAdapter(child: _buildCategoryFilterSection()),
-            SliverToBoxAdapter(child: ImageSlider()),
+            //SliverToBoxAdapter(child: _buildCategoryFilterSection()),
             SliverToBoxAdapter(child: _buildSearchField()),
+            SliverToBoxAdapter(child: ImageSlider()),
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               sliver: SliverList(
