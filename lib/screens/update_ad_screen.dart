@@ -27,8 +27,12 @@ class _EditAdScreenState extends State<EditAdScreen> {
   late TextEditingController _titleController;
   late TextEditingController _priceController;
   late TextEditingController _descriptionController;
-  String _currency = 'ل.س';
   bool _isUpdating = false;
+  
+  // Currency data from server
+  List<Map<String, dynamic>> currencies = [];
+  Map<String, dynamic>? selectedCurrency;
+  bool _isLoadingCurrencies = true;
 
   @override
   void initState() {
@@ -36,7 +40,30 @@ class _EditAdScreenState extends State<EditAdScreen> {
     _titleController = TextEditingController(text: widget.initialTitle);
     _priceController = TextEditingController(text: widget.initialPrice);
     _descriptionController = TextEditingController(text: widget.initialDescription);
-    _currency = widget.initialCurrency;
+    _fetchCurrencies();
+  }
+
+  Future<void> _fetchCurrencies() async {
+    setState(() => _isLoadingCurrencies = true);
+    try {
+      final response = await http.get(Uri.parse('https://sahbo-app-api.onrender.com/api/options'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          currencies = List<Map<String, dynamic>>.from(data['currencies']);
+          // Find the selected currency based on the initial currency
+          selectedCurrency = currencies.firstWhere(
+            (currency) => currency['name'] == widget.initialCurrency,
+            orElse: () => currencies.isNotEmpty ? currencies[0] : {'name': widget.initialCurrency, 'id': null},
+          );
+          _isLoadingCurrencies = false;
+        });
+      } else {
+        setState(() => _isLoadingCurrencies = false);
+      }
+    } catch (e) {
+      setState(() => _isLoadingCurrencies = false);
+    }
   }
 
   @override
@@ -70,7 +97,8 @@ class _EditAdScreenState extends State<EditAdScreen> {
         body: jsonEncode({
           'productTitle': _titleController.text,
           'price': _priceController.text,
-          'currency': _currency,
+          'currencyId': selectedCurrency?['id'],
+          'currencyName': selectedCurrency?['name'],
           'description': _descriptionController.text,
         }),
       );
@@ -90,19 +118,24 @@ class _EditAdScreenState extends State<EditAdScreen> {
   void _showSuccessDialog() {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (_) => AlertDialog(
-        title: const Text('تم التحديث'),
-        content: const Text('تم تعديل الإعلان بنجاح.'),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green),
+            SizedBox(width: 10),
+            Text('تم التحديث'),
+          ],
         ),
+        content: const Text('تم تعديل الإعلان بنجاح.'),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               Navigator.of(context).pop(true);
             },
-            child: const Text('موافق', style: TextStyle(color: Colors.deepPurple)),
+            child: const Text('موافق', style: TextStyle(color: Color(0xFF1E4A47))),
           ),
         ],
       ),
@@ -113,15 +146,19 @@ class _EditAdScreenState extends State<EditAdScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('خطأ'),
-        content: Text(message),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Row(
+          children: [
+            Icon(Icons.error, color: Colors.red),
+            SizedBox(width: 10),
+            Text('خطأ'),
+          ],
         ),
+        content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إغلاق', style: TextStyle(color: Colors.red)),
+            child: const Text('إغلاق', style: TextStyle(color: Color(0xFFFF7A59))),
           ),
         ],
       ),
@@ -136,7 +173,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
         appBar: AppBar(
           title: const Text('تعديل الإعلان'),
           centerTitle: true,
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: const Color(0xFF1E4A47),
           foregroundColor: Colors.white,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -151,8 +188,18 @@ class _EditAdScreenState extends State<EditAdScreen> {
                 controller: _titleController,
                 decoration: InputDecoration(
                   labelText: 'عنوان الإعلان',
+                  labelStyle: const TextStyle(color: Color(0xFF1E4A47)),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF1E4A47), width: 2),
                   ),
                 ),
                 validator: (value) {
@@ -168,8 +215,18 @@ class _EditAdScreenState extends State<EditAdScreen> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: 'السعر',
+                  labelStyle: const TextStyle(color: Color(0xFF1E4A47)),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF1E4A47), width: 2),
                   ),
                 ),
                 validator: (value) {
@@ -180,30 +237,72 @@ class _EditAdScreenState extends State<EditAdScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _currency,
-                decoration: InputDecoration(
-                  labelText: 'العملة',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                items: ['ل.س', 'دولار', 'ل.ت']
-                    .map((val) => DropdownMenuItem(
-                  value: val,
-                  child: Text(val),
-                ))
-                    .toList(),
-                onChanged: (val) => setState(() => _currency = val!),
-              ),
+              _isLoadingCurrencies
+                  ? Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFF1E4A47)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Row(
+                        children: [
+                          Text('العملة', style: TextStyle(color: Color(0xFF1E4A47))),
+                          Spacer(),
+                          SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Color(0xFF1E4A47),
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : DropdownButtonFormField<Map<String, dynamic>>(
+                      value: selectedCurrency,
+                      decoration: InputDecoration(
+                        labelText: 'العملة',
+                        labelStyle: const TextStyle(color: Color(0xFF1E4A47)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF1E4A47), width: 2),
+                        ),
+                      ),
+                      items: currencies
+                          .map((currency) => DropdownMenuItem(
+                        value: currency,
+                        child: Text(currency['name'], style: const TextStyle(color: Color(0xFF1E4A47))),
+                      ))
+                          .toList(),
+                      onChanged: (val) => setState(() => selectedCurrency = val),
+                    ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _descriptionController,
                 maxLines: 5,
                 decoration: InputDecoration(
                   labelText: 'الوصف',
+                  labelStyle: const TextStyle(color: Color(0xFF1E4A47)),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF1E4A47), width: 2),
                   ),
                   alignLabelWithHint: true,
                 ),
@@ -221,7 +320,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
                 child: ElevatedButton(
                   onPressed: _isUpdating ? null : _updateAd,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: const Color(0xFF1E4A47),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -229,7 +328,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
                   ),
                   child: _isUpdating
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('حفظ التعديلات'),
+                      : const Text('حفظ التعديلات', style: TextStyle(fontSize: 16)),
                 ),
               ),
             ],
