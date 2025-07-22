@@ -458,7 +458,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        '${ad['city'] ?? ''} - ${ad['region'] ?? ''}',
+                        '${ad['cityName'] ?? ''} - ${ad['regionName'] ?? ''}',
                         style: TextStyle(
                           color: Color(0xFF1E4A47),
                           fontSize: 13,
