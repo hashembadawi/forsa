@@ -221,14 +221,14 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2E7D78),
+              color: Colors.white,
             ),
           ),
           centerTitle: true,
-          backgroundColor: Colors.white,
+          backgroundColor: const Color(0xFF1E4A47),
           elevation: 4,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Color(0xFF1E4A47)),
+            icon: Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
               // Navigate back to home screen instead of just popping
               Navigator.of(context).pushAndRemoveUntil(
