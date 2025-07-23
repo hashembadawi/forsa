@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'account_screen.dart';
 import 'ad_details_screen.dart';
 import 'add_ad_screen.dart';
@@ -50,11 +51,18 @@ class _HomeScreenState extends State<HomeScreen> {
   bool hasMoreAds = true;
   late ScrollController _adsScrollController;
   String? _username;
+  
+  // Connectivity variables
+  late StreamSubscription<ConnectivityResult> connectivitySubscription;
+  bool isConnected = true;
+  bool isCheckingConnectivity = true;
 
   @override
   void initState() {
     super.initState();
     _adsScrollController = ScrollController()..addListener(_onAdsScroll);
+    _checkInitialConnectivity();
+    _subscribeToConnectivityChanges();
     _checkLoginStatus();
     _fetchOptions();
     fetchAllAds();
@@ -63,6 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _adsScrollController.dispose();
+    connectivitySubscription.cancel();
     super.dispose();
   }
 
@@ -81,6 +90,49 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       // handle error if needed
     }
+  }
+
+  Future<void> _checkInitialConnectivity() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    setState(() {
+      isConnected = connectivityResult != ConnectivityResult.none;
+      isCheckingConnectivity = false;
+    });
+  }
+
+  void _subscribeToConnectivityChanges() {
+    connectivitySubscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      setState(() {
+        isConnected = result != ConnectivityResult.none;
+      });
+    });
+  }
+
+  void _reloadHomeScreen() {
+    setState(() {
+      // Reset all filters
+      selectedCity = 'كل المحافظات';
+      selectedDistrict = 'كل المناطق';
+      selectedCityId = null;
+      selectedRegionId = null;
+      selectedCategory = null;
+      selectedSubCategory = null;
+      selectedCategoryId = null;
+      selectedSubCategoryId = null;
+      
+      // Clear search text
+      _searchController.clear();
+      
+      // Reset ads data
+      allAds.clear();
+      currentPageAds = 1;
+      hasMoreAds = true;
+      isLoadingAds = false;
+    });
+    
+    // Reload data
+    _fetchOptions();
+    fetchAllAds();
   }
 
   Future<void> _checkLoginStatus() async {
@@ -809,6 +861,64 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Show loading screen while checking connectivity
+    if (isCheckingConnectivity) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // Show no internet connection screen
+    if (!isConnected) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.wifi_off,
+                  size: 100,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'لا يوجد اتصال بالإنترنت',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 30),
+                ElevatedButton(
+                  onPressed: _checkInitialConnectivity,
+                  child: const Text(
+                    'إعادة المحاولة',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Normal home screen when connected
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -977,122 +1087,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
   
-  Widget _buildCategoryFilterSection() {
-  List<Map<String, dynamic>> filteredSubCategories = selectedCategory == null
-      ? []
-      : subCategoriesList.where((s) => s['categoryId'] == selectedCategory!['id']).toList();
-
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    child: Row(
-      children: [
-        Expanded(
-          child: DropdownButtonFormField<Map<String, dynamic>>(
-            value: selectedCategory,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: 'التصنيف الرئيسي',
-              labelStyle: TextStyle(color: Colors.blue[700]),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.blue[300]!),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.blue[300]!),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-              ),
-            ),
-            items: [
-              DropdownMenuItem<Map<String, dynamic>>(
-                value: null,
-                child: Text('كل التصنيفات'),
-              ),
-              ...categoriesList.map((cat) => DropdownMenuItem(
-                    value: cat,
-                    child: Text(cat['name']),
-                  )),
-            ],
-            onChanged: (value) {
-              setState(() {
-                selectedCategory = value;
-                selectedCategoryId = value?['id'];
-                selectedSubCategory = null;
-                selectedSubCategoryId = null;
-              });
-            },
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: DropdownButtonFormField<Map<String, dynamic>>(
-            value: selectedSubCategory,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: 'التصنيف الفرعي',
-              labelStyle: TextStyle(color: Colors.blue[700]),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.blue[300]!),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.blue[300]!),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-              ),
-            ),
-            items: [
-              DropdownMenuItem<Map<String, dynamic>>(
-                value: null,
-                child: Text('كل الفروع'),
-              ),
-              ...filteredSubCategories.map((subCat) => DropdownMenuItem(
-                    value: subCat,
-                    child: Text(subCat['name']),
-                  )),
-            ],
-            onChanged: (value) {
-              setState(() {
-                selectedSubCategory = value;
-                selectedSubCategoryId = value?['id'];
-              });
-            },
-          ),
-        ),
-        const SizedBox(width: 8),
-        ElevatedButton(
-          onPressed: () {
-            setState(() {
-              allAds.clear();
-              currentPageAds = 1;
-              hasMoreAds = true;
-            });
-            fetchCategoryFilteredAds(reset: true);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue[600],
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          child: const Text(
-            'بحث',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-  
   Widget _buildSearchField() {
     return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1176,6 +1170,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 _drawerItem(Icons.home, 'الرئيسية', () {
                   Navigator.pop(context);
+                  _reloadHomeScreen();
                 }),
                 _drawerItem(Icons.list_alt, 'إعلاناتي', () {
                   _handleProtectedNavigation(context, 'myAds');
