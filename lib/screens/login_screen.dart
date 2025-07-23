@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
 import 'my_ads_screen.dart';
@@ -44,6 +45,11 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _showPasswordPhone = false;
   bool _rememberMe = false;
 
+  Future<bool> _checkInternetConnectivity() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult != ConnectivityResult.none;
+  }
+
   Future<void> _login() async {
     String apiUrl = 'https://sahbo-app-api.onrender.com/api/auth/login';
 
@@ -52,12 +58,20 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    // Check internet connectivity first
+    setState(() => _isLoading = true);
+    
+    final isConnected = await _checkInternetConnectivity();
+    if (!isConnected) {
+      setState(() => _isLoading = false);
+      _showNoInternetDialog();
+      return;
+    }
+
     final body = {
       'phoneNumber': '${selectedCountry?['code'] ?? ''}${phoneController.text.trim()}',
       'password': passwordPhoneController.text,
     };
-
-    setState(() => _isLoading = true);
 
     try {
       final response = await http.post(
@@ -117,6 +131,49 @@ class _LoginScreenState extends State<LoginScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: const Color(0xFFFF7A59),
+      ),
+    );
+  }
+
+  void _showNoInternetDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(color: Colors.blue[300]!, width: 1.5),
+        ),
+        backgroundColor: Colors.white,
+        title: Row(
+          children: [
+            Icon(Icons.wifi_off, color: Colors.orange),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'لا يوجد اتصال بالإنترنت',
+                style: TextStyle(color: Colors.black87),
+                overflow: TextOverflow.visible,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى',
+          style: TextStyle(color: Colors.black87),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('إغلاق', style: TextStyle(color: Colors.orange)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _login(); // Retry the login
+            },
+            child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.blue)),
+          ),
+        ],
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:sahbo_app/screens/login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -46,11 +47,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     selectedCountry = countries[0];
   }
 
+  Future<bool> _checkInternetConnectivity() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult != ConnectivityResult.none;
+  }
+
   Future<void> registerUser() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (passwordController.text != confirmPasswordController.text) {
       _showError("كلمتا المرور غير متطابقتين");
+      return;
+    }
+
+    // Check internet connectivity before attempting registration
+    bool hasConnection = await _checkInternetConnectivity();
+    if (!hasConnection) {
+      _showNoInternetDialog();
       return;
     }
 
@@ -112,6 +125,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
       SnackBar(
         content: Text(message),
         backgroundColor: const Color(0xFFFF7A59),
+      ),
+    );
+  }
+
+  void _showNoInternetDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(color: Colors.blue[300]!, width: 1.5),
+        ),
+        backgroundColor: Colors.white,
+        title: Row(
+          children: [
+            Icon(Icons.wifi_off, color: Colors.orange),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'لا يوجد اتصال بالإنترنت',
+                style: TextStyle(color: Colors.black87),
+                overflow: TextOverflow.visible,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى',
+          style: TextStyle(color: Colors.black87),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('إغلاق', style: TextStyle(color: Colors.orange)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              registerUser(); // Retry the registration
+            },
+            child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.blue)),
+          ),
+        ],
       ),
     );
   }
