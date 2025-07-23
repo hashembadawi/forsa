@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:sahbo_app/screens/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class MultiStepAddAdScreen extends StatefulWidget {
   const MultiStepAddAdScreen({super.key});
@@ -89,6 +90,11 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
     } else {
       selectedMajorArea = null;
     }
+  }
+
+  Future<bool> _checkInternetConnectivity() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult != ConnectivityResult.none;
   }
 
   @override
@@ -280,7 +286,16 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
   }
 
   Future<void> _submitAd() async {
+    // Check internet connectivity first
     setState(() => _isUploading = true);
+    
+    final isConnected = await _checkInternetConnectivity();
+    if (!isConnected) {
+      setState(() => _isUploading = false);
+      _showNoInternetDialog();
+      return;
+    }
+
     _showUploadingDialog();
 
     try {
@@ -418,6 +433,49 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('موافق', style: TextStyle(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showNoInternetDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(color: Colors.blue[300]!, width: 1.5),
+        ),
+        backgroundColor: Colors.white,
+        title: Row(
+          children: [
+            Icon(Icons.wifi_off, color: Colors.orange),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'لا يوجد اتصال بالإنترنت',
+                style: TextStyle(color: Colors.black87),
+                overflow: TextOverflow.visible,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى',
+          style: TextStyle(color: Colors.black87),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('إغلاق', style: TextStyle(color: Colors.orange)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _submitAd(); // Retry the submission
+            },
+            child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.blue)),
           ),
         ],
       ),
