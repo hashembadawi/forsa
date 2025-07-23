@@ -97,17 +97,17 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('نشر إعلان جديد'),
-          backgroundColor: const Color(0xFF1E4A47),
+          backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
         ),
-        body: const Center(child: CircularProgressIndicator(color: Color(0xFF4DD0CC))),
+        body: const Center(child: CircularProgressIndicator(color: Colors.blue)),
       );
     }
     if (_optionsError != null) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('نشر إعلان جديد'),
-          backgroundColor: const Color(0xFF1E4A47),
+          backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
         ),
         body: Center(
@@ -119,7 +119,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
               ElevatedButton(
                 onPressed: _fetchOptions,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1E4A47),
+                  backgroundColor: Colors.blue[600],
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
@@ -139,7 +139,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
-          backgroundColor: const Color(0xFF1E4A47),
+          backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
           elevation: 2,
           leading: IconButton(
@@ -148,16 +148,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
           ),
         ),
         body: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF7FE8E4),
-                Colors.white,
-              ],
-            ),
-          ),
+          color: Colors.white,
           child: Column(
             children: [
               _buildProgressIndicator(),
@@ -183,7 +174,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
                   height: 4,
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
-                    color: index <= currentStep ? const Color(0xFF1E4A47) : Colors.grey[300],
+                    color: index <= currentStep ? Colors.blue[600] : Colors.grey[300],
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -211,7 +202,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
           width: 30,
           height: 30,
           decoration: BoxDecoration(
-            color: stepIndex <= currentStep ? const Color(0xFF1E4A47) : Colors.grey[300],
+            color: stepIndex <= currentStep ? Colors.blue[600] : Colors.grey[300],
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -228,7 +219,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         Text(
           title,
           style: TextStyle(
-            color: stepIndex <= currentStep ? const Color(0xFF1E4A47) : Colors.grey[600],
+            color: stepIndex <= currentStep ? Colors.blue[600] : Colors.grey[600],
             fontWeight: stepIndex == currentStep ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -360,7 +351,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const CircularProgressIndicator(
-              color: Color(0xFF1E4A47),
+              color: Colors.blue,
             ),
             const SizedBox(height: 20),
             const Text(
@@ -403,7 +394,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
               (route) => false,
             );
           },
-          child: const Text('موافق', style: TextStyle(color: Color(0xFF1E4A47))),
+          child: const Text('موافق', style: TextStyle(color: Colors.blue)),
         ),
       ],
     ),
@@ -426,7 +417,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('موافق', style: TextStyle(color: Color(0xFFFF7A59))),
+            child: const Text('موافق', style: TextStyle(color: Colors.blue)),
           ),
         ],
       ),
@@ -494,7 +485,7 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
               children: [
                 Text(
                   'أضف صور المنتج',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
                 SizedBox(height: 10),
                 Text(
@@ -517,7 +508,7 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
                             onTap: () => _pickImage(index),
                             child: Container(
                               decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey),
+                                border: Border.all(color: Colors.blue[300]!),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: _images[index] != null
@@ -581,7 +572,7 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
             child: ElevatedButton(
               onPressed: _images.any((image) => image != null) ? widget.onNext : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E4A47),
+                backgroundColor: Colors.blue[600],
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
@@ -655,7 +646,7 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
               children: [
                 Text(
                   'اختر تصنيف المنتج',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
                 ),
                 SizedBox(height: 10),
                 Text(
@@ -727,7 +718,7 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
                       ? () => widget.onCategorySelected(_selectedCategory!, _selectedSubCategory!)
                       : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E4A47),
+                    backgroundColor: Colors.blue[600],
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
@@ -838,7 +829,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                 children: [
                   Text(
                     'معلومات الإعلان',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
                   ),
                   SizedBox(height: 20),
 
@@ -846,7 +837,14 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                     controller: _titleController,
                     decoration: InputDecoration(
                       labelText: 'ما الذي تريد نشره؟',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.blue[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.blue[600]!),
+                      ),
                     ),
                     onChanged: (value) => _updateData(),
                   ),
@@ -861,7 +859,14 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             labelText: 'السعر',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.blue[300]!),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(color: Colors.blue[600]!),
+                            ),
                           ),
                           onChanged: (value) => _updateData(),
                         ),
@@ -871,7 +876,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                         child: Container(
                           padding: EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
+                            border: Border.all(color: Colors.blue[300]!),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: DropdownButton<Map<String, dynamic>>(
@@ -947,7 +952,14 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                     maxLines: 4,
                     decoration: InputDecoration(
                       labelText: 'وصف المنتج',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.blue[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.blue[600]!),
+                      ),
                       alignLabelWithHint: true,
                     ),
                     onChanged: (value) => _updateData(),
@@ -979,7 +991,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                 child: ElevatedButton(
                   onPressed: _canSubmit() ? widget.onSubmit : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E4A47),
+                    backgroundColor: Colors.blue[600],
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(vertical: 15),

@@ -575,13 +575,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 Icon(
                   Icons.image,
                   size: 40,
-                  color: Color(0xFF4DD0CC),
+                  color: Colors.blue[400],
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'صورة',
                   style: TextStyle(
-                    color: Color(0xFF2E7D78),
+                    color: Colors.blue[700],
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
                   ),
@@ -598,8 +598,8 @@ class _HomeScreenState extends State<HomeScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFFF0FAFA),
-              Color(0xFFE8F5F5),
+              Color(0xFFF0F8FF), // Alice blue
+              Color(0xFFE6F3FF), // Light blue
             ],
           ),
         ),
@@ -610,13 +610,13 @@ class _HomeScreenState extends State<HomeScreen> {
               Icon(
                 Icons.image,
                 size: 40,
-                color: Color(0xFF4DD0CC),
+                color: Colors.blue[400],
               ),
               const SizedBox(height: 4),
               Text(
                 'لا توجد صورة',
                 style: TextStyle(
-                  color: Color(0xFF2E7D78),
+                  color: Colors.blue[700],
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
                 ),
@@ -635,12 +635,12 @@ class _HomeScreenState extends State<HomeScreen> {
           end: Alignment.bottomRight,
           colors: [
             Colors.white,
-            Color(0xFFF8FDFD),
-            Color(0xFFF0FAFA),
+            Color(0xFFF8FBFF), // Very light blue
+            Color(0xFFF0F8FF), // Alice blue
           ],
         ),
         border: Border.all(
-          color: Color(0xFF4DD0CC),
+          color: Colors.blue[300]!,
           width: 1.5,
         ),
       ),
@@ -648,8 +648,8 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
-          splashColor: Color(0xFF4DD0CC).withOpacity(0.2),
-          highlightColor: Color(0xFF7FE8E4).withOpacity(0.1),
+          splashColor: Colors.blue[300]!.withOpacity(0.2),
+          highlightColor: Colors.blue[100]!.withOpacity(0.1),
           onTap: () {
             Navigator.push(
               context,
@@ -815,14 +815,7 @@ class _HomeScreenState extends State<HomeScreen> {
         drawer: _buildDrawer(context),
         body: Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF7FE8E4),
-                Colors.white,
-              ],
-            ),
+            color: Colors.white,
           ),
           child: CustomScrollView(
             controller: _adsScrollController,
@@ -832,7 +825,7 @@ class _HomeScreenState extends State<HomeScreen> {
               pinned: true,
               snap: false,
               elevation: 0,
-              backgroundColor: const Color(0xFF1E4A47),
+              backgroundColor: Colors.blue[700],
               title: const Text(
                 'اعلانك',
                 style: TextStyle(
@@ -871,11 +864,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 3,
                     width: 80,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFF4DD0CC), Color(0xFF7FE8E4)],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      ),
+                      color: Colors.blue[600],
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -883,7 +872,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (allAds.isEmpty && isLoadingAds)
                     Center(
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4DD0CC)),
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
                       ),
                     ),
                 ]),
@@ -905,7 +894,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Padding(
                           padding: EdgeInsets.all(16),
                           child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4DD0CC)),
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
                           ),
                         ),
                       );
@@ -947,10 +936,10 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Color(0xFF4DD0CC), width: 1.5),
+            border: Border.all(color: Colors.blue[300]!, width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: Color(0xFF4DD0CC).withOpacity(0.2),
+                color: Colors.blue[200]!.withOpacity(0.3),
                 spreadRadius: 2,
                 blurRadius: 10,
                 offset: const Offset(0, 3),
@@ -962,7 +951,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.location_on, size: 22, color: Color(0xFFFF7A59)),
+                  Icon(Icons.location_on, size: 22, color: Colors.blue[600]),
                   const SizedBox(width: 8),
                   Text(
                     'موقع',
@@ -1003,18 +992,18 @@ class _HomeScreenState extends State<HomeScreen> {
             isExpanded: true,
             decoration: InputDecoration(
               labelText: 'التصنيف الرئيسي',
-              labelStyle: TextStyle(color: Color(0xFF1E4A47)),
+              labelStyle: TextStyle(color: Colors.blue[700]),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Color(0xFF4DD0CC)),
+                borderSide: BorderSide(color: Colors.blue[300]!),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Color(0xFF4DD0CC)),
+                borderSide: BorderSide(color: Colors.blue[300]!),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Color(0xFF2E7D78), width: 2),
+                borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
               ),
             ),
             items: [
@@ -1044,18 +1033,18 @@ class _HomeScreenState extends State<HomeScreen> {
             isExpanded: true,
             decoration: InputDecoration(
               labelText: 'التصنيف الفرعي',
-              labelStyle: TextStyle(color: Color(0xFF1E4A47)),
+              labelStyle: TextStyle(color: Colors.blue[700]),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Color(0xFF4DD0CC)),
+                borderSide: BorderSide(color: Colors.blue[300]!),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Color(0xFF4DD0CC)),
+                borderSide: BorderSide(color: Colors.blue[300]!),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Color(0xFF2E7D78), width: 2),
+                borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
               ),
             ),
             items: [
@@ -1087,7 +1076,7 @@ class _HomeScreenState extends State<HomeScreen> {
             fetchCategoryFilteredAds(reset: true);
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.amber[600],
+            backgroundColor: Colors.blue[600],
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             shape: RoundedRectangleBorder(
@@ -1111,10 +1100,10 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Color(0xFF4DD0CC), width: 1.5),
+        border: Border.all(color: Colors.blue[300]!, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF4DD0CC).withOpacity(0.2),
+            color: Colors.blue[200]!.withOpacity(0.3),
             spreadRadius: 2,
             blurRadius: 10,
             offset: const Offset(0, 3),
@@ -1126,7 +1115,7 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: InputDecoration(
           hintText: 'ابحث عن منتج أو خدمة...',
           hintStyle: TextStyle(color: Colors.grey[600]),
-          prefixIcon: Icon(Icons.search, color: Color(0xFFFF7A59)),
+          prefixIcon: Icon(Icons.search, color: Colors.blue[600]),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
@@ -1154,8 +1143,8 @@ class _HomeScreenState extends State<HomeScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  Color(0xFF2E7D78),
-                  Color(0xFF4DD0CC)
+                  Colors.blue[700]!,
+                  Colors.blue[400]!
                 ],
               ),
             ),
@@ -1169,7 +1158,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Icon(
                       Icons.person,
                       size: 32,
-                      color: Color(0xFF1E4A47),
+                      color: Colors.blue[700],
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -1230,7 +1219,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _drawerItem(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
-      leading: Icon(icon, color: Color(0xFF2E7D78)),
+      leading: Icon(icon, color: Colors.blue[700]),
       title: Text(
         title,
         style: TextStyle(
@@ -1308,10 +1297,10 @@ class _ImageSliderState extends State<ImageSlider> {
                 margin: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Color(0xFF4DD0CC), width: 1.5),
+                  border: Border.all(color: Colors.blue[300]!, width: 1.5),
                   boxShadow: [
                     BoxShadow(
-                      color: Color(0xFF4DD0CC).withOpacity(0.2),
+                      color: Colors.blue[200]!.withOpacity(0.3),
                       spreadRadius: 2,
                       blurRadius: 10,
                       offset: const Offset(0, 3),
@@ -1341,7 +1330,7 @@ class _ImageSliderState extends State<ImageSlider> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(4),
                     color: _currentImageIndex == index
-                        ? Color(0xFF4DD0CC)
+                        ? Colors.blue[600]
                         : Colors.white.withOpacity(0.7),
                   ),
                 ),

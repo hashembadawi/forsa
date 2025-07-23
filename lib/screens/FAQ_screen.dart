@@ -14,7 +14,7 @@ class FAQScreen extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
-          backgroundColor: const Color(0xFF1E4A47),
+          backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
@@ -25,14 +25,7 @@ class FAQScreen extends StatelessWidget {
         body: Container(
           padding: const EdgeInsets.all(16),
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF7FE8E4),
-                Colors.white,
-              ],
-            ),
+            color: Colors.white,
           ),
           child: ListView(
             children: [
@@ -77,11 +70,12 @@ class FAQScreen extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             Colors.white,
-            Color(0xFFF8FDFD),
+            Color(0xFFF8FBFF), // Very light blue
+            Color(0xFFF0F8FF), // Alice blue
           ],
         ),
         border: Border.all(
-          color: const Color(0xFF4DD0CC),
+          color: Colors.blue[300]!,
           width: 1.5,
         ),
         boxShadow: [
@@ -98,25 +92,25 @@ class FAQScreen extends StatelessWidget {
           question,
           style: const TextStyle(
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1E4A47),
+            color: Colors.black87,
           ),
         ),
-        iconColor: const Color(0xFF2E7D78),
-        collapsedIconColor: const Color(0xFF2E7D78),
+        iconColor: Colors.blue[600],
+        collapsedIconColor: Colors.blue[600],
         children: [
           Container(
             width: double.infinity,
             margin: const EdgeInsets.symmetric(horizontal: 16),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF7FE8E4).withOpacity(0.1),
+              color: Colors.blue[50]!.withOpacity(0.5),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               answer,
               style: const TextStyle(
                 fontSize: 14,
-                color: Color(0xFF1E4A47),
+                color: Colors.black87,
                 height: 1.6,
               ),
             ),

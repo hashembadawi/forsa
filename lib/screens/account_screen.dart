@@ -29,7 +29,7 @@ class AccountScreen extends StatelessWidget {
           title: const Text('حسابي'),
           centerTitle: true,
           elevation: 0,
-          backgroundColor: const Color(0xFF1E4A47),
+          backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
           actions: [
             IconButton(
@@ -46,14 +46,7 @@ class AccountScreen extends StatelessWidget {
         ),
         body: Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF7FE8E4),
-                Colors.white,
-              ],
-            ),
+            color: Colors.white,
           ),
           child: SingleChildScrollView(
             child: Padding(
@@ -90,12 +83,12 @@ class AccountScreen extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF4DD0CC),
-            Color(0xFF7FE8E4),
+            Colors.blue,
+            Color(0xFF87CEEB),
           ],
         ),
         border: Border.all(
-          color: const Color(0xFF4DD0CC),
+          color: Colors.blue,
           width: 1.5,
         ),
         boxShadow: [
@@ -117,7 +110,7 @@ class AccountScreen extends StatelessWidget {
               child: Icon(
                 Icons.person,
                 size: 30,
-                color: const Color(0xFF1E4A47),
+                color: Colors.blue[700],
               ),
             ),
             const SizedBox(width: 16),
@@ -167,7 +160,7 @@ class AccountScreen extends StatelessWidget {
               child: const Icon(
                 Icons.person_outline,
                 size: 30,
-                color: Color(0xFF1E4A47),
+                color: Colors.blue,
               ),
             ),
             const SizedBox(height: 16),
@@ -199,10 +192,10 @@ class AccountScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: Color(0xFF1E4A47),
+          color: Colors.black87,
         ),
       ),
     );
@@ -221,7 +214,7 @@ class AccountScreen extends StatelessWidget {
           ],
         ),
         border: Border.all(
-          color: const Color(0xFF4DD0CC),
+          color: Colors.blue[300]!,
           width: 1.5,
         ),
         boxShadow: [
@@ -245,7 +238,7 @@ class AccountScreen extends StatelessWidget {
               );
             },
           ),
-          Divider(height: 1, indent: 16, endIndent: 16, color: const Color(0xFF7FE8E4)),
+          Divider(height: 1, indent: 16, endIndent: 16, color: Colors.blue[200]),
           _buildListItem(
             context,
             icon: Icons.help_center,
@@ -257,7 +250,7 @@ class AccountScreen extends StatelessWidget {
               );
             },
           ),
-          Divider(height: 1, indent: 16, endIndent: 16, color: const Color(0xFF7FE8E4)),
+          Divider(height: 1, indent: 16, endIndent: 16, color: Colors.blue[200]),
           _buildListItem(
             context,
             icon: Icons.call,
@@ -281,12 +274,12 @@ class AccountScreen extends StatelessWidget {
         required VoidCallback onTap,
       }) {
     return ListTile(
-      leading: Icon(icon, color: const Color(0xFF2E7D78)),
-      title: Text(title, style: const TextStyle(color: Color(0xFF1E4A47))),
+      leading: Icon(icon, color: Colors.blue[700]),
+      title: Text(title, style: const TextStyle(color: Colors.black87)),
       trailing: Icon(
         Icons.arrow_forward_ios,
         size: 16,
-        color: const Color(0xFF7FE8E4),
+        color: Colors.black87,
       ),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
@@ -298,7 +291,7 @@ class AccountScreen extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: isLoggedIn ? const Color(0xFFFF7A59) : const Color(0xFF1E4A47),
+          backgroundColor: isLoggedIn ? const Color(0xFFFF7A59) : Colors.blue[700],
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(

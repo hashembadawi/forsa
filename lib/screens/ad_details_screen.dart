@@ -20,19 +20,19 @@ class AdDetailsScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2E7D78),
+              color: Colors.white,
             ),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.blue[700],
           elevation: 4,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Color(0xFF1E4A47)),
+            icon: Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => Navigator.pop(context),
           ),
           centerTitle: true,
         ),
         body: Container(
-          color: Colors.grey[50],
+          color: Colors.white,
           child: ListView(
             children: [
             // الصور
@@ -69,7 +69,7 @@ class AdDetailsScreen extends StatelessWidget {
                 'عدد الصور: ${images.length}',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF2E7D78),
+                  color: Colors.black87,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -78,11 +78,7 @@ class AdDetailsScreen extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               height: 2,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF4DD0CC), Color(0xFF7FE8E4)],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
+                color: Colors.blue[600],
                 borderRadius: BorderRadius.circular(1),
               ),
             ),
@@ -97,12 +93,12 @@ class AdDetailsScreen extends StatelessWidget {
                   end: Alignment.bottomRight,
                   colors: [
                     Colors.white,
-                    Color(0xFFF8FDFD),
-                    Color(0xFFF0FAFA),
+                    Color(0xFFF8FBFF), // Very light blue
+                    Color(0xFFF0F8FF), // Alice blue
                   ],
                 ),
                 border: Border.all(
-                  color: Color(0xFF4DD0CC),
+                  color: Colors.blue[300]!,
                   width: 1.5,
                 ),
               ),
@@ -116,17 +112,17 @@ class AdDetailsScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E4A47),
+                        color: Colors.black87,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Color(0xFFFF7A59).withOpacity(0.1),
+                        color: Colors.blue[100]!.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(15),
                         border: Border.all(
-                          color: Color(0xFFFF7A59).withOpacity(0.3),
+                          color: Colors.blue[300]!.withOpacity(0.5),
                           width: 1.5,
                         ),
                       ),
@@ -135,7 +131,7 @@ class AdDetailsScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFFF7A59),
+                          color: Colors.black87,
                         ),
                       ),
                     ),
@@ -148,10 +144,10 @@ class AdDetailsScreen extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Color(0xFF4DD0CC).withOpacity(0.1),
+                        color: Colors.blue[50]!.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(15),
                         border: Border.all(
-                          color: Color(0xFF4DD0CC).withOpacity(0.3),
+                          color: Colors.blue[200]!.withOpacity(0.7),
                           width: 1,
                         ),
                       ),
@@ -163,7 +159,7 @@ class AdDetailsScreen extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
-                              color: Color(0xFF1E4A47),
+                              color: Colors.black87,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -212,7 +208,7 @@ class AdDetailsScreen extends StatelessWidget {
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF2E7D78),
+                              backgroundColor: Colors.blue[600],
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15),
@@ -242,7 +238,7 @@ class AdDetailsScreen extends StatelessWidget {
         Icon(
           icon,
           size: 18,
-          color: Color(0xFF2E7D78),
+          color: Colors.blue[600],
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -250,7 +246,7 @@ class AdDetailsScreen extends StatelessWidget {
             text: TextSpan(
               style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF1E4A47),
+                color: Colors.black87,
               ),
               children: [
                 TextSpan(
@@ -269,7 +265,7 @@ class AdDetailsScreen extends StatelessWidget {
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           fontSize: 14,
-                          color: Color(0xFF1E4A47),
+                          color: Colors.black87,
                         ),
                       ),
                     ),

@@ -42,7 +42,7 @@ class ContactUsScreen extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
-          backgroundColor: const Color(0xFF1E4A47),
+          backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
@@ -53,14 +53,7 @@ class ContactUsScreen extends StatelessWidget {
         body: Container(
           padding: const EdgeInsets.all(20),
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF7FE8E4),
-                Colors.white,
-              ],
-            ),
+            color: Colors.white,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,7 +63,7 @@ class ContactUsScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16, 
                   height: 1.5,
-                  color: Color(0xFF1E4A47),
+                  color: Colors.black87,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -86,11 +79,12 @@ class ContactUsScreen extends StatelessWidget {
                     end: Alignment.bottomRight,
                     colors: [
                       Colors.white,
-                      Color(0xFFF8FDFD),
+                      Color(0xFFF8FBFF), // Very light blue
+                      Color(0xFFF0F8FF), // Alice blue
                     ],
                   ),
                   border: Border.all(
-                    color: const Color(0xFF4DD0CC),
+                    color: Colors.blue[300]!,
                     width: 1.5,
                   ),
                   boxShadow: [
@@ -102,15 +96,15 @@ class ContactUsScreen extends StatelessWidget {
                   ],
                 ),
                 child: ListTile(
-                  leading: const Icon(Icons.email, color: Color(0xFF2E7D78)),
+                  leading: Icon(Icons.email, color: Colors.blue[600]),
                   title: const Text(
                     'support@sahbo.com',
-                    style: TextStyle(color: Color(0xFF1E4A47)),
+                    style: TextStyle(color: Colors.black87),
                   ),
-                  trailing: const Icon(
+                  trailing: Icon(
                     Icons.arrow_forward_ios, 
                     size: 16,
-                    color: Color(0xFF7FE8E4),
+                    color: Colors.blue[400],
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   onTap: _launchEmail,
@@ -127,11 +121,12 @@ class ContactUsScreen extends StatelessWidget {
                     end: Alignment.bottomRight,
                     colors: [
                       Colors.white,
-                      Color(0xFFF8FDFD),
+                      Color(0xFFF8FBFF), // Very light blue
+                      Color(0xFFF0F8FF), // Alice blue
                     ],
                   ),
                   border: Border.all(
-                    color: const Color(0xFF4DD0CC),
+                    color: Colors.blue[300]!,
                     width: 1.5,
                   ),
                   boxShadow: [
@@ -143,16 +138,16 @@ class ContactUsScreen extends StatelessWidget {
                   ],
                 ),
                 child: ListTile(
-                  leading: const Icon(Icons.phone, color: Color(0xFF2E7D78)),
+                  leading: Icon(Icons.phone, color: Colors.blue[600]),
                   title: const Text(
-                    '+90 551 0300 730 اتصال أو عبر تطبيق واتس أب',
-                    textDirection: TextDirection.ltr,
-                    style: TextStyle(color: Color(0xFF1E4A47)),
+                    ' عبر تطبيق واتس أب',
+                    textDirection: TextDirection.rtl,
+                    style: TextStyle(color: Colors.black87),
                   ),
-                  trailing: const Icon(
+                  trailing: Icon(
                     Icons.arrow_forward_ios, 
                     size: 16,
-                    color: Color(0xFF7FE8E4),
+                    color: Colors.blue[400],
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   onTap: _launchWhatsApp,
@@ -168,11 +163,12 @@ class ContactUsScreen extends StatelessWidget {
                     end: Alignment.bottomRight,
                     colors: [
                       Colors.white,
-                      Color(0xFFF8FDFD),
+                      Color(0xFFF8FBFF), // Very light blue
+                      Color(0xFFF0F8FF), // Alice blue
                     ],
                   ),
                   border: Border.all(
-                    color: const Color(0xFF4DD0CC),
+                    color: Colors.blue[300]!,
                     width: 1.5,
                   ),
                   boxShadow: [
@@ -184,15 +180,15 @@ class ContactUsScreen extends StatelessWidget {
                   ],
                 ),
                 child: ListTile(
-                  leading: const Icon(Icons.language, color: Color(0xFF2E7D78)),
+                  leading: Icon(Icons.language, color: Colors.blue[600]),
                   title: const Text(
                     'www.sahbo.com',
-                    style: TextStyle(color: Color(0xFF1E4A47)),
+                    style: TextStyle(color: Colors.black87),
                   ),
-                  trailing: const Icon(
+                  trailing: Icon(
                     Icons.arrow_forward_ios, 
                     size: 16,
-                    color: Color(0xFF7FE8E4),
+                    color: Colors.blue[400],
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                   onTap: _launchWebsite,
