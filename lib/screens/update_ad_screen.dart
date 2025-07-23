@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class EditAdScreen extends StatefulWidget {
   final String adId;
@@ -74,6 +75,11 @@ class _EditAdScreenState extends State<EditAdScreen> {
     super.dispose();
   }
 
+  Future<bool> _checkInternetConnectivity() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult != ConnectivityResult.none;
+  }
+
   Future<void> _updateAd() async {
     if (_titleController.text.isEmpty ||
         _priceController.text.isEmpty ||
@@ -82,7 +88,15 @@ class _EditAdScreenState extends State<EditAdScreen> {
       return;
     }
 
+    // Check internet connectivity first
     setState(() => _isUpdating = true);
+    
+    final isConnected = await _checkInternetConnectivity();
+    if (!isConnected) {
+      setState(() => _isUpdating = false);
+      _showNoInternetDialog();
+      return;
+    }
 
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -167,6 +181,49 @@ class _EditAdScreenState extends State<EditAdScreen> {
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('إغلاق', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showNoInternetDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(color: Colors.blue[300]!, width: 1.5),
+        ),
+        backgroundColor: Colors.white,
+        title: Row(
+          children: [
+            Icon(Icons.wifi_off, color: Colors.orange),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'لا يوجد اتصال بالإنترنت',
+                style: TextStyle(color: Colors.black87),
+                overflow: TextOverflow.visible,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى',
+          style: TextStyle(color: Colors.black87),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('إغلاق', style: TextStyle(color: Colors.orange)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _updateAd(); // Retry the update
+            },
+            child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.blue)),
           ),
         ],
       ),

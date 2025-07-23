@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:async';
 import 'FAQ_screen.dart';
 import 'ad_terms_screen.dart';
 import 'contact_us_screen.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 
-class AccountScreen extends StatelessWidget {
+class AccountScreen extends StatefulWidget {
   final String userName;
   final String userEmail;
   final String phoneNumber;
@@ -21,7 +23,104 @@ class AccountScreen extends StatelessWidget {
   });
 
   @override
+  State<AccountScreen> createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends State<AccountScreen> {
+  // Connectivity variables
+  late StreamSubscription<ConnectivityResult> connectivitySubscription;
+  bool isConnected = true;
+  bool isCheckingConnectivity = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkInitialConnectivity();
+    _subscribeToConnectivityChanges();
+  }
+
+  @override
+  void dispose() {
+    connectivitySubscription.cancel();
+    super.dispose();
+  }
+
+  Future<void> _checkInitialConnectivity() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    setState(() {
+      isConnected = connectivityResult != ConnectivityResult.none;
+      isCheckingConnectivity = false;
+    });
+  }
+
+  void _subscribeToConnectivityChanges() {
+    connectivitySubscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      setState(() {
+        isConnected = result != ConnectivityResult.none;
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Show loading screen while checking connectivity
+    if (isCheckingConnectivity) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // Show no internet connection screen
+    if (!isConnected) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.wifi_off,
+                  size: 100,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'لا يوجد اتصال بالإنترنت',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 30),
+                ElevatedButton(
+                  onPressed: _checkInitialConnectivity,
+                  child: const Text(
+                    'إعادة المحاولة',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Normal account screen when connected
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -101,7 +200,7 @@ class AccountScreen extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: isLoggedIn
+        child: widget.isLoggedIn
             ? Row(
           children: [
             CircleAvatar(
@@ -119,7 +218,7 @@ class AccountScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    userName,
+                    widget.userName,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -128,18 +227,18 @@ class AccountScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    userEmail,
+                    widget.userEmail,
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.white.withOpacity(0.9),
                     ),
                   ),
-                  if (phoneNumber.isNotEmpty) ...[
+                  if (widget.phoneNumber.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Directionality(
                       textDirection: TextDirection.ltr,
                       child: Text(
-                        phoneNumber,
+                        widget.phoneNumber,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.white.withOpacity(0.9),
@@ -291,7 +390,7 @@ class AccountScreen extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: isLoggedIn ? const Color(0xFFFF7A59) : Colors.blue[700],
+          backgroundColor: widget.isLoggedIn ? const Color(0xFFFF7A59) : Colors.blue[700],
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
@@ -300,7 +399,7 @@ class AccountScreen extends StatelessWidget {
           elevation: 0,
         ),
         onPressed: () async {
-          if (isLoggedIn) {
+          if (widget.isLoggedIn) {
             final prefs = await SharedPreferences.getInstance();
             await prefs.remove('token');
             await prefs.remove('username');
@@ -319,7 +418,7 @@ class AccountScreen extends StatelessWidget {
           }
         },
         child: Text(
-          isLoggedIn ? 'تسجيل الخروج' : 'تسجيل الدخول',
+          widget.isLoggedIn ? 'تسجيل الخروج' : 'تسجيل الدخول',
           style: const TextStyle(fontSize: 16),
         ),
       ),
