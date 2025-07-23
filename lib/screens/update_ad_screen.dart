@@ -120,22 +120,26 @@ class _EditAdScreenState extends State<EditAdScreen> {
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(color: Colors.blue[300]!, width: 1.5),
+        ),
+        backgroundColor: Colors.white,
         title: const Row(
           children: [
             Icon(Icons.check_circle, color: Colors.green),
             SizedBox(width: 10),
-            Text('تم التحديث'),
+            Text('تم التحديث', style: TextStyle(color: Colors.black87)),
           ],
         ),
-        content: const Text('تم تعديل الإعلان بنجاح.'),
+        content: const Text('تم تعديل الإعلان بنجاح.', style: TextStyle(color: Colors.black87)),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               Navigator.of(context).pop(true);
             },
-            child: const Text('موافق', style: TextStyle(color: Color(0xFF1E4A47))),
+            child: const Text('موافق', style: TextStyle(color: Colors.blue)),
           ),
         ],
       ),
@@ -146,19 +150,23 @@ class _EditAdScreenState extends State<EditAdScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(color: Colors.blue[300]!, width: 1.5),
+        ),
+        backgroundColor: Colors.white,
         title: const Row(
           children: [
             Icon(Icons.error, color: Colors.red),
             SizedBox(width: 10),
-            Text('خطأ'),
+            Text('خطأ', style: TextStyle(color: Colors.black87)),
           ],
         ),
-        content: Text(message),
+        content: Text(message, style: TextStyle(color: Colors.black87)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إغلاق', style: TextStyle(color: Color(0xFFFF7A59))),
+            child: const Text('إغلاق', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -170,11 +178,13 @@ class _EditAdScreenState extends State<EditAdScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text('تعديل الإعلان'),
           centerTitle: true,
-          backgroundColor: const Color(0xFF1E4A47),
+          backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
+          elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.of(context).pop(),
@@ -186,20 +196,21 @@ class _EditAdScreenState extends State<EditAdScreen> {
             children: [
               TextFormField(
                 controller: _titleController,
+                style: TextStyle(color: Colors.black87),
                 decoration: InputDecoration(
                   labelText: 'عنوان الإعلان',
-                  labelStyle: const TextStyle(color: Color(0xFF1E4A47)),
+                  labelStyle: TextStyle(color: Colors.black87),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                    borderSide: BorderSide(color: Colors.blue[300]!),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                    borderSide: BorderSide(color: Colors.blue[300]!),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF1E4A47), width: 2),
+                    borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
                   ),
                 ),
                 validator: (value) {
@@ -213,20 +224,21 @@ class _EditAdScreenState extends State<EditAdScreen> {
               TextFormField(
                 controller: _priceController,
                 keyboardType: TextInputType.number,
+                style: TextStyle(color: Colors.black87),
                 decoration: InputDecoration(
                   labelText: 'السعر',
-                  labelStyle: const TextStyle(color: Color(0xFF1E4A47)),
+                  labelStyle: TextStyle(color: Colors.black87),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                    borderSide: BorderSide(color: Colors.blue[300]!),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                    borderSide: BorderSide(color: Colors.blue[300]!),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF1E4A47), width: 2),
+                    borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
                   ),
                 ),
                 validator: (value) {
@@ -241,18 +253,18 @@ class _EditAdScreenState extends State<EditAdScreen> {
                   ? Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFF1E4A47)),
+                        border: Border.all(color: Colors.blue[300]!),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Text('العملة', style: TextStyle(color: Color(0xFF1E4A47))),
+                          Text('العملة', style: TextStyle(color: Colors.black87)),
                           Spacer(),
                           SizedBox(
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
-                              color: Color(0xFF1E4A47),
+                              color: Colors.blue,
                               strokeWidth: 2,
                             ),
                           ),
@@ -263,24 +275,24 @@ class _EditAdScreenState extends State<EditAdScreen> {
                       value: selectedCurrency,
                       decoration: InputDecoration(
                         labelText: 'العملة',
-                        labelStyle: const TextStyle(color: Color(0xFF1E4A47)),
+                        labelStyle: TextStyle(color: Colors.black87),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                          borderSide: BorderSide(color: Colors.blue[300]!),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                          borderSide: BorderSide(color: Colors.blue[300]!),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF1E4A47), width: 2),
+                          borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
                         ),
                       ),
                       items: currencies
                           .map((currency) => DropdownMenuItem(
                         value: currency,
-                        child: Text(currency['name'], style: const TextStyle(color: Color(0xFF1E4A47))),
+                        child: Text(currency['name'], style: TextStyle(color: Colors.black87)),
                       ))
                           .toList(),
                       onChanged: (val) => setState(() => selectedCurrency = val),
@@ -289,20 +301,21 @@ class _EditAdScreenState extends State<EditAdScreen> {
               TextFormField(
                 controller: _descriptionController,
                 maxLines: 5,
+                style: TextStyle(color: Colors.black87),
                 decoration: InputDecoration(
                   labelText: 'الوصف',
-                  labelStyle: const TextStyle(color: Color(0xFF1E4A47)),
+                  labelStyle: TextStyle(color: Colors.black87),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                    borderSide: BorderSide(color: Colors.blue[300]!),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF1E4A47)),
+                    borderSide: BorderSide(color: Colors.blue[300]!),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF1E4A47), width: 2),
+                    borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
                   ),
                   alignLabelWithHint: true,
                 ),
@@ -320,11 +333,12 @@ class _EditAdScreenState extends State<EditAdScreen> {
                 child: ElevatedButton(
                   onPressed: _isUpdating ? null : _updateAd,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E4A47),
+                    backgroundColor: Colors.blue[700],
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    elevation: 2,
                   ),
                   child: _isUpdating
                       ? const CircularProgressIndicator(color: Colors.white)

@@ -686,7 +686,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E4A47),
+                            color: Colors.black87,
                           ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
@@ -694,10 +694,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Color(0xFFFF7A59).withOpacity(0.1),
+                            color: Colors.blue[50],
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Color(0xFFFF7A59).withOpacity(0.3),
+                              color: Colors.blue[300]!,
                               width: 1,
                             ),
                           ),
@@ -706,7 +706,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFFFF7A59),
+                              color: Colors.blue[700],
                             ),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
@@ -717,7 +717,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ad['description'] ?? '',
                           style: TextStyle(
                             fontSize: 10,
-                            color: Color(0xFF2E7D78),
+                            color: Colors.black87,
                             fontWeight: FontWeight.w500,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -729,14 +729,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             Icon(
                               Icons.location_on,
                               size: 12,
-                              color: Color(0xFF2E7D78),
+                              color: Colors.blue[600],
                             ),
                             const SizedBox(width: 2),
                             Expanded(
                               child: Text(
                                 '${ad['cityName'] ?? ''} - ${formatDate(ad['createDate'] ?? '')}',
                                 style: TextStyle(
-                                  color: Color(0xFF1E4A47),
+                                  color: Colors.black87,
                                   fontSize: 9,
                                   fontWeight: FontWeight.w500,
                                 ),

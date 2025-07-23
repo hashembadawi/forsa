@@ -105,13 +105,13 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
+          side: BorderSide(color: Colors.blue[300]!, width: 1.5),
         ),
         backgroundColor: Colors.white,
         title: Text(
           'تأكيد الحذف',
           style: TextStyle(
-            color: Color(0xFF1E4A47),
+            color: Colors.blue[700],
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -119,7 +119,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
         content: Text(
           'هل أنت متأكد أنك تريد حذف هذا الإعلان؟',
           style: TextStyle(
-            color: Color(0xFF2E7D78),
+            color: Colors.black87,
             fontSize: 16,
           ),
         ),
@@ -214,7 +214,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: Colors.white,
         appBar: AppBar(
           title: Text(
             'إعلاناتي',
@@ -225,8 +225,8 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
             ),
           ),
           centerTitle: true,
-          backgroundColor: const Color(0xFF1E4A47),
-          elevation: 4,
+          backgroundColor: Colors.blue[700],
+          elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
@@ -247,7 +247,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
     if (myAds.isEmpty && isLoading) {
       return Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4DD0CC)),
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
         ),
       );
     }
@@ -258,7 +258,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
           'لا توجد إعلانات بعد',
           style: TextStyle(
             fontSize: 18,
-            color: Color(0xFF2E7D78),
+            color: Colors.black87,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -266,7 +266,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
     }
 
     return RefreshIndicator(
-      color: Color(0xFF4DD0CC),
+      color: Colors.blue,
       onRefresh: () async {
         setState(() {
           myAds.clear();
@@ -285,7 +285,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
               padding: EdgeInsets.symmetric(vertical: 16),
               child: Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4DD0CC)),
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
                 ),
               ),
             );
@@ -313,8 +313,8 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Color(0xFFF0FAFA),
-                      Color(0xFFE8F5F5),
+                      Colors.blue[50]!,
+                      Colors.blue[100]!,
                     ],
                   ),
                 ),
@@ -325,13 +325,13 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
                       Icon(
                         Icons.image,
                         size: 60,
-                        color: Color(0xFF4DD0CC),
+                        color: Colors.blue[600],
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'صورة',
                         style: TextStyle(
-                          color: Color(0xFF2E7D78),
+                          color: Colors.black87,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -348,8 +348,8 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFFF0FAFA),
-                  Color(0xFFE8F5F5),
+                  Colors.blue[50]!,
+                  Colors.blue[100]!,
                 ],
               ),
             ),
@@ -360,13 +360,13 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
                   Icon(
                     Icons.image,
                     size: 60,
-                    color: Color(0xFF4DD0CC),
+                    color: Colors.blue[600],
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'لا توجد صورة',
                     style: TextStyle(
-                      color: Color(0xFF2E7D78),
+                      color: Colors.black87,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),
@@ -380,17 +380,9 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            Color(0xFFF8FDFD),
-            Color(0xFFF0FAFA),
-          ],
-        ),
+        color: Colors.white,
         border: Border.all(
-          color: Color(0xFF4DD0CC),
+          color: Colors.blue[300]!,
           width: 1.5,
         ),
       ),
@@ -417,17 +409,17 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E4A47),
+                    color: Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Color(0xFFFF7A59).withOpacity(0.1),
+                    color: Colors.blue[50],
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Color(0xFFFF7A59).withOpacity(0.3),
+                      color: Colors.blue[300]!,
                       width: 1,
                     ),
                   ),
@@ -436,7 +428,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFFFF7A59),
+                      color: Colors.blue[700],
                     ),
                   ),
                 ),
@@ -447,20 +439,20 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF2E7D78),
+                    color: Colors.black87,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Icon(Icons.location_on, size: 16, color: Color(0xFF2E7D78)),
+                    Icon(Icons.location_on, size: 16, color: Colors.blue[600]),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         '${ad['cityName'] ?? ''} - ${ad['regionName'] ?? ''}',
                         style: TextStyle(
-                          color: Color(0xFF1E4A47),
+                          color: Colors.black87,
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -471,14 +463,14 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.access_time, size: 16, color: Color(0xFF2E7D78)),
+                    Icon(Icons.access_time, size: 16, color: Colors.blue[600]),
                     const SizedBox(width: 4),
                     Text(
                       ad['createDate'] != null
                           ? formatDate(ad['createDate'])
                           : 'غير محدد',
                       style: TextStyle(
-                        color: Color(0xFF1E4A47),
+                        color: Colors.black87,
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                       ),
@@ -490,7 +482,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
                   height: 1,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFF4DD0CC), Color(0xFF7FE8E4)],
+                      colors: [Colors.blue[300]!, Colors.blue[400]!],
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                     ),
@@ -510,7 +502,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF2E7D78),
+                        backgroundColor: Colors.blue[700],
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

@@ -130,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
         appBar: AppBar(
           title: const Text('تسجيل الدخول'),
           centerTitle: true,
-          backgroundColor: const Color(0xFF1E4A47),
+          backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
@@ -140,14 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         body: Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF7FE8E4),
-                Colors.white,
-              ],
-            ),
+            color: Colors.white,
           ),
           child: SingleChildScrollView(
             padding: EdgeInsets.only(
@@ -158,6 +151,29 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             child: Column(
             children: [
+              const SizedBox(height: 32),
+              
+              // Login form container
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  color: Colors.white,
+                  border: Border.all(
+                    color: Colors.blue[300]!,
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue[200]!.withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
               Row(
                 children: [
                   // Phone number field (right)
@@ -166,13 +182,22 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: phoneController,
                       decoration: InputDecoration(
                         labelText: 'رقم الهاتف',
+                        labelStyle: TextStyle(color: Colors.black87),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
+                          borderSide: BorderSide(color: Colors.blue[300]!),
                         ),
-                        prefixIcon: const Icon(Icons.phone, color: Color(0xFF2E7D78)),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.blue[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
+                        ),
+                        prefixIcon: Icon(Icons.phone, color: Colors.blue[600]),
                       ),
                       keyboardType: TextInputType.phone,
                     ),
@@ -188,7 +213,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
+                          borderSide: BorderSide(color: Colors.blue[300]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.blue[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
                         ),
                       ),
                       items: countries.map((country) {
@@ -196,9 +229,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           value: country,
                           child: Row(
                             children: [
-                              Text(country['name']!, style: const TextStyle(fontSize: 11)),
+                              Text(country['name']!, style: const TextStyle(fontSize: 11, color: Colors.black87)),
                               const SizedBox(width: 6),
-                              Text(country['code']!, style: const TextStyle(fontSize: 11)),
+                              Text(country['code']!, style: const TextStyle(fontSize: 11, color: Colors.black87)),
                             ],
                           ),
                         );
@@ -219,13 +252,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 onSubmitted: (_) => _login(),
                 decoration: InputDecoration(
                   labelText: 'كلمة المرور',
+                  labelStyle: TextStyle(color: Colors.black87),
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+                    borderSide: BorderSide(color: Colors.blue[300]!),
                   ),
-                  prefixIcon: const Icon(Icons.lock, color: Color(0xFF2E7D78)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.blue[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
+                  ),
+                  prefixIcon: Icon(Icons.lock, color: Colors.blue[600]),
                   suffixIcon: IconButton(
                     icon: Icon(
                       !_showPasswordPhone ? Icons.visibility_off : Icons.visibility,
@@ -242,39 +284,129 @@ class _LoginScreenState extends State<LoginScreen> {
                 title: const Text("تذكرني", style: TextStyle(color: Colors.black87)),
                 controlAffinity: ListTileControlAffinity.leading,
                 contentPadding: EdgeInsets.zero,
+                activeColor: Colors.blue[600],
               ),
               const SizedBox(height: 16),
               _isLoading
-                  ? const CircularProgressIndicator(color: Color(0xFF4DD0CC))
+                  ? CircularProgressIndicator(color: Colors.blue[600])
                   : ElevatedButton(
                       onPressed: _login,
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 50),
-                        backgroundColor: const Color(0xFF1E4A47),
+                        backgroundColor: Colors.blue[700],
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
+                        elevation: 2,
                       ),
                       child: const Text(
                         'تسجيل الدخول',
-                        style: TextStyle(fontSize: 18, color: Colors.white),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
-              const SizedBox(height: 10),
-              TextButton(
-                onPressed: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                  );
-                  if (result == true) {
-                    _showError('تم إنشاء الحساب، يمكنك تسجيل الدخول الآن');
-                  }
-                },
-                child: const Text(
-                  "ليس لديك حساب؟ إنشاء حساب جديد",
-                  style: TextStyle(color: Color(0xFF1E4A47)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              
+              // Register section - more attractive
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.blue[50]!,
+                      Colors.white,
+                    ],
+                  ),
+                  border: Border.all(
+                    color: Colors.blue[200]!,
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue[100]!.withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.person_add,
+                        size: 32,
+                        color: Colors.blue[600],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'مستخدم جديد؟',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'انضم إلينا واستمتع بجميع الميزات',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                            );
+                            if (result == true) {
+                              _showError('تم إنشاء الحساب، يمكنك تسجيل الدخول الآن');
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.blue[700],
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: Colors.blue[300]!, width: 2),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.app_registration,
+                                size: 20,
+                                color: Colors.blue[700],
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'إنشاء حساب جديد',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue[700],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
