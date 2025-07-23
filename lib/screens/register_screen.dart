@@ -74,7 +74,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('تم إضافة المستخدم بنجاح'),
-            backgroundColor: const Color(0xFF4DD0CC),
+            backgroundColor: Colors.blue,
             duration: Duration(seconds: 3), // سيختفي بعد 3 ثواني
             behavior: SnackBarBehavior.floating, // لجعله عائمًا بدلاً من أن يكون ملتصقًا بالأسفل
           ),
@@ -124,7 +124,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         appBar: AppBar(
           title: const Text('إنشاء حساب جديد'),
           centerTitle: true,
-          backgroundColor: const Color(0xFF1E4A47),
+          backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
@@ -134,69 +134,101 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         body: Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF7FE8E4),
-                Colors.white,
-              ],
-            ),
+            color: Colors.white,
           ),
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Form(
             key: _formKey,
-            child: Column(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                color: Colors.white,
+                border: Border.all(
+                  color: Colors.blue[300]!,
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue[200]!.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(20),
+              child: Column(
               children: [
-                // Country picker + phone field
-                Row(
-  children: [
-    // Phone number field (right)
-    Expanded(
-      child: _buildTextField(
-        label: 'رقم الهاتف',
-        controller: phoneController,
-        keyboardType: TextInputType.phone,
-        validator: (value) =>
-            value == null || value.isEmpty ? 'يرجى إدخال رقم الهاتف' : null,
-      ),
-    ),
-    const SizedBox(width: 10),
-    // Country code dropdown (left)
-    SizedBox(
-      width: 120,
-      child: DropdownButtonFormField<Map<String, String>>(
-        value: selectedCountry,
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-        ),
-        items: countries.map((country) {
-          return DropdownMenuItem<Map<String, String>>(
-            value: country,
-            child: Row(
-              children: [
-                Text(country['name']!, style: const TextStyle(fontSize: 10)),
-                const SizedBox(width: 6),
-                Text(country['code']!, style: const TextStyle(fontSize: 10)),
-              ],
-            ),
-          );
-        }).toList(),
-        onChanged: (value) {
-          setState(() {
-            selectedCountry = value;
-          });
-        },
-      ),
-    ),
-  ],
-),
+                // Country code dropdown (top)
+                DropdownButtonFormField<Map<String, String>>(
+                  value: selectedCountry,
+                  decoration: InputDecoration(
+                    labelText: 'البلد',
+                    labelStyle: TextStyle(color: Colors.black87),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue[300]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
+                    ),
+                    prefixIcon: Icon(Icons.flag, color: Colors.blue[600]),
+                  ),
+                  items: countries.map((country) {
+                    return DropdownMenuItem<Map<String, String>>(
+                      value: country,
+                      child: Row(
+                        children: [
+                          Text(country['name']!, style: const TextStyle(fontSize: 14, color: Colors.black87)),
+                          const SizedBox(width: 8),
+                          Text(country['code']!, style: const TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedCountry = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                // Phone number field (bottom) - now full width
+                TextFormField(
+                  controller: phoneController,
+                  keyboardType: TextInputType.phone,
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'يرجى إدخال رقم الهاتف' : null,
+                  style: TextStyle(color: Colors.black87),
+                  decoration: InputDecoration(
+                    labelText: 'رقم الهاتف',
+                    labelStyle: TextStyle(color: Colors.black87),
+                    filled: true,
+                    fillColor: Colors.white,
+                    prefixIcon: Icon(Icons.phone, color: Colors.blue[600]),
+                    helperText: 'رمز البلد: ${selectedCountry?['code'] ?? ''}',
+                    helperStyle: TextStyle(color: Colors.blue[600], fontWeight: FontWeight.bold),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue[300]!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -253,17 +285,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 24),
                 _isLoading
-                    ? const CircularProgressIndicator(color: Color(0xFF4DD0CC))
+                    ? CircularProgressIndicator(color: Colors.blue)
                     : ElevatedButton(
                         onPressed: registerUser,
                         style: ElevatedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 50),
-                          backgroundColor: const Color(0xFF1E4A47),
+                          backgroundColor: Colors.blue[700],
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          elevation: 0,
+                          elevation: 2,
                         ),
                         child: const Text(
                           'إنشاء حساب',
@@ -271,6 +303,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
               ],
+            ),
             ),
           ),
         ),
@@ -293,15 +326,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
       keyboardType: keyboardType,
       obscureText: obscureText,
       validator: validator,
+      style: TextStyle(color: Colors.black87),
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: TextStyle(color: Colors.black87),
         filled: true,
         fillColor: Colors.white,
-        prefixIcon: icon != null ? Icon(icon, color: const Color(0xFF2E7D78)) : null,
+        prefixIcon: icon != null ? Icon(icon, color: Colors.blue[600]) : null,
         suffixIcon: suffixIcon,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: Colors.blue[300]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.blue[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
         ),
       ),
     );

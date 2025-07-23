@@ -174,76 +174,72 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-              Row(
-                children: [
-                  // Phone number field (right)
-                  Expanded(
-                    child: TextField(
-                      controller: phoneController,
-                      decoration: InputDecoration(
-                        labelText: 'رقم الهاتف',
-                        labelStyle: TextStyle(color: Colors.black87),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blue[300]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blue[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-                        ),
-                        prefixIcon: Icon(Icons.phone, color: Colors.blue[600]),
-                      ),
-                      keyboardType: TextInputType.phone,
-                    ),
+              // Country code dropdown (top)
+              DropdownButtonFormField<Map<String, String>>(
+                value: selectedCountry,
+                decoration: InputDecoration(
+                  labelText: 'البلد',
+                  labelStyle: TextStyle(color: Colors.black87),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.blue[300]!),
                   ),
-                  const SizedBox(width: 10),
-                  // Country code dropdown (left)
-                  SizedBox(
-                    width: 120,
-                    child: DropdownButtonFormField<Map<String, String>>(
-                      value: selectedCountry,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blue[300]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blue[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-                        ),
-                      ),
-                      items: countries.map((country) {
-                        return DropdownMenuItem<Map<String, String>>(
-                          value: country,
-                          child: Row(
-                            children: [
-                              Text(country['name']!, style: const TextStyle(fontSize: 11, color: Colors.black87)),
-                              const SizedBox(width: 6),
-                              Text(country['code']!, style: const TextStyle(fontSize: 11, color: Colors.black87)),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedCountry = value;
-                        });
-                      },
-                    ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.blue[300]!),
                   ),
-                ],
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
+                  ),
+                  prefixIcon: Icon(Icons.flag, color: Colors.blue[600]),
+                ),
+                items: countries.map((country) {
+                  return DropdownMenuItem<Map<String, String>>(
+                    value: country,
+                    child: Row(
+                      children: [
+                        Text(country['name']!, style: const TextStyle(fontSize: 14, color: Colors.black87)),
+                        const SizedBox(width: 8),
+                        Text(country['code']!, style: const TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedCountry = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              // Phone number field (bottom) - now full width
+              TextField(
+                controller: phoneController,
+                decoration: InputDecoration(
+                  labelText: 'رقم الهاتف',
+                  labelStyle: TextStyle(color: Colors.black87),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.blue[300]!),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.blue[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
+                  ),
+                  prefixIcon: Icon(Icons.phone, color: Colors.blue[600]),
+                  helperText: 'رمز البلد: ${selectedCountry?['code'] ?? ''}',
+                  helperStyle: TextStyle(color: Colors.blue[600], fontWeight: FontWeight.bold),
+                ),
+                keyboardType: TextInputType.phone,
               ),
               const SizedBox(height: 16),
               TextField(

@@ -66,8 +66,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Color(0xFFF0FAFA),
-                      Color(0xFFE8F5F5),
+                      Color(0xFFF0F8FF), // Alice blue
+                      Color(0xFFE6F3FF), // Light blue
                     ],
                   ),
                 ),
@@ -78,13 +78,13 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                       Icon(
                         Icons.image,
                         size: 40,
-                        color: Color(0xFF4DD0CC),
+                        color: Colors.blue[400],
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'صورة',
                         style: TextStyle(
-                          color: Color(0xFF2E7D78),
+                          color: Colors.blue[700],
                           fontSize: 10,
                           fontWeight: FontWeight.w500,
                         ),
@@ -101,8 +101,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFFF0FAFA),
-                  Color(0xFFE8F5F5),
+                  Color(0xFFF0F8FF), // Alice blue
+                  Color(0xFFE6F3FF), // Light blue
                 ],
               ),
             ),
@@ -113,13 +113,13 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                   Icon(
                     Icons.image,
                     size: 40,
-                    color: Color(0xFF4DD0CC),
+                    color: Colors.blue[400],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'لا توجد صورة',
                     style: TextStyle(
-                      color: Color(0xFF2E7D78),
+                      color: Colors.blue[700],
                       fontSize: 10,
                       fontWeight: FontWeight.w500,
                     ),
@@ -137,13 +137,12 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white,
-            Color(0xFFF8FDFD),
-            Color(0xFFF0FAFA),
+            Color(0xFFF0F8FF), // Alice blue
+            Color(0xFFE6F3FF), // Light blue
           ],
         ),
         border: Border.all(
-          color: Color(0xFF4DD0CC),
+          color: Colors.blue[300]!,
           width: 1.5,
         ),
       ),
@@ -151,8 +150,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
-          splashColor: Color(0xFF4DD0CC).withOpacity(0.2),
-          highlightColor: Color(0xFF7FE8E4).withOpacity(0.1),
+          splashColor: Colors.blue[300]!.withOpacity(0.2),
+          highlightColor: Colors.blue[100]!.withOpacity(0.1),
           onTap: () {
             Navigator.push(
               context,
@@ -189,7 +188,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E4A47),
+                            color: Colors.black87,
                           ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
@@ -197,10 +196,10 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Color(0xFFFF7A59).withOpacity(0.1),
+                            color: Colors.blue[50],
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Color(0xFFFF7A59).withOpacity(0.3),
+                              color: Colors.blue[200]!,
                               width: 1,
                             ),
                           ),
@@ -209,7 +208,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFFFF7A59),
+                              color: Colors.blue[700],
                             ),
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
@@ -219,7 +218,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                           ad['description'] ?? '',
                           style: TextStyle(
                             fontSize: 10,
-                            color: Color(0xFF2E7D78),
+                            color: Colors.black87,
                             fontWeight: FontWeight.w500,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -231,14 +230,14 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                             Icon(
                               Icons.location_on,
                               size: 12,
-                              color: Color(0xFF2E7D78),
+                              color: Colors.blue[600],
                             ),
                             const SizedBox(width: 2),
                             Expanded(
                               child: Text(
                                 '${ad['cityName'] ?? ''}',
                                 style: TextStyle(
-                                  color: Color(0xFF1E4A47),
+                                  color: Colors.black87,
                                   fontSize: 9,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -266,10 +265,10 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.blue[700],
           elevation: 4,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFF1E4A47)),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
@@ -277,7 +276,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2E7D78),
+              color: Colors.white,
             ),
           ),
           centerTitle: true,
@@ -285,13 +284,13 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         body: isLoading
             ? Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4DD0CC)),
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[600]!),
                 ),
               )
             : searchResults.isEmpty
                 ? const Center(child: Text('لا توجد نتائج'))
                 : Container(
-                    color: Colors.grey[50],
+                    color: Colors.white,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       child: GridView.builder(
