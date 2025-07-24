@@ -937,7 +937,7 @@ class _HomeScreenState extends State<HomeScreen> {
               elevation: 0,
               backgroundColor: Colors.blue[700],
               title: const Text(
-                'اعلانك',
+                'سوق سوريا',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
