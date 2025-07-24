@@ -216,7 +216,7 @@ class AdDetailsScreen extends StatelessWidget {
                               ),
                               elevation: 3,
                             ),
-                            onPressed: () => _makePhoneCall(ad['userPhone']),
+                            onPressed: () => _showCallOptions(context, ad['userPhone']),
                           ),
                         ),
                       ],
@@ -298,7 +298,7 @@ class AdDetailsScreen extends StatelessWidget {
   void _openWhatsApp(String phone) async {
     // إزالة كل الرموز غير الأرقام
     String formattedPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
-    final message = Uri.encodeComponent("مرحبًا، أنا مهتم بالإعلان الخاص بك.");
+    final message = Uri.encodeComponent("السلام عليكم، أنا مهتم بالإعلان الخاص بك.");
     
     // إنشاء الروابط المختلفة
     final uriDirect = Uri.parse("whatsapp://send?phone=$formattedPhone&text=$message");
@@ -308,7 +308,6 @@ class AdDetailsScreen extends StatelessWidget {
       // محاولة فتح التطبيق مباشرة أولاً
       if (await canLaunchUrl(uriDirect)) {
         await launchUrl(uriDirect, mode: LaunchMode.externalApplication);
-        print('تم فتح واتساب من التطبيق');
       } else {
         // إذا فشل، نحاول فتح الرابط في المتصفح
         await launchUrl(uriWeb, mode: LaunchMode.externalApplication);
@@ -318,18 +317,35 @@ class AdDetailsScreen extends StatelessWidget {
       // في حالة فشل كل الطرق، نحاول طريقة بديلة
       try {
         await launchUrl(uriWeb, mode: LaunchMode.platformDefault);
-        print('تم فتح واتساب بالطريقة الافتراضية');
       } catch (e2) {
-        print('تعذر فتح واتساب: $e2');
         // يمكن إضافة snackbar هنا لإعلام المستخدم
       }
     }
   }
 
   // طريقة بديلة تُظهر خيارات للمستخدم
-  void _showWhatsAppOptions(BuildContext context, String phone) {
-    String formattedPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
-    final message = Uri.encodeComponent("مرحبًا، أنا مهتم بالإعلان الخاص بك.");
+
+
+  void _makePhoneCall(String phone) async {
+    // Ensure phone number starts with + if it doesn't already
+    String formattedPhone = phone.startsWith('+') ? phone : '+$phone';
+    final uri = Uri.parse("tel:$formattedPhone");
+    
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        // إذا فشل الاتصال المباشر، نحاول طريقة بديلة
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      print('تعذر إجراء المكالمة: $e');
+    }
+  }
+
+  // طريقة بديلة تُظهر خيارات للاتصال
+  void _showCallOptions(BuildContext context, String phone) {
+    String formattedPhone = phone.startsWith('+') ? phone : '+$phone';
     
     showModalBottomSheet(
       context: context,
@@ -339,7 +355,7 @@ class AdDetailsScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'اختر طريقة فتح واتساب',
+              'اختر طريقة الاتصال',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -347,55 +363,48 @@ class AdDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             ListTile(
-              leading: Icon(Icons.phone_android, color: Colors.green),
-              title: Text('فتح تطبيق واتساب'),
+              leading: Icon(Icons.call, color: Colors.blue),
+              title: Text('اتصال مباشر'),
+              subtitle: Text(formattedPhone),
               onTap: () async {
                 Navigator.pop(context);
-                final uri = Uri.parse("whatsapp://send?phone=$formattedPhone&text=$message");
+                final uri = Uri.parse("tel:$formattedPhone");
                 try {
                   await launchUrl(uri, mode: LaunchMode.externalApplication);
                 } catch (e) {
-                  print('فشل في فتح التطبيق: $e');
-                }
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.web, color: Colors.blue),
-              title: Text('فتح واتساب ويب'),
-              onTap: () async {
-                Navigator.pop(context);
-                final uri = Uri.parse("https://wa.me/$formattedPhone?text=$message");
-                try {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                } catch (e) {
-                  print('فشل في فتح المتصفح: $e');
+                  print('فشل في الاتصال المباشر: $e');
                 }
               },
             ),
             ListTile(
               leading: Icon(Icons.copy, color: Colors.orange),
               title: Text('نسخ رقم الهاتف'),
+              subtitle: Text('للاتصال يدوياً'),
               onTap: () {
                 Navigator.pop(context);
-                Clipboard.setData(ClipboardData(text: '+$formattedPhone'));
+                Clipboard.setData(ClipboardData(text: formattedPhone));
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('تم نسخ الرقم: +$formattedPhone')),
+                  SnackBar(content: Text('تم نسخ رقم الهاتف: $formattedPhone')),
                 );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.sms, color: Colors.green),
+              title: Text('إرسال رسالة نصية'),
+              subtitle: Text('SMS'),
+              onTap: () async {
+                Navigator.pop(context);
+                final uri = Uri.parse("sms:$formattedPhone?body=${Uri.encodeComponent('مرحباً، أنا مهتم بالإعلان الخاص بك.')}");
+                try {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } catch (e) {
+                  print('فشل في إرسال الرسالة: $e');
+                }
               },
             ),
           ],
         ),
       ),
     );
-  }
-
-
-  void _makePhoneCall(String phone) async {
-    // Ensure phone number starts with + if it doesn't already
-    String formattedPhone = phone.startsWith('+') ? phone : '+$phone';
-    final uri = Uri.parse("tel:$formattedPhone");
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    }
   }
 }
