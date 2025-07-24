@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'image_preview_screen.dart';
 class AdDetailsScreen extends StatelessWidget {
@@ -295,13 +296,99 @@ class AdDetailsScreen extends StatelessWidget {
   }
 
   void _openWhatsApp(String phone) async {
-    // Ensure phone number starts with + if it doesn't already
-    String formattedPhone = phone.startsWith('+') ? phone : '+$phone';
-    final uri = Uri.parse("https://wa.me/$formattedPhone");
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    // إزالة كل الرموز غير الأرقام
+    String formattedPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
+    final message = Uri.encodeComponent("مرحبًا، أنا مهتم بالإعلان الخاص بك.");
+    
+    // إنشاء الروابط المختلفة
+    final uriDirect = Uri.parse("whatsapp://send?phone=$formattedPhone&text=$message");
+    final uriWeb = Uri.parse("https://wa.me/$formattedPhone?text=$message");
+
+    try {
+      // محاولة فتح التطبيق مباشرة أولاً
+      if (await canLaunchUrl(uriDirect)) {
+        await launchUrl(uriDirect, mode: LaunchMode.externalApplication);
+        print('تم فتح واتساب من التطبيق');
+      } else {
+        // إذا فشل، نحاول فتح الرابط في المتصفح
+        await launchUrl(uriWeb, mode: LaunchMode.externalApplication);
+        print('تم فتح واتساب في المتصفح');
+      }
+    } catch (e) {
+      // في حالة فشل كل الطرق، نحاول طريقة بديلة
+      try {
+        await launchUrl(uriWeb, mode: LaunchMode.platformDefault);
+        print('تم فتح واتساب بالطريقة الافتراضية');
+      } catch (e2) {
+        print('تعذر فتح واتساب: $e2');
+        // يمكن إضافة snackbar هنا لإعلام المستخدم
+      }
     }
   }
+
+  // طريقة بديلة تُظهر خيارات للمستخدم
+  void _showWhatsAppOptions(BuildContext context, String phone) {
+    String formattedPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
+    final message = Uri.encodeComponent("مرحبًا، أنا مهتم بالإعلان الخاص بك.");
+    
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'اختر طريقة فتح واتساب',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: Icon(Icons.phone_android, color: Colors.green),
+              title: Text('فتح تطبيق واتساب'),
+              onTap: () async {
+                Navigator.pop(context);
+                final uri = Uri.parse("whatsapp://send?phone=$formattedPhone&text=$message");
+                try {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } catch (e) {
+                  print('فشل في فتح التطبيق: $e');
+                }
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.web, color: Colors.blue),
+              title: Text('فتح واتساب ويب'),
+              onTap: () async {
+                Navigator.pop(context);
+                final uri = Uri.parse("https://wa.me/$formattedPhone?text=$message");
+                try {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                } catch (e) {
+                  print('فشل في فتح المتصفح: $e');
+                }
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.copy, color: Colors.orange),
+              title: Text('نسخ رقم الهاتف'),
+              onTap: () {
+                Navigator.pop(context);
+                Clipboard.setData(ClipboardData(text: '+$formattedPhone'));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('تم نسخ الرقم: +$formattedPhone')),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   void _makePhoneCall(String phone) async {
     // Ensure phone number starts with + if it doesn't already
