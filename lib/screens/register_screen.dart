@@ -72,7 +72,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       final fullPhone = '${selectedCountry?['code'] ?? ''}${phoneController.text.trim()}';
       final response = await http.post(
-        Uri.parse('https://sahbo-app-api.onrender.com/api/auth/register-phone'),
+        Uri.parse('https://sahbo-app-api.onrender.com/api/user/register-phone'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'phoneNumber': fullPhone,

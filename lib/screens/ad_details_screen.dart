@@ -109,7 +109,7 @@ class AdDetailsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${ad['productTitle']}',
+                      '${ad['adTitle']}',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,

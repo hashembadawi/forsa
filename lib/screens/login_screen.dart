@@ -51,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    String apiUrl = 'https://sahbo-app-api.onrender.com/api/auth/login';
+    String apiUrl = 'https://sahbo-app-api.onrender.com/api/user/login';
 
     if (phoneController.text.isEmpty || passwordPhoneController.text.isEmpty) {
       _showError('يرجى إدخال رقم الهاتف وكلمة المرور');
