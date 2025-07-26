@@ -109,7 +109,7 @@ class AdDetailsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${ad['adTitle']}',
+                      '${ad['productTitle']}',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -322,27 +322,6 @@ class AdDetailsScreen extends StatelessWidget {
       }
     }
   }
-
-  // طريقة بديلة تُظهر خيارات للمستخدم
-
-
-  void _makePhoneCall(String phone) async {
-    // Ensure phone number starts with + if it doesn't already
-    String formattedPhone = phone.startsWith('+') ? phone : '+$phone';
-    final uri = Uri.parse("tel:$formattedPhone");
-    
-    try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        // إذا فشل الاتصال المباشر، نحاول طريقة بديلة
-        await launchUrl(uri, mode: LaunchMode.platformDefault);
-      }
-    } catch (e) {
-      print('تعذر إجراء المكالمة: $e');
-    }
-  }
-
   // طريقة بديلة تُظهر خيارات للاتصال
   void _showCallOptions(BuildContext context, String phone) {
     String formattedPhone = phone.startsWith('+') ? phone : '+$phone';
