@@ -45,7 +45,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
 
     try {
       final url = Uri.parse(
-        'https://sahbo-app-api.onrender.com/api/userProducts/$userId?page=$currentPage&limit=$limit',
+        'https://sahbo-app-api.onrender.com/api/ads/userAds/$userId?page=$currentPage&limit=$limit',
       );
 
       final response = await http.get(url, headers: {
@@ -54,7 +54,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        final List<dynamic> ads = decoded['products'] ?? [];
+        final List<dynamic> ads = decoded['ads'] ?? [];
 
         setState(() {
           myAds.addAll(ads);
@@ -81,7 +81,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
   }
 
   Future<void> _deleteAd(String adId) async {
-    final url = Uri.parse('https://sahbo-app-api.onrender.com/api/userProducts/$adId');
+    final url = Uri.parse('https://sahbo-app-api.onrender.com/api/ads/userAds/$adId');
 
     try {
       final response = await http.delete(
@@ -165,7 +165,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
       MaterialPageRoute(
         builder: (_) => EditAdScreen(
           adId: ad['_id'],
-          initialTitle: ad['productTitle'] ?? '',
+          initialTitle: ad['adTitle'] ?? '',
           initialPrice: ad['price']?.toString() ?? '',
           initialCurrency: ad['currency'] ?? 'ل.س',
           initialDescription: ad['description'] ?? '',
@@ -403,7 +403,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  ad['productTitle'] ?? '',
+                  ad['adTitle'] ?? '',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(

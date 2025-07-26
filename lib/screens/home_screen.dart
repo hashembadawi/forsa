@@ -143,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (token != null) {
       try {
         final response = await http.get(
-          Uri.parse('https://sahbo-app-api.onrender.com/api/auth/validate-token'),
+          Uri.parse('https://sahbo-app-api.onrender.com/api/user/validate-token'),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token',
@@ -191,14 +191,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final url = Uri.parse(
-        'https://sahbo-app-api.onrender.com/api/products?page=$currentPageAds&limit=$limitAds',
+        'https://sahbo-app-api.onrender.com/api/ads?page=$currentPageAds&limit=$limitAds',
       );
 
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        final List<dynamic> fetchedAds = decoded['products'] ?? [];
+        final List<dynamic> fetchedAds = decoded['ads'] ?? [];
 
         setState(() {
           allAds.addAll(fetchedAds);
@@ -444,13 +444,13 @@ class _HomeScreenState extends State<HomeScreen> {
       if (selectedCityId != null) params['cityId'] = selectedCityId.toString();
       if (selectedRegionId != null) params['regionId'] = selectedRegionId.toString();
 
-      final uri = Uri.https('sahbo-app-api.onrender.com', '/api/products/search', params);
+      final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search', params);
 
       final response = await http.get(uri);
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        final List<dynamic> fetchedAds = decoded['products'] ?? [];
+        final List<dynamic> fetchedAds = decoded['ads'] ?? [];
 
         setState(() {
           if (reset) allAds.clear();
@@ -492,13 +492,13 @@ class _HomeScreenState extends State<HomeScreen> {
     if (selectedCategoryId != null) params['categoryId'] = selectedCategoryId.toString();
     if (selectedSubCategoryId != null) params['subCategoryId'] = selectedSubCategoryId.toString();
 
-    final uri = Uri.https('sahbo-app-api.onrender.com', '/api/products/search-by-category', params);
+    final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search-by-category', params);
 
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
-      final List<dynamic> fetchedAds = decoded['products'] ?? [];
+      final List<dynamic> fetchedAds = decoded['ads'] ?? [];
 
       setState(() {
         if (reset) allAds.clear();
@@ -553,13 +553,13 @@ class _HomeScreenState extends State<HomeScreen> {
         'limit': '$limitAds',
       };
 
-      final uri = Uri.https('sahbo-app-api.onrender.com', '/api/products/search-by-title', params);
+      final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search-by-title', params);
 
       final response = await http.get(uri);
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        final List<dynamic> fetchedAds = decoded['products'] ?? [];
+        final List<dynamic> fetchedAds = decoded['ads'] ?? [];
 
         setState(() {
           if (reset) allAds.clear();
@@ -734,7 +734,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         Text(
-                          '${ad['productTitle'] ?? ''}',
+                          '${ad['adTitle'] ?? ''}',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,

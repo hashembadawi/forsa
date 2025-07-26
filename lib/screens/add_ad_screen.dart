@@ -18,7 +18,7 @@ class MultiStepAddAdScreen extends StatefulWidget {
 class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
   int currentStep = 0;
   List<File?> selectedImages = [];
-  String productTitle = '';
+  String adTitle = '';
   String price = '';
   String description = '';
 
@@ -258,7 +258,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         );
       case 2:
         return AdDetailsStep(
-          productTitle: productTitle,
+          adTitle: adTitle,
           price: price,
           description: description,
           currencies: currencies,
@@ -269,7 +269,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
           selectedMajorArea: selectedMajorArea,
           onDetailsChanged: (title, p, desc, currency, province, area) {
             setState(() {
-              productTitle = title;
+              adTitle = title;
               price = p;
               description = desc;
               selectedCurrency = currency;
@@ -321,7 +321,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         'userId': userId,
         'userPhone': userPhone,
         'userName': username,
-        'productTitle': productTitle,
+        'adTitle': adTitle,
         'price': price,
         'currencyId': selectedCurrency?['id'],
         'currencyName': selectedCurrency?['name'],
@@ -338,7 +338,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       };
 
       final response = await http.post(
-        Uri.parse('https://sahbo-app-api.onrender.com/api/userProducts/add'),
+        Uri.parse('https://sahbo-app-api.onrender.com/api/ads/userAds/add'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -794,7 +794,7 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
 // --- AdDetailsStep updated to use server data ---
 
 class AdDetailsStep extends StatefulWidget {
-  final String productTitle;
+  final String adTitle;
   final String price;
   final String description;
   final List<Map<String, dynamic>> currencies;
@@ -816,7 +816,7 @@ class AdDetailsStep extends StatefulWidget {
 
   const AdDetailsStep({
     super.key,
-    required this.productTitle,
+    required this.adTitle,
     required this.price,
     required this.description,
     required this.currencies,
@@ -846,7 +846,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.productTitle);
+    _titleController = TextEditingController(text: widget.adTitle);
     _priceController = TextEditingController(text: widget.price);
     _descriptionController = TextEditingController(text: widget.description);
     _selectedCurrency = widget.selectedCurrency ?? (widget.currencies.isNotEmpty ? widget.currencies[0] : null);

@@ -31,12 +31,12 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         'page': '1',
         'limit': '20',
       };
-      final uri = Uri.https('sahbo-app-api.onrender.com', '/api/products/search-by-title', params);
+      final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search-by-title', params);
       final response = await http.get(uri);
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         setState(() {
-          searchResults = decoded['products'] ?? [];
+          searchResults = decoded['ads'] ?? [];
           isLoading = false;
         });
       } else {
@@ -184,7 +184,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         Text(
-                          '${ad['productTitle'] ?? ''}',
+                          '${ad['adTitle'] ?? ''}',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
