@@ -21,7 +21,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
   static const double _imageHeight = 200.0;
 
   // ========== State Variables ==========
-  List<dynamic> _myAds = [];
+  final List<dynamic> _myAds = [];
   bool _isLoading = false;
   bool _hasMoreAds = true;
   int _currentPage = 1;

@@ -41,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int? _selectedSubCategoryId;
 
   // ========== Ads State ==========
-  List<dynamic> _allAds = [];
+  final List<dynamic> _allAds = [];
   bool _isLoadingAds = false;
   int _currentPageAds = 1;
   bool _hasMoreAds = true;

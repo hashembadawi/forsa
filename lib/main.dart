@@ -15,7 +15,56 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'سوق سوريا',
       theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
+        primarySwatch: Colors.blue,
+        primaryColor: Colors.blue[700],
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue[700]!,
+          primary: Colors.blue[700]!,
+          secondary: Colors.blue[600]!,
+        ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.blue[700],
+          foregroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue[700],
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            elevation: 2,
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.blue[700],
+            side: BorderSide(color: Colors.blue[300]!, width: 2),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.blue[300]!),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.blue[300]!),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
+          ),
+          labelStyle: TextStyle(color: Colors.black87),
+        ),
+        checkboxTheme: CheckboxThemeData(
+          fillColor: WidgetStateProperty.all(Colors.blue[600]),
+        ),
         fontFamily: 'Arabic',
       ),
       home: const ConnectivityWrapper(),
@@ -68,9 +117,13 @@ class _ConnectivityWrapperState extends State<ConnectivityWrapper> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(
+      return Scaffold(
+        backgroundColor: Colors.white,
         body: Center(
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator(
+            color: Colors.blue[700],
+            strokeWidth: 3,
+          ),
         ),
       );
     }
@@ -110,9 +163,18 @@ class _ConnectivityWrapperState extends State<ConnectivityWrapper> {
                 const SizedBox(height: 30),
                 ElevatedButton(
                   onPressed: checkInitialConnectivity,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[700],
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                  ),
                   child: const Text(
                     'إعادة المحاولة',
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
