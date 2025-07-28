@@ -1,8 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 
+/// A screen for previewing images with navigation and zoom capabilities
 class ImagePreviewScreen extends StatefulWidget {
+  /// List of base64 encoded images to display
   final List<dynamic> images;
+  
+  /// Initial index to start viewing from
   final int initialIndex;
 
   const ImagePreviewScreen({
@@ -16,14 +20,20 @@ class ImagePreviewScreen extends StatefulWidget {
 }
 
 class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
+  // ========== Constants ==========
+  static const Duration _animationDuration = Duration(milliseconds: 300);
+  static const Curve _animationCurve = Curves.easeInOut;
+  static const double _minScale = 0.5;
+  static const double _maxScale = 4.0;
+  
+  // ========== Controllers & State ==========
   late PageController _pageController;
   late int _currentIndex;
 
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialIndex;
-    _pageController = PageController(initialPage: widget.initialIndex);
+    _initializeController();
   }
 
   @override
@@ -32,337 +42,431 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
     super.dispose();
   }
 
+  // ========== Initialization ==========
+
+  /// Initialize page controller with initial index
+  void _initializeController() {
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  // ========== Navigation Methods ==========
+
+  /// Navigate to previous image
+  void _navigateToPrevious() {
+    if (_currentIndex > 0) {
+      _pageController.previousPage(
+        duration: _animationDuration,
+        curve: _animationCurve,
+      );
+    }
+  }
+
+  /// Navigate to next image
+  void _navigateToNext() {
+    if (_currentIndex < widget.images.length - 1) {
+      _pageController.nextPage(
+        duration: _animationDuration,
+        curve: _animationCurve,
+      );
+    }
+  }
+
+  /// Update current index when page changes
+  void _onPageChanged(int index) {
+    setState(() => _currentIndex = index);
+  }
+
+  // ========== Helper Methods ==========
+
+  /// Check if previous navigation is available
+  bool get _canNavigatePrevious => _currentIndex > 0;
+
+  /// Check if next navigation is available
+  bool get _canNavigateNext => _currentIndex < widget.images.length - 1;
+
+  /// Get current image position text
+  String get _positionText => '${_currentIndex + 1} من ${widget.images.length}';
+
+  /// Check if multiple images exist
+  bool get _hasMultipleImages => widget.images.length > 1;
+
+  // ========== Widget Building Methods ==========
+
+  /// Build the main app bar
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.blue[700],
+      foregroundColor: Colors.white,
+      elevation: 0,
+      leading: _buildBackButton(),
+      title: _buildAppBarTitle(),
+      centerTitle: true,
+    );
+  }
+
+  /// Build back button with styling
+  Widget _buildBackButton() {
+    return IconButton(
+      icon: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Icon(Icons.arrow_back, color: Colors.white),
+      ),
+      onPressed: () => Navigator.pop(context),
+    );
+  }
+
+  /// Build app bar title with position indicator
+  Widget _buildAppBarTitle() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        _positionText,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
+      ),
+    );
+  }
+
+  /// Build main body container with gradient background
+  Widget _buildBody() {
+    return Container(
+      decoration: _buildBackgroundDecoration(),
+      child: Column(
+        children: [
+          Expanded(child: _buildImageViewer()),
+          if (_hasMultipleImages) ...[
+            _buildNavigationSection(),
+            const SizedBox(height: 16),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Build background gradient decoration
+  BoxDecoration _buildBackgroundDecoration() {
+    return const BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Colors.white,
+          Color(0xFFF8FBFF),
+          Color(0xFFF0F8FF),
+        ],
+      ),
+    );
+  }
+
+  /// Build main image viewer container
+  Widget _buildImageViewer() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: _buildImageViewerDecoration(),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: _buildPageView(),
+      ),
+    );
+  }
+
+  /// Build image viewer decoration
+  BoxDecoration _buildImageViewerDecoration() {
+    return BoxDecoration(
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: Colors.blue[300]!, width: 2),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.blue[200]!.withOpacity(0.3),
+          blurRadius: 15,
+          offset: const Offset(0, 8),
+        ),
+      ],
+    );
+  }
+
+  /// Build page view for images
+  Widget _buildPageView() {
+    return PageView.builder(
+      controller: _pageController,
+      itemCount: widget.images.length,
+      onPageChanged: _onPageChanged,
+      itemBuilder: _buildImagePage,
+    );
+  }
+
+  /// Build individual image page
+  Widget _buildImagePage(BuildContext context, int index) {
+    return Container(
+      color: Colors.white,
+      child: InteractiveViewer(
+        panEnabled: true,
+        minScale: _minScale,
+        maxScale: _maxScale,
+        child: Center(
+          child: _buildImage(index),
+        ),
+      ),
+    );
+  }
+
+  /// Build image widget with error handling
+  Widget _buildImage(int index) {
+    return Image.memory(
+      base64Decode(widget.images[index]),
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) => _buildErrorPlaceholder(),
+    );
+  }
+
+  /// Build error placeholder for failed image loads
+  Widget _buildErrorPlaceholder() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF0F8FF), Color(0xFFE6F3FF)],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.broken_image, size: 64, color: Colors.blue[400]),
+            const SizedBox(height: 16),
+            Text(
+              'تعذر تحميل الصورة',
+              style: TextStyle(
+                color: Colors.blue[700],
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build navigation section container
+  Widget _buildNavigationSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: _buildNavigationDecoration(),
+      child: Column(
+        children: [
+          _buildImageCounter(),
+          const SizedBox(height: 16),
+          _buildNavigationRow(),
+        ],
+      ),
+    );
+  }
+
+  /// Build navigation section decoration
+  BoxDecoration _buildNavigationDecoration() {
+    return BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: Colors.blue[300]!, width: 1.5),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.blue[100]!.withOpacity(0.3),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    );
+  }
+
+  /// Build image counter widget
+  Widget _buildImageCounter() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.blue[200]!, width: 1),
+      ),
+      child: Text(
+        'الصورة ${_currentIndex + 1} من ${widget.images.length}',
+        style: TextStyle(
+          color: Colors.blue[700],
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  /// Build navigation row with buttons and indicators
+  Widget _buildNavigationRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildNavigationButton(
+          text: 'السابقة',
+          icon: Icons.arrow_back_ios,
+          isEnabled: _canNavigatePrevious,
+          onTap: _navigateToPrevious,
+          isLeftButton: true,
+        ),
+        Expanded(child: _buildDotIndicators()),
+        _buildNavigationButton(
+          text: 'التالية',
+          icon: Icons.arrow_forward_ios,
+          isEnabled: _canNavigateNext,
+          onTap: _navigateToNext,
+          isLeftButton: false,
+        ),
+      ],
+    );
+  }
+
+  /// Build navigation button (previous/next)
+  Widget _buildNavigationButton({
+    required String text,
+    required IconData icon,
+    required bool isEnabled,
+    required VoidCallback onTap,
+    required bool isLeftButton,
+  }) {
+    return GestureDetector(
+      onTap: isEnabled ? onTap : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: _buildButtonDecoration(isEnabled),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: isLeftButton
+              ? [
+                  Icon(icon, color: _getButtonColor(isEnabled), size: 16),
+                  const SizedBox(width: 4),
+                  Text(text, style: _getButtonTextStyle(isEnabled)),
+                ]
+              : [
+                  Text(text, style: _getButtonTextStyle(isEnabled)),
+                  const SizedBox(width: 4),
+                  Icon(icon, color: _getButtonColor(isEnabled), size: 16),
+                ],
+        ),
+      ),
+    );
+  }
+
+  /// Build button decoration based on enabled state
+  BoxDecoration _buildButtonDecoration(bool isEnabled) {
+    return BoxDecoration(
+      color: isEnabled ? Colors.blue[600] : Colors.grey[300],
+      borderRadius: BorderRadius.circular(12),
+      boxShadow: isEnabled
+          ? [
+              BoxShadow(
+                color: Colors.blue[300]!.withOpacity(0.3),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ]
+          : null,
+    );
+  }
+
+  /// Get button color based on enabled state
+  Color _getButtonColor(bool isEnabled) {
+    return isEnabled ? Colors.white : Colors.grey[600]!;
+  }
+
+  /// Get button text style based on enabled state
+  TextStyle _getButtonTextStyle(bool isEnabled) {
+    return TextStyle(
+      color: _getButtonColor(isEnabled),
+      fontSize: 12,
+      fontWeight: FontWeight.bold,
+    );
+  }
+
+  /// Build dot indicators for image navigation
+  Widget _buildDotIndicators() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(
+          widget.images.length,
+          (index) => _buildDotIndicator(index),
+        ),
+      ),
+    );
+  }
+
+  /// Build individual dot indicator
+  Widget _buildDotIndicator(int index) {
+    final isActive = _currentIndex == index;
+    
+    return AnimatedContainer(
+      duration: _animationDuration,
+      width: isActive ? 32 : 12,
+      height: 12,
+      margin: const EdgeInsets.symmetric(horizontal: 3),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+        color: isActive ? Colors.blue[600] : Colors.blue[200],
+        boxShadow: isActive
+            ? [
+                BoxShadow(
+                  color: Colors.blue[300]!.withOpacity(0.4),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
+      ),
+      child: isActive ? _buildActiveDotContent() : null,
+    );
+  }
+
+  /// Build content for active dot indicator
+  Widget _buildActiveDotContent() {
+    return const Center(
+      child: SizedBox(
+        width: 6,
+        height: 6,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ========== Main Build Method ==========
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.blue[700],
-        foregroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.arrow_back, color: Colors.white),
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.3),
-              width: 1,
-            ),
-          ),
-          child: Text(
-            '${_currentIndex + 1} من ${widget.images.length}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.white,
-              Color(0xFFF8FBFF), // Very light blue
-              Color(0xFFF0F8FF), // Alice blue
-            ],
-          ),
-        ),
-        child: Column(
-          children: [
-            // Main image viewer
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Colors.blue[300]!,
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blue[200]!.withOpacity(0.3),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(18),
-                  child: PageView.builder(
-                    controller: _pageController,
-                    itemCount: widget.images.length,
-                    onPageChanged: (index) {
-                      setState(() => _currentIndex = index);
-                    },
-                    itemBuilder: (context, index) {
-                      return Container(
-                        color: Colors.white,
-                        child: InteractiveViewer(
-                          panEnabled: true,
-                          minScale: 0.5,
-                          maxScale: 4.0,
-                          child: Center(
-                            child: Image.memory(
-                              base64Decode(widget.images[index]),
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        Color(0xFFF0F8FF),
-                                        Color(0xFFE6F3FF),
-                                      ],
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.broken_image,
-                                          size: 64,
-                                          color: Colors.blue[400],
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          'تعذر تحميل الصورة',
-                                          style: TextStyle(
-                                            color: Colors.blue[700],
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-            
-            // Image indicators and navigation
-            if (widget.images.length > 1) ...[
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Colors.blue[300]!,
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blue[100]!.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    // Image counter text
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        borderRadius: BorderRadius.circular(15),
-                        border: Border.all(
-                          color: Colors.blue[200]!,
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        'الصورة ${_currentIndex + 1} من ${widget.images.length}',
-                        style: TextStyle(
-                          color: Colors.blue[700],
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Navigation row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Previous button
-                        GestureDetector(
-                          onTap: _currentIndex > 0
-                              ? () {
-                                  _pageController.previousPage(
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeInOut,
-                                  );
-                                }
-                              : null,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: _currentIndex > 0 
-                                  ? Colors.blue[600] 
-                                  : Colors.grey[300],
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: _currentIndex > 0 ? [
-                                BoxShadow(
-                                  color: Colors.blue[300]!.withOpacity(0.3),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ] : null,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.arrow_back_ios,
-                                  color: _currentIndex > 0 ? Colors.white : Colors.grey[600],
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'السابقة',
-                                  style: TextStyle(
-                                    color: _currentIndex > 0 ? Colors.white : Colors.grey[600],
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        
-                        // Enhanced dot indicators
-                        Expanded(
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(
-                                widget.images.length,
-                                (index) => AnimatedContainer(
-                                  duration: const Duration(milliseconds: 300),
-                                  width: _currentIndex == index ? 32 : 12,
-                                  height: 12,
-                                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(6),
-                                    color: _currentIndex == index
-                                        ? Colors.blue[600]
-                                        : Colors.blue[200],
-                                    boxShadow: _currentIndex == index ? [
-                                      BoxShadow(
-                                        color: Colors.blue[300]!.withOpacity(0.4),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ] : null,
-                                  ),
-                                  child: _currentIndex == index
-                                      ? Center(
-                                          child: Container(
-                                            width: 6,
-                                            height: 6,
-                                            decoration: const BoxDecoration(
-                                              color: Colors.white,
-                                              shape: BoxShape.circle,
-                                            ),
-                                          ),
-                                        )
-                                      : null,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        
-                        // Next button
-                        GestureDetector(
-                          onTap: _currentIndex < widget.images.length - 1
-                              ? () {
-                                  _pageController.nextPage(
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeInOut,
-                                  );
-                                }
-                              : null,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: _currentIndex < widget.images.length - 1 
-                                  ? Colors.blue[600] 
-                                  : Colors.grey[300],
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: _currentIndex < widget.images.length - 1 ? [
-                                BoxShadow(
-                                  color: Colors.blue[300]!.withOpacity(0.3),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ] : null,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'التالية',
-                                  style: TextStyle(
-                                    color: _currentIndex < widget.images.length - 1 ? Colors.white : Colors.grey[600],
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  color: _currentIndex < widget.images.length - 1 ? Colors.white : Colors.grey[600],
-                                  size: 16,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-          ],
-        ),
-      ),
+      appBar: _buildAppBar(),
+      body: _buildBody(),
     );
   }
 }

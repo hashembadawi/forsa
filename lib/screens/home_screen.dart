@@ -11,189 +11,183 @@ import 'login_screen.dart';
 import 'my_ads_screen.dart';
 import 'search_results_screen.dart';
 
+/// Home screen that displays advertisements with filtering and search capabilities
 class HomeScreen extends StatefulWidget {
   final bool refreshOnStart;
+  
   const HomeScreen({super.key, this.refreshOnStart = false});
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String selectedCity = 'كل المحافظات';
-  String selectedDistrict = 'كل المناطق';
-  int? selectedCityId;
-  int? selectedRegionId;
-  List<Map<String, dynamic>> provinces = [];
-  List<Map<String, dynamic>> majorAreas = [];
-  List<Map<String, dynamic>> categoriesList = [];
-  List<Map<String, dynamic>> subCategoriesList = [];
-  Map<String, dynamic>? selectedCategory;
-  Map<String, dynamic>? selectedSubCategory;
-  int? selectedCategoryId;
-  int? selectedSubCategoryId;
-  final TextEditingController _searchController = TextEditingController();
-  final List<Map<String, dynamic>> categories = [
-    {'icon': Icons.pets, 'name': 'حيوانات'},
-    {'icon': Icons.groups, 'name': 'خدمات'},
-    {'icon': Icons.checkroom, 'name': 'أزياء'},
-    {'icon': Icons.build, 'name': 'أدوات'},
-    {'icon': Icons.chair, 'name': 'أثاث'},
-    {'icon': Icons.devices, 'name': 'إلكترونيات'},
-    {'icon': Icons.home_work, 'name': 'عقارات'},
-    {'icon': Icons.directions_car, 'name': 'مركبات'},
-  ];
+  // ========== Constants ==========
+  static const String _baseUrl = 'https://sahbo-app-api.onrender.com';
+  static const int _limitAds = 10;
+  static const String _defaultCity = 'كل المحافظات';
+  static const String _defaultDistrict = 'كل المناطق';
 
-  // لإعلانات العرض
-  List<dynamic> allAds = [];
-  bool isLoadingAds = false;
-  int currentPageAds = 1;
-  final int limitAds = 10;
-  bool hasMoreAds = true;
+  // ========== Location State ==========
+  String _selectedCity = _defaultCity;
+  String _selectedDistrict = _defaultDistrict;
+  int? _selectedCityId;
+  int? _selectedRegionId;
+  List<Map<String, dynamic>> _provinces = [];
+  List<Map<String, dynamic>> _majorAreas = [];
+
+  // ========== Category State ==========
+  int? _selectedCategoryId;
+  int? _selectedSubCategoryId;
+
+  // ========== Ads State ==========
+  List<dynamic> _allAds = [];
+  bool _isLoadingAds = false;
+  int _currentPageAds = 1;
+  bool _hasMoreAds = true;
+
+  // ========== Controllers & State ==========
+  final TextEditingController _searchController = TextEditingController();
   late ScrollController _adsScrollController;
   String? _username;
   
-  // Connectivity variables
-  late StreamSubscription<ConnectivityResult> connectivitySubscription;
-  bool isConnected = true;
-  bool isCheckingConnectivity = true;
+  // ========== Connectivity State ==========
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  bool _isConnected = true;
+  bool _isCheckingConnectivity = true;
 
   @override
   void initState() {
     super.initState();
-    _adsScrollController = ScrollController()..addListener(_onAdsScroll);
-    _checkInitialConnectivity();
-    _subscribeToConnectivityChanges();
-    _checkLoginStatus();
-    _fetchOptions();
-    fetchAllAds();
+    _initializeScreen();
   }
 
   @override
   void dispose() {
     _adsScrollController.dispose();
-    connectivitySubscription.cancel();
+    _connectivitySubscription.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
+  // ========== Initialization Methods ==========
+
+  /// Initialize screen components
+  void _initializeScreen() {
+    _adsScrollController = ScrollController()..addListener(_onAdsScroll);
+    _checkInitialConnectivity();
+    _subscribeToConnectivityChanges();
+    _checkLoginStatus();
+    _fetchOptions();
+    _fetchAllAds();
+  }
+
+  /// Check initial internet connectivity
+  Future<void> _checkInitialConnectivity() async {
+    try {
+      final connectivityResult = await Connectivity().checkConnectivity();
+      setState(() {
+        _isConnected = connectivityResult != ConnectivityResult.none;
+        _isCheckingConnectivity = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isConnected = false;
+        _isCheckingConnectivity = false;
+      });
+    }
+  }
+
+  /// Subscribe to connectivity changes
+  void _subscribeToConnectivityChanges() {
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
+      (ConnectivityResult result) {
+        setState(() {
+          _isConnected = result != ConnectivityResult.none;
+        });
+      },
+    );
+  }
+
+  // ========== Data Fetching Methods ==========
+
+  /// Fetch options (provinces, areas, categories)
   Future<void> _fetchOptions() async {
     try {
-      final response = await http.get(Uri.parse('https://sahbo-app-api.onrender.com/api/options'));
+      final response = await http.get(Uri.parse('$_baseUrl/api/options'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         setState(() {
-          provinces = List<Map<String, dynamic>>.from(data['Province']);
-          majorAreas = List<Map<String, dynamic>>.from(data['majorAreas']);
-          categoriesList = List<Map<String, dynamic>>.from(data['categories']);
-        subCategoriesList = List<Map<String, dynamic>>.from(data['subCategories']);
+          _provinces = List<Map<String, dynamic>>.from(data['Province'] ?? []);
+          _majorAreas = List<Map<String, dynamic>>.from(data['majorAreas'] ?? []);
         });
       }
     } catch (e) {
-      // handle error if needed
+      debugPrint('Error fetching options: $e');
     }
   }
 
-  Future<void> _checkInitialConnectivity() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
-    setState(() {
-      isConnected = connectivityResult != ConnectivityResult.none;
-      isCheckingConnectivity = false;
-    });
-  }
-
-  void _subscribeToConnectivityChanges() {
-    connectivitySubscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
-      setState(() {
-        isConnected = result != ConnectivityResult.none;
-      });
-    });
-  }
-
-  void _reloadHomeScreen() {
-    setState(() {
-      // Reset all filters
-      selectedCity = 'كل المحافظات';
-      selectedDistrict = 'كل المناطق';
-      selectedCityId = null;
-      selectedRegionId = null;
-      selectedCategory = null;
-      selectedSubCategory = null;
-      selectedCategoryId = null;
-      selectedSubCategoryId = null;
-      
-      // Clear search text
-      _searchController.clear();
-      
-      // Reset ads data
-      allAds.clear();
-      currentPageAds = 1;
-      hasMoreAds = true;
-      isLoadingAds = false;
-    });
-    
-    // Reload data
-    _fetchOptions();
-    fetchAllAds();
-  }
-
+  /// Check user login status
   Future<void> _checkLoginStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    final rememberMe = prefs.getBool('rememberMe') ?? false;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      final rememberMe = prefs.getBool('rememberMe') ?? false;
 
-    if (token != null) {
-      try {
-        final response = await http.get(
-          Uri.parse('https://sahbo-app-api.onrender.com/api/user/validate-token'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
-        );
-
-        if (response.statusCode == 200) {
-          // التوكن صالح، تحميل اسم المستخدم
-          setState(() {
-            _username = prefs.getString('userName') ?? 'مستخدم';
-          });
-        } else {
-          // التوكن غير صالح، مسح البيانات
-          await prefs.clear();
-          setState(() {
-            _username = null;
-          });
-        }
-      } catch (e) {
-        // خطأ في الاتصال، مسح البيانات إذا لم يكن rememberMe مفعلًا
-        if (!rememberMe) {
-          await prefs.clear();
-        }
-        setState(() {
-          _username = null;
-        });
+      if (token != null) {
+        await _validateToken(token, prefs, rememberMe);
+      } else {
+        _clearUserDataIfNeeded(prefs, rememberMe);
       }
-    } else {
-      // لا يوجد توكن، مسح البيانات إذا لم يكن rememberMe مفعلًا
+    } catch (e) {
+      debugPrint('Error checking login status: $e');
+      setState(() => _username = null);
+    }
+  }
+
+  /// Validate user token
+  Future<void> _validateToken(String token, SharedPreferences prefs, bool rememberMe) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/api/user/validate-token'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _username = prefs.getString('userName') ?? 'مستخدم';
+        });
+      } else {
+        await prefs.clear();
+        setState(() => _username = null);
+      }
+    } catch (e) {
       if (!rememberMe) {
         await prefs.clear();
       }
-      setState(() {
-        _username = null;
-      });
+      setState(() => _username = null);
     }
   }
 
-  Future<void> fetchAllAds() async {
-    if (isLoadingAds || !hasMoreAds) return;
+  /// Clear user data if not remembered
+  void _clearUserDataIfNeeded(SharedPreferences prefs, bool rememberMe) {
+    if (!rememberMe) {
+      prefs.clear();
+    }
+    setState(() => _username = null);
+  }
 
-    setState(() {
-      isLoadingAds = true;
-    });
+  /// Fetch all advertisements
+  Future<void> _fetchAllAds() async {
+    if (_isLoadingAds || !_hasMoreAds) return;
+
+    setState(() => _isLoadingAds = true);
 
     try {
-      final url = Uri.parse(
-        'https://sahbo-app-api.onrender.com/api/ads?page=$currentPageAds&limit=$limitAds',
-      );
-
+      final url = Uri.parse('$_baseUrl/api/ads?page=$_currentPageAds&limit=$_limitAds');
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -201,251 +195,36 @@ class _HomeScreenState extends State<HomeScreen> {
         final List<dynamic> fetchedAds = decoded['ads'] ?? [];
 
         setState(() {
-          allAds.addAll(fetchedAds);
-          currentPageAds++;
-          isLoadingAds = false;
-          if (fetchedAds.length < limitAds) {
-            hasMoreAds = false;
-          }
+          _allAds.addAll(fetchedAds);
+          _currentPageAds++;
+          _isLoadingAds = false;
+          _hasMoreAds = fetchedAds.length >= _limitAds;
         });
       } else {
-        setState(() {
-          isLoadingAds = false;
-          hasMoreAds = false;
-        });
-        debugPrint('Error fetching ads: ${response.statusCode}');
+        _handleFetchError();
       }
     } catch (e) {
-      setState(() {
-        isLoadingAds = false;
-        hasMoreAds = false;
-      });
       debugPrint('Exception fetching ads: $e');
+      _handleFetchError();
     }
   }
 
-  Future<void> _showLocationFilterDialog() async {
-    Map<String, dynamic>? tempSelectedProvince;
-    Map<String, dynamic>? tempSelectedArea;
-    List<Map<String, dynamic>> filteredAreas = [];
+  /// Fetch filtered advertisements by location
+  Future<void> _fetchFilteredAds({bool reset = false}) async {
+    if (_isLoadingAds || !_hasMoreAds) return;
 
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setStateDialog) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
-              ),
-              backgroundColor: Colors.white,
-              title: Text(
-                'تصفية حسب الموقع',
-                style: TextStyle(
-                  color: Color(0xFF1E4A47),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    DropdownButtonFormField<Map<String, dynamic>>(
-                      value: tempSelectedProvince,
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        labelText: 'اختر المحافظة',
-                        labelStyle: TextStyle(color: Color(0xFF2E7D78)),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          borderSide: BorderSide(color: Color(0xFF2E7D78), width: 2),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      ),
-                      dropdownColor: Colors.white,
-                      style: TextStyle(
-                        color: Color(0xFF1E4A47),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      items: [
-                        DropdownMenuItem<Map<String, dynamic>>(
-                          value: null,
-                          child: Text(
-                            'كل المحافظات',
-                            style: TextStyle(
-                              color: Color(0xFF1E4A47),
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        ...provinces.map((province) => DropdownMenuItem(
-                              value: province,
-                              child: Text(
-                                province['name'],
-                                style: TextStyle(
-                                  color: Color(0xFF1E4A47),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            )),
-                      ],
-                      onChanged: (value) {
-                        setStateDialog(() {
-                          tempSelectedProvince = value;
-                          tempSelectedArea = null;
-                          filteredAreas = value == null
-                              ? []
-                              : majorAreas.where((area) => area['ProvinceId'] == value['id']).toList();
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<Map<String, dynamic>>(
-                      value: tempSelectedArea,
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        labelText: 'اختر المدينة/المنطقة',
-                        labelStyle: TextStyle(color: Color(0xFF2E7D78)),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(25),
-                          borderSide: BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(25),
-                          borderSide: BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(25),
-                          borderSide: BorderSide(color: Color(0xFF2E7D78), width: 2),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      ),
-                      dropdownColor: Colors.white,
-                      style: TextStyle(
-                        color: Color(0xFF1E4A47),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      items: [
-                        DropdownMenuItem<Map<String, dynamic>>(
-                          value: null,
-                          child: Text(
-                            'كل المناطق',
-                            style: TextStyle(
-                              color: Color(0xFF1E4A47),
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                        ...filteredAreas.map((area) => DropdownMenuItem(
-                              value: area,
-                              child: Text(
-                                area['name'],
-                                style: TextStyle(
-                                  color: Color(0xFF1E4A47),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            )),
-                      ],
-                      onChanged: (value) {
-                        setStateDialog(() {
-                          tempSelectedArea = value;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.grey[600],
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  ),
-                  child: const Text(
-                    'إلغاء',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      selectedCity = tempSelectedProvince?['name'] ?? 'كل المحافظات';
-                      selectedDistrict = tempSelectedArea?['name'] ?? 'كل المناطق';
-                      selectedCityId = tempSelectedProvince?['id'];
-                      selectedRegionId = tempSelectedArea?['id'];
-                      allAds.clear();
-                      currentPageAds = 1;
-                      hasMoreAds = true;
-                    });
-                    Navigator.pop(context);
-                    if (selectedCityId != null || selectedRegionId != null) {
-                      fetchFilteredAds(reset: true);
-                    } else {
-                      fetchAllAds();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFFF7A59),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                  ),
-                  child: const Text(
-                    'تطبيق',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Future<void> fetchFilteredAds({bool reset = false}) async {
-    if (isLoadingAds || !hasMoreAds) return;
-
-    setState(() {
-      isLoadingAds = true;
-    });
+    setState(() => _isLoadingAds = true);
 
     try {
       final params = <String, String>{
-        'page': '$currentPageAds',
-        'limit': '$limitAds',
+        'page': '$_currentPageAds',
+        'limit': '$_limitAds',
       };
-      if (selectedCityId != null) params['cityId'] = selectedCityId.toString();
-      if (selectedRegionId != null) params['regionId'] = selectedRegionId.toString();
+      
+      if (_selectedCityId != null) params['cityId'] = _selectedCityId.toString();
+      if (_selectedRegionId != null) params['regionId'] = _selectedRegionId.toString();
 
       final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search', params);
-
       final response = await http.get(uri);
 
       if (response.statusCode == 200) {
@@ -453,108 +232,37 @@ class _HomeScreenState extends State<HomeScreen> {
         final List<dynamic> fetchedAds = decoded['ads'] ?? [];
 
         setState(() {
-          if (reset) allAds.clear();
-          allAds.addAll(fetchedAds);
-          currentPageAds++;
-          isLoadingAds = false;
-          if (fetchedAds.length < limitAds) {
-            hasMoreAds = false;
-          }
+          if (reset) _allAds.clear();
+          _allAds.addAll(fetchedAds);
+          _currentPageAds++;
+          _isLoadingAds = false;
+          _hasMoreAds = fetchedAds.length >= _limitAds;
         });
       } else {
-        setState(() {
-          isLoadingAds = false;
-          hasMoreAds = false;
-        });
-        debugPrint('Error fetching filtered ads: ${response.statusCode}');
+        _handleFetchError();
       }
     } catch (e) {
-      setState(() {
-        isLoadingAds = false;
-        hasMoreAds = false;
-      });
       debugPrint('Exception fetching filtered ads: $e');
+      _handleFetchError();
     }
   }
 
-  Future<void> fetchCategoryFilteredAds({bool reset = false}) async {
-    if (isLoadingAds || !hasMoreAds) return;
+  /// Fetch filtered advertisements by category
+  Future<void> _fetchCategoryFilteredAds({bool reset = false}) async {
+    if (_isLoadingAds || !_hasMoreAds) return;
 
-    setState(() {
-      isLoadingAds = true;
-  });
-
-  try {
-    final params = <String, String>{
-      'page': '$currentPageAds',
-      'limit': '$limitAds',
-    };
-    if (selectedCategoryId != null) params['categoryId'] = selectedCategoryId.toString();
-    if (selectedSubCategoryId != null) params['subCategoryId'] = selectedSubCategoryId.toString();
-
-    final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search-by-category', params);
-
-    final response = await http.get(uri);
-
-    if (response.statusCode == 200) {
-      final decoded = jsonDecode(response.body);
-      final List<dynamic> fetchedAds = decoded['ads'] ?? [];
-
-      setState(() {
-        if (reset) allAds.clear();
-        allAds.addAll(fetchedAds);
-        currentPageAds++;
-        isLoadingAds = false;
-        if (fetchedAds.length < limitAds) {
-          hasMoreAds = false;
-        }
-      });
-    } else {
-      setState(() {
-        isLoadingAds = false;
-        hasMoreAds = false;
-      });
-      debugPrint('Error fetching filtered ads: ${response.statusCode}');
-    }
-  } catch (e) {
-    setState(() {
-      isLoadingAds = false;
-      hasMoreAds = false;
-    });
-    debugPrint('Exception fetching filtered ads: $e');
-  }
-}
-  void _onAdsScroll() {
-    if (_adsScrollController.position.pixels >=
-      _adsScrollController.position.maxScrollExtent - 200) {
-      if (selectedCategoryId != null || selectedSubCategoryId != null) {
-        fetchCategoryFilteredAds();
-      } else if (selectedCityId != null || selectedRegionId != null) {
-        fetchFilteredAds();
-      } else {
-        fetchAllAds();
-      }
-    }
-  }
-
-  Future<void> fetchTitleFilteredAds({bool reset = false}) async {
-    if (isLoadingAds || !hasMoreAds) return;
-    final searchText = _searchController.text.trim();
-    if (searchText.isEmpty) return;
-
-    setState(() {
-      isLoadingAds = true;
-    });
+    setState(() => _isLoadingAds = true);
 
     try {
       final params = <String, String>{
-        'title': searchText,
-        'page': '$currentPageAds',
-        'limit': '$limitAds',
+        'page': '$_currentPageAds',
+        'limit': '$_limitAds',
       };
+      
+      if (_selectedCategoryId != null) params['categoryId'] = _selectedCategoryId.toString();
+      if (_selectedSubCategoryId != null) params['subCategoryId'] = _selectedSubCategoryId.toString();
 
-      final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search-by-title', params);
-
+      final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search-by-category', params);
       final response = await http.get(uri);
 
       if (response.statusCode == 200) {
@@ -562,30 +270,79 @@ class _HomeScreenState extends State<HomeScreen> {
         final List<dynamic> fetchedAds = decoded['ads'] ?? [];
 
         setState(() {
-          if (reset) allAds.clear();
-          allAds.addAll(fetchedAds);
-          currentPageAds++;
-          isLoadingAds = false;
-          if (fetchedAds.length < limitAds) {
-            hasMoreAds = false;
-          }
+          if (reset) _allAds.clear();
+          _allAds.addAll(fetchedAds);
+          _currentPageAds++;
+          _isLoadingAds = false;
+          _hasMoreAds = fetchedAds.length >= _limitAds;
         });
       } else {
-        setState(() {
-          isLoadingAds = false;
-          hasMoreAds = false;
-        });
-        debugPrint('Error fetching title filtered ads: ${response.statusCode}');
+        _handleFetchError();
       }
     } catch (e) {
-      setState(() {
-        isLoadingAds = false;
-        hasMoreAds = false;
-      });
-      debugPrint('Exception fetching title filtered ads: $e');
+      debugPrint('Exception fetching category filtered ads: $e');
+      _handleFetchError();
     }
   }
-  String formatDate(String isoDate) {
+
+  /// Handle fetch error
+  void _handleFetchError() {
+    setState(() {
+      _isLoadingAds = false;
+      _hasMoreAds = false;
+    });
+  }
+
+  // ========== Event Handlers ==========
+
+  /// Handle scroll for pagination
+  void _onAdsScroll() {
+    if (_adsScrollController.position.pixels >= 
+        _adsScrollController.position.maxScrollExtent - 200) {
+      if (_selectedCategoryId != null || _selectedSubCategoryId != null) {
+        _fetchCategoryFilteredAds();
+      } else if (_selectedCityId != null || _selectedRegionId != null) {
+        _fetchFilteredAds();
+      } else {
+        _fetchAllAds();
+      }
+    }
+  }
+
+  /// Reload home screen
+  void _reloadHomeScreen() {
+    setState(() {
+      _resetFilters();
+      _resetAdsData();
+    });
+    
+    _fetchOptions();
+    _fetchAllAds();
+  }
+
+  /// Reset filter state
+  void _resetFilters() {
+    _selectedCity = _defaultCity;
+    _selectedDistrict = _defaultDistrict;
+    _selectedCityId = null;
+    _selectedRegionId = null;
+    _selectedCategoryId = null;
+    _selectedSubCategoryId = null;
+    _searchController.clear();
+  }
+
+  /// Reset ads data
+  void _resetAdsData() {
+    _allAds.clear();
+    _currentPageAds = 1;
+    _hasMoreAds = true;
+    _isLoadingAds = false;
+  }
+
+  // ========== UI Helper Methods ==========
+
+  /// Format date for display
+  String _formatDate(String isoDate) {
     try {
       final date = DateTime.parse(isoDate);
       final now = DateTime.now();
@@ -600,101 +357,307 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Handle protected navigation (requires login)
+  void _handleProtectedNavigation(BuildContext context, String routeKey) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null || token.isEmpty) {
+      _showLoginRequiredDialog(context, routeKey, prefs);
+    } else {
+      _navigateToProtectedPage(context, routeKey);
+    }
+  }
+
+  /// Show login required dialog
+  void _showLoginRequiredDialog(BuildContext context, String routeKey, SharedPreferences prefs) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تسجيل الدخول مطلوب'),
+        content: const Text('يجب تسجيل الدخول للوصول إلى هذه الصفحة.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await prefs.setString('redirect_to', routeKey);
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
+            },
+            child: const Text('تسجيل دخول'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Navigate to protected page
+  void _navigateToProtectedPage(BuildContext context, String routeKey) {
+    Widget? targetPage;
+    
+    switch (routeKey) {
+      case 'myAds':
+        targetPage = const MyAdsScreen();
+        break;
+      case 'addAd':
+        targetPage = const MultiStepAddAdScreen();
+        break;
+    }
+
+    if (targetPage != null) {
+      Navigator.pop(context);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => targetPage!),
+      );
+    }
+  }
+
+  // ========== Dialog Methods ==========
+
+  /// Show location filter dialog
+  Future<void> _showLocationFilterDialog() async {
+    Map<String, dynamic>? tempSelectedProvince;
+    Map<String, dynamic>? tempSelectedArea;
+    List<Map<String, dynamic>> filteredAreas = [];
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateDialog) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
+          ),
+          backgroundColor: Colors.white,
+          title: const Text(
+            'تصفية حسب الموقع',
+            style: TextStyle(
+              color: Color(0xFF1E4A47),
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildProvinceDropdown(tempSelectedProvince, setStateDialog, filteredAreas),
+                const SizedBox(height: 16),
+                _buildAreaDropdown(tempSelectedArea, filteredAreas, setStateDialog),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[600],
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+              child: const Text(
+                'إلغاء',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () => _applyLocationFilter(tempSelectedProvince, tempSelectedArea),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF7A59),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 2,
+              ),
+              child: const Text(
+                'تطبيق',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build province dropdown
+  Widget _buildProvinceDropdown(
+    Map<String, dynamic>? tempSelectedProvince,
+    StateSetter setStateDialog,
+    List<Map<String, dynamic>> filteredAreas,
+  ) {
+    return DropdownButtonFormField<Map<String, dynamic>>(
+      value: tempSelectedProvince,
+      isExpanded: true,
+      decoration: _buildDropdownDecoration('اختر المحافظة', 15),
+      dropdownColor: Colors.white,
+      style: _buildDropdownTextStyle(),
+      items: [
+        const DropdownMenuItem<Map<String, dynamic>>(
+          value: null,
+          child: Text(
+            'كل المحافظات',
+            style: TextStyle(
+              color: Color(0xFF1E4A47),
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        ..._provinces.map((province) => DropdownMenuItem(
+          value: province,
+          child: Text(
+            province['name'],
+            style: const TextStyle(
+              color: Color(0xFF1E4A47),
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        )),
+      ],
+      onChanged: (value) {
+        setStateDialog(() {
+          tempSelectedProvince = value;
+          filteredAreas.clear();
+          if (value != null) {
+            filteredAreas.addAll(
+              _majorAreas.where((area) => area['ProvinceId'] == value['id']).toList(),
+            );
+          }
+        });
+      },
+    );
+  }
+
+  /// Build area dropdown
+  Widget _buildAreaDropdown(
+    Map<String, dynamic>? tempSelectedArea,
+    List<Map<String, dynamic>> filteredAreas,
+    StateSetter setStateDialog,
+  ) {
+    return DropdownButtonFormField<Map<String, dynamic>>(
+      value: tempSelectedArea,
+      isExpanded: true,
+      decoration: _buildDropdownDecoration('اختر المدينة/المنطقة', 25),
+      dropdownColor: Colors.white,
+      style: _buildDropdownTextStyle(),
+      items: [
+        const DropdownMenuItem<Map<String, dynamic>>(
+          value: null,
+          child: Text(
+            'كل المناطق',
+            style: TextStyle(
+              color: Color(0xFF1E4A47),
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        ...filteredAreas.map((area) => DropdownMenuItem(
+          value: area,
+          child: Text(
+            area['name'],
+            style: const TextStyle(
+              color: Color(0xFF1E4A47),
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        )),
+      ],
+      onChanged: (value) {
+        setStateDialog(() {
+          tempSelectedArea = value;
+        });
+      },
+    );
+  }
+
+  /// Build dropdown decoration
+  InputDecoration _buildDropdownDecoration(String labelText, double borderRadius) {
+    return InputDecoration(
+      labelText: labelText,
+      labelStyle: const TextStyle(color: Color(0xFF2E7D78)),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(borderRadius),
+        borderSide: const BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(borderRadius),
+        borderSide: const BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(borderRadius),
+        borderSide: const BorderSide(color: Color(0xFF2E7D78), width: 2),
+      ),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
+
+  /// Build dropdown text style
+  TextStyle _buildDropdownTextStyle() {
+    return const TextStyle(
+      color: Color(0xFF1E4A47),
+      fontSize: 15,
+      fontWeight: FontWeight.w500,
+    );
+  }
+
+  /// Apply location filter
+  void _applyLocationFilter(
+    Map<String, dynamic>? tempSelectedProvince,
+    Map<String, dynamic>? tempSelectedArea,
+  ) {
+    setState(() {
+      _selectedCity = tempSelectedProvince?['name'] ?? _defaultCity;
+      _selectedDistrict = tempSelectedArea?['name'] ?? _defaultDistrict;
+      _selectedCityId = tempSelectedProvince?['id'];
+      _selectedRegionId = tempSelectedArea?['id'];
+      _resetAdsData();
+    });
+    
+    Navigator.pop(context);
+    
+    if (_selectedCityId != null || _selectedRegionId != null) {
+      _fetchFilteredAds(reset: true);
+    } else {
+      _fetchAllAds();
+    }
+  }
+
+  // ========== Widget Building Methods ==========
+
+  /// Build advertisement card
   Widget _buildAdCard(dynamic ad) {
     final List<dynamic> images = ad['images'] is List ? ad['images'] : [];
     final firstImageBase64 = images.isNotEmpty ? images[0] : null;
-
-    final image = firstImageBase64 != null
-        ? Image.memory(
-      base64Decode(firstImageBase64),
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) {
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFF0FAFA),
-                Color(0xFFE8F5F5),
-              ],
-            ),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.image,
-                  size: 40,
-                  color: Colors.blue[400],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'صورة',
-                  style: TextStyle(
-                    color: Colors.blue[700],
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    )
-        : Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFF0F8FF), // Alice blue
-              Color(0xFFE6F3FF), // Light blue
-            ],
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.image,
-                size: 40,
-                color: Colors.blue[400],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'لا توجد صورة',
-                style: TextStyle(
-                  color: Colors.blue[700],
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
 
     return Container(
       margin: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
             Colors.white,
-            Color(0xFFF8FBFF), // Very light blue
-            Color(0xFFF0F8FF), // Alice blue
+            Color(0xFFF8FBFF),
+            Color(0xFFF0F8FF),
           ],
         ),
-        border: Border.all(
-          color: Colors.blue[300]!,
-          width: 1.5,
-        ),
+        border: Border.all(color: Colors.blue[300]!, width: 1.5),
       ),
       child: Material(
         color: Colors.transparent,
@@ -702,14 +665,10 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(18),
           splashColor: Colors.blue[300]!.withOpacity(0.2),
           highlightColor: Colors.blue[100]!.withOpacity(0.1),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AdDetailsScreen(ad: ad),
-              ),
-            );
-          },
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => AdDetailsScreen(ad: ad)),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -719,7 +678,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
                   child: SizedBox(
                     width: double.infinity,
-                    child: image,
+                    child: _buildAdImage(firstImageBase64),
                   ),
                 ),
               ),
@@ -729,77 +688,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   constraints: const BoxConstraints(minHeight: 80),
                   child: Padding(
                     padding: const EdgeInsets.all(6),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Text(
-                          '${ad['adTitle'] ?? ''}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.blue[50],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.blue[300]!,
-                              width: 1,
-                            ),
-                          ),
-                          child: Text(
-                            '${ad['price'] ?? '0'} ${ad['currencyName'] ?? ''}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue[700],
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                        ),
-
-                        Text(
-                          ad['description'] ?? '',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.black87,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.location_on,
-                              size: 12,
-                              color: Colors.blue[600],
-                            ),
-                            const SizedBox(width: 2),
-                            Expanded(
-                              child: Text(
-                                '${ad['cityName'] ?? ''} - ${formatDate(ad['createDate'] ?? '')}',
-                                style: TextStyle(
-                                  color: Colors.black87,
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                    child: _buildAdDetails(ad),
                   ),
                 ),
               ),
@@ -810,237 +699,122 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _handleProtectedNavigation(BuildContext context, String routeKey) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-
-    if (token == null || token.isEmpty) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('تسجيل الدخول مطلوب'),
-          content: const Text('يجب تسجيل الدخول للوصول إلى هذه الصفحة.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('إلغاء'),
-            ),
-            TextButton(
-              onPressed: () async {
-                await prefs.setString('redirect_to', routeKey);
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                );
-              },
-              child: const Text('تسجيل دخول'),
-            ),
-          ],
-        ),
+  /// Build ad image
+  Widget _buildAdImage(String? firstImageBase64) {
+    if (firstImageBase64 != null) {
+      return Image.memory(
+        base64Decode(firstImageBase64),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildNoImagePlaceholder(),
       );
     } else {
-      Widget targetPage;
-      switch (routeKey) {
-        case 'myAds':
-          targetPage = const MyAdsScreen();
-          break;
-        case 'addAd':
-          targetPage = const MultiStepAddAdScreen();
-          break;
-        default:
-          return;
-      }
-      Navigator.pop(context);
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => targetPage),
-      );
+      return _buildNoImagePlaceholder();
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // Show loading screen while checking connectivity
-    if (isCheckingConnectivity) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
+  /// Build no image placeholder
+  Widget _buildNoImagePlaceholder() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF0F8FF), Color(0xFFE6F3FF)],
         ),
-      );
-    }
-
-    // Show no internet connection screen
-    if (!isConnected) {
-      return Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.wifi_off,
-                  size: 100,
-                  color: Colors.grey,
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'لا يوجد اتصال بالإنترنت',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 30),
-                ElevatedButton(
-                  onPressed: _checkInitialConnectivity,
-                  child: const Text(
-                    'إعادة المحاولة',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    // Normal home screen when connected
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        drawer: _buildDrawer(context),
-        body: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-          ),
-          child: CustomScrollView(
-            controller: _adsScrollController,
-            slivers: [
-            SliverAppBar(
-              floating: true,
-              pinned: true,
-              snap: false,
-              elevation: 0,
-              backgroundColor: Colors.blue[700],
-              title: const Text(
-                'سوق سوريا',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              centerTitle: true,
-              leading: Builder(
-                builder: (context) => IconButton(
-                  icon: const Icon(Icons.menu,
-                      size: 28, color: Colors.white),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
-                ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.image, size: 40, color: Colors.blue[400]),
+            const SizedBox(height: 4),
+            Text(
+              'لا توجد صورة',
+              style: TextStyle(
+                color: Colors.blue[700],
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            SliverToBoxAdapter(child: _buildLocationButton()),
-            //SliverToBoxAdapter(child: _buildCategoryFilterSection()),
-            SliverToBoxAdapter(child: _buildSearchField()),
-            SliverToBoxAdapter(child: ImageSlider()),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  Text(
-                    'جميع الإعلانات',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E4A47),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 3,
-                    width: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.blue[600],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (allAds.isEmpty && isLoadingAds)
-                    Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                      ),
-                    ),
-                ]),
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverGrid(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 0.65,
-                ),
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    if (index == allAds.length && hasMoreAds) {
-                      return Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                          ),
-                        ),
-                      );
-                    }
-                    return _buildAdCard(allAds[index]);
-                  },
-                  childCount: allAds.length + (hasMoreAds ? 1 : 0),
-                ),
-              ),
-            ),
-            if (!hasMoreAds && allAds.isNotEmpty)
-              SliverToBoxAdapter(
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  child: Center(
-                    child: Text(
-                      'لا يوجد المزيد من الإعلانات',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                ),
-              ),
           ],
-        ),
         ),
       ),
     );
   }
 
+  /// Build ad details section
+  Widget _buildAdDetails(dynamic ad) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Text(
+          '${ad['adTitle'] ?? ''}',
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.blue[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.blue[300]!, width: 1),
+          ),
+          child: Text(
+            '${ad['price'] ?? '0'} ${ad['currencyName'] ?? ''}',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue[700],
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        Text(
+          ad['description'] ?? '',
+          style: const TextStyle(
+            fontSize: 10,
+            color: Colors.black87,
+            fontWeight: FontWeight.w500,
+          ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.location_on, size: 12, color: Colors.blue[600]),
+            const SizedBox(width: 2),
+            Expanded(
+              child: Text(
+                '${ad['cityName'] ?? ''} - ${_formatDate(ad['createDate'] ?? '')}',
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Build location filter button
   Widget _buildLocationButton() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: GestureDetector(
-        onTap: () async {
-          await _showLocationFilterDialog();
-        },
+        onTap: _showLocationFilterDialog,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
@@ -1063,7 +837,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Icon(Icons.location_on, size: 22, color: Colors.blue[600]),
                   const SizedBox(width: 8),
-                  Text(
+                  const Text(
                     'موقع',
                     style: TextStyle(
                       fontSize: 17,
@@ -1075,9 +849,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                selectedCity == 'كل المحافظات'
-                    ? 'كل المحافظات'
-                    : '$selectedCity - $selectedDistrict',
+                _selectedCity == _defaultCity
+                    ? _defaultCity
+                    : '$_selectedCity - $_selectedDistrict',
                 style: TextStyle(fontSize: 15, color: Colors.grey[700]),
               ),
             ],
@@ -1086,123 +860,72 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
+
+  /// Build search field
   Widget _buildSearchField() {
     return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    child: Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.blue[300]!, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue[200]!.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'ابحث عن منتج أو خدمة...',
-          hintStyle: TextStyle(color: Colors.grey[600]),
-          prefixIcon: Icon(Icons.search, color: Colors.blue[600]),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: Colors.blue[300]!, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blue[200]!.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
-        onSubmitted: (value) {
-          if (value.trim().isNotEmpty) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => SearchResultsScreen(searchText: value.trim()),
-              ),
-            );
-          }
-        },
+        child: TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: 'ابحث عن منتج أو خدمة...',
+            hintStyle: TextStyle(color: Colors.grey[600]),
+            prefixIcon: Icon(Icons.search, color: Colors.blue[600]),
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          ),
+          onSubmitted: (value) {
+            if (value.trim().isNotEmpty) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => SearchResultsScreen(searchText: value.trim()),
+                ),
+              );
+            }
+          },
+        ),
       ),
-    ),
-  );
+    );
   }
 
-  Drawer _buildDrawer(BuildContext context) {
+  /// Build navigation drawer
+  Widget _buildDrawer(BuildContext context) {
     return Drawer(
       backgroundColor: Colors.white,
       child: Column(
         children: [
-          DrawerHeader(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.blue[700]!,
-                  Colors.blue[400]!
-                ],
-              ),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircleAvatar(
-                    radius: 32,
-                    backgroundColor: Colors.white,
-                    child: Icon(
-                      Icons.person,
-                      size: 32,
-                      color: Colors.blue[700],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    _username != null ? 'مرحباً، $_username 👋' : 'مرحبا بك 👋',
-                    style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _buildDrawerHeader(),
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                _drawerItem(Icons.home, 'الرئيسية', () {
+                _buildDrawerItem(Icons.home, 'الرئيسية', () {
                   Navigator.pop(context);
                   _reloadHomeScreen();
                 }),
-                _drawerItem(Icons.list_alt, 'إعلاناتي', () {
+                _buildDrawerItem(Icons.list_alt, 'إعلاناتي', () {
                   _handleProtectedNavigation(context, 'myAds');
                 }),
-                _drawerItem(Icons.add_circle_outline, 'إضافة إعلان', () {
+                _buildDrawerItem(Icons.add_circle_outline, 'إضافة إعلان', () {
                   _handleProtectedNavigation(context, 'addAd');
                 }),
-                _drawerItem(Icons.person, 'حسابي', () async {
-                  Navigator.pop(context);
-                  final prefs = await SharedPreferences.getInstance();
-                  final token = prefs.getString('token');
-                  final username = prefs.getString('userName') ?? '';
-                  final email = prefs.getString('userEmail') ?? '';
-
-                  if (token == null || token.isEmpty) {
-                    await prefs.setString('redirect_to', 'account');
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    );
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AccountScreen(
-                          isLoggedIn: true,
-                          userName: username,
-                          userEmail: email, phoneNumber: prefs.getString('userPhone') ?? '',
-                        ),
-                      ),
-                    );
-                  }
+                _buildDrawerItem(Icons.person, 'حسابي', () async {
+                  await _handleAccountNavigation(context);
                 }),
               ],
             ),
@@ -1212,7 +935,40 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _drawerItem(IconData icon, String title, VoidCallback onTap) {
+  /// Build drawer header
+  Widget _buildDrawerHeader() {
+    return DrawerHeader(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.blue[700]!, Colors.blue[400]!],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 32,
+              backgroundColor: Colors.white,
+              child: Icon(Icons.person, size: 32, color: Colors.blue[700]),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _username != null ? 'مرحباً، $_username 👋' : 'مرحبا بك 👋',
+              style: const TextStyle(
+                fontSize: 18,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build drawer item
+  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
       leading: Icon(icon, color: Colors.blue[700]),
       title: Text(
@@ -1225,8 +981,211 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: onTap,
     );
   }
+
+  /// Handle account navigation
+  Future<void> _handleAccountNavigation(BuildContext context) async {
+    Navigator.pop(context);
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null || token.isEmpty) {
+      await prefs.setString('redirect_to', 'account');
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    } else {
+      final username = prefs.getString('userName') ?? '';
+      final email = prefs.getString('userEmail') ?? '';
+      final phone = prefs.getString('userPhone') ?? '';
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AccountScreen(
+            isLoggedIn: true,
+            userName: username,
+            userEmail: email,
+            phoneNumber: phone,
+          ),
+        ),
+      );
+    }
+  }
+
+  /// Build no internet screen
+  Widget _buildNoInternetScreen() {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.wifi_off, size: 100, color: Colors.grey),
+              const SizedBox(height: 20),
+              const Text(
+                'لا يوجد اتصال بالإنترنت',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: _checkInitialConnectivity,
+                child: const Text('إعادة المحاولة', style: TextStyle(fontSize: 16)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Build loading screen
+  Widget _buildLoadingScreen() {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  // ========== Main Build Method ==========
+
+  @override
+  Widget build(BuildContext context) {
+    // Show loading screen while checking connectivity
+    if (_isCheckingConnectivity) {
+      return _buildLoadingScreen();
+    }
+
+    // Show no internet connection screen
+    if (!_isConnected) {
+      return _buildNoInternetScreen();
+    }
+
+    // Normal home screen when connected
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        drawer: _buildDrawer(context),
+        body: Container(
+          decoration: const BoxDecoration(color: Colors.white),
+          child: CustomScrollView(
+            controller: _adsScrollController,
+            slivers: [
+              SliverAppBar(
+                floating: true,
+                pinned: true,
+                snap: false,
+                elevation: 0,
+                backgroundColor: Colors.blue[700],
+                title: const Text(
+                  'سوق سوريا',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                centerTitle: true,
+                leading: Builder(
+                  builder: (context) => IconButton(
+                    icon: const Icon(Icons.menu, size: 28, color: Colors.white),
+                    onPressed: () => Scaffold.of(context).openDrawer(),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(child: _buildLocationButton()),
+              SliverToBoxAdapter(child: _buildSearchField()),
+              const SliverToBoxAdapter(child: ImageSlider()),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    Text(
+                      'جميع الإعلانات',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E4A47),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      height: 3,
+                      width: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.blue[600],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (_allAds.isEmpty && _isLoadingAds)
+                      const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                        ),
+                      ),
+                  ]),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: SliverGrid(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.65,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (index == _allAds.length && _hasMoreAds) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                            ),
+                          ),
+                        );
+                      }
+                      return _buildAdCard(_allAds[index]);
+                    },
+                    childCount: _allAds.length + (_hasMoreAds ? 1 : 0),
+                  ),
+                ),
+              ),
+              if (!_hasMoreAds && _allAds.isNotEmpty)
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    child: Center(
+                      child: Text(
+                        'لا يوجد المزيد من الإعلانات',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
+/// Image slider widget for displaying promotional images
 class ImageSlider extends StatefulWidget {
   const ImageSlider({super.key});
 
@@ -1235,7 +1194,7 @@ class ImageSlider extends StatefulWidget {
 }
 
 class _ImageSliderState extends State<ImageSlider> {
-  final List<String> imagePaths = [
+  static const List<String> _imagePaths = [
     'assets/image1.jpg',
     'assets/image2.jpg',
     'assets/image3.jpg',
@@ -1260,10 +1219,11 @@ class _ImageSliderState extends State<ImageSlider> {
     super.dispose();
   }
 
+  /// Start automatic slide transition
   void _startAutoSlide() {
     _sliderTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (_pageController.hasClients) {
-        int nextPage = (_currentImageIndex + 1) % imagePaths.length;
+        final nextPage = (_currentImageIndex + 1) % _imagePaths.length;
         _pageController.animateToPage(
           nextPage,
           duration: const Duration(milliseconds: 600),
@@ -1280,15 +1240,12 @@ class _ImageSliderState extends State<ImageSlider> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Stack(
-        children: [
-          PageView.builder(
-            controller: _pageController,
-            itemCount: imagePaths.length,
-            onPageChanged: (index) {
-              setState(() => _currentImageIndex = index);
-            },
-            itemBuilder: (context, index) {
-              return Container(
+          children: [
+            PageView.builder(
+              controller: _pageController,
+              itemCount: _imagePaths.length,
+              onPageChanged: (index) => setState(() => _currentImageIndex = index),
+              itemBuilder: (context, index) => Container(
                 margin: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
@@ -1302,39 +1259,38 @@ class _ImageSliderState extends State<ImageSlider> {
                     ),
                   ],
                   image: DecorationImage(
-                    image: AssetImage(imagePaths[index]),
+                    image: AssetImage(_imagePaths[index]),
                     fit: BoxFit.cover,
-                  ),
-                ),
-              );
-            },
-          ),
-          Positioned(
-            bottom: 16,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                imagePaths.length,
-                    (index) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  width: _currentImageIndex == index ? 20 : 8,
-                  height: 8,
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    color: _currentImageIndex == index
-                        ? Colors.blue[600]
-                        : Colors.white.withOpacity(0.7),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
+            Positioned(
+              bottom: 16,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  _imagePaths.length,
+                  (index) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: _currentImageIndex == index ? 20 : 8,
+                    height: 8,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: _currentImageIndex == index
+                          ? Colors.blue[600]
+                          : Colors.white.withOpacity(0.7),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
+      ),
     );
   }
 }

@@ -8,6 +8,7 @@ import 'register_screen.dart';
 import 'my_ads_screen.dart';
 import 'add_ad_screen.dart';
 
+/// Login screen for user authentication
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -16,7 +17,11 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final List<Map<String, String>> countries = [
+  // ========== Constants ==========
+  static const String _apiUrl = 'https://sahbo-app-api.onrender.com/api/user/login';
+  
+  // ========== Country Data ==========
+  static const List<Map<String, String>> _countries = [
     {'name': 'سوريا', 'code': '+963'},
     {'name': 'تركيا', 'code': '+90'},
     {'name': 'الأردن', 'code': '+962'},
@@ -31,111 +36,217 @@ class _LoginScreenState extends State<LoginScreen> {
     {'name': 'عمان', 'code': '+968'},
     {'name': 'البحرين', 'code': '+973'},
   ];
-  Map<String, String>? selectedCountry;
-  final phoneController = TextEditingController();
-  final passwordPhoneController = TextEditingController();
+
+  // ========== Controllers & State ==========
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  
+  Map<String, String>? _selectedCountry;
+  bool _isLoading = false;
+  bool _showPassword = false;
+  bool _rememberMe = false;
 
   @override
   void initState() {
     super.initState();
-    selectedCountry = countries[0];
+    _initializeDefaults();
   }
 
-  bool _isLoading = false;
-  bool _showPasswordPhone = false;
-  bool _rememberMe = false;
-
-  Future<bool> _checkInternetConnectivity() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
-    return connectivityResult != ConnectivityResult.none;
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
-  Future<void> _login() async {
-    String apiUrl = 'https://sahbo-app-api.onrender.com/api/user/login';
+  // ========== Initialization ==========
 
-    if (phoneController.text.isEmpty || passwordPhoneController.text.isEmpty) {
-      _showError('يرجى إدخال رقم الهاتف وكلمة المرور');
-      return;
+  /// Initialize default values
+  void _initializeDefaults() {
+    _selectedCountry = _countries.first;
+  }
+
+  // ========== Validation Methods ==========
+
+  /// Validate login form
+  bool _validateForm() {
+    if (_phoneController.text.trim().isEmpty) {
+      _showError('يرجى إدخال رقم الهاتف');
+      return false;
     }
-
-    // Check internet connectivity first
-    setState(() => _isLoading = true);
     
-    final isConnected = await _checkInternetConnectivity();
-    if (!isConnected) {
-      setState(() => _isLoading = false);
-      _showNoInternetDialog();
-      return;
+    if (_passwordController.text.isEmpty) {
+      _showError('يرجى إدخال كلمة المرور');
+      return false;
     }
+    
+    return true;
+  }
 
-    final body = {
-      'phoneNumber': '${selectedCountry?['code'] ?? ''}${phoneController.text.trim()}',
-      'password': passwordPhoneController.text,
-    };
+  /// Get formatted phone number with country code
+  String get _formattedPhoneNumber {
+    final countryCode = _selectedCountry?['code'] ?? '';
+    final phoneNumber = _phoneController.text.trim();
+    return '$countryCode$phoneNumber';
+  }
+
+  // ========== Network Methods ==========
+
+  /// Check internet connectivity
+  Future<bool> _checkInternetConnectivity() async {
+    try {
+      final connectivityResult = await Connectivity().checkConnectivity();
+      return connectivityResult != ConnectivityResult.none;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Perform login request
+  Future<void> _login() async {
+    if (!_validateForm()) return;
+
+    setState(() => _isLoading = true);
 
     try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
-
-      final res = jsonDecode(response.body);
-
-      if (response.statusCode == 200 && res['token'] != null) {
-        final prefs = await SharedPreferences.getInstance();
-
-        await prefs.setString('token', res['token']);
-        await prefs.setBool('rememberMe', _rememberMe);
-        await prefs.setString('userName', res['userName'] ?? '');
-        await prefs.setString('userEmail', res['userEmail'] ?? '');
-        await prefs.setString('userId', res['userId'] ?? '');
-        await prefs.setString('userPhone', res['userPhone'] ?? '');
-
-        _navigateAfterLogin(prefs);
-      } else {
-        _showError(res['message'] ?? 'حدث خطأ أثناء تسجيل الدخول');
+      // Check connectivity first
+      final isConnected = await _checkInternetConnectivity();
+      if (!isConnected) {
+        _showNoInternetDialog();
+        return;
       }
+
+      // Perform login request
+      final response = await _performLoginRequest();
+      await _handleLoginResponse(response);
+      
     } catch (e) {
       _showError('حدث خطأ في الاتصال بالخادم');
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
-  void _navigateAfterLogin(SharedPreferences prefs) {
-    String? redirect = prefs.getString('redirect_to');
-    prefs.remove('redirect_to');
+  /// Perform actual login HTTP request
+  Future<http.Response> _performLoginRequest() async {
+    final requestBody = {
+      'phoneNumber': _formattedPhoneNumber,
+      'password': _passwordController.text,
+    };
 
-    Widget nextScreen;
-    switch (redirect) {
-      case 'myAds':
-        nextScreen = const MyAdsScreen();
-        break;
-      case 'addAd':
-        nextScreen = const MultiStepAddAdScreen();
-        break;
-      default:
-        nextScreen = const HomeScreen();
-    }
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => nextScreen),
-      (route) => false,
+    return await http.post(
+      Uri.parse(_apiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(requestBody),
     );
   }
 
+  /// Handle login response
+  Future<void> _handleLoginResponse(http.Response response) async {
+    final responseData = jsonDecode(response.body);
+
+    if (response.statusCode == 200 && responseData['token'] != null) {
+      await _saveUserData(responseData);
+      await _navigateAfterLogin();
+    } else {
+      final errorMessage = responseData['message'] ?? 'حدث خطأ أثناء تسجيل الدخول';
+      _showError(errorMessage);
+    }
+  }
+
+  /// Save user data to shared preferences
+  Future<void> _saveUserData(Map<String, dynamic> userData) async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    await Future.wait([
+      prefs.setString('token', userData['token'] ?? ''),
+      prefs.setBool('rememberMe', _rememberMe),
+      prefs.setString('userName', userData['userName'] ?? ''),
+      prefs.setString('userEmail', userData['userEmail'] ?? ''),
+      prefs.setString('userId', userData['userId'] ?? ''),
+      prefs.setString('userPhone', userData['userPhone'] ?? ''),
+    ]);
+  }
+
+  // ========== Navigation Methods ==========
+
+  /// Navigate after successful login
+  Future<void> _navigateAfterLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final redirect = prefs.getString('redirect_to');
+    await prefs.remove('redirect_to');
+
+    final nextScreen = _getTargetScreen(redirect);
+    
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => nextScreen),
+        (route) => false,
+      );
+    }
+  }
+
+  /// Get target screen based on redirect parameter
+  Widget _getTargetScreen(String? redirect) {
+    switch (redirect) {
+      case 'myAds':
+        return const MyAdsScreen();
+      case 'addAd':
+        return const MultiStepAddAdScreen();
+      default:
+        return const HomeScreen();
+    }
+  }
+
+  /// Navigate to register screen
+  Future<void> _navigateToRegister() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RegisterScreen()),
+    );
+    
+    if (result == true) {
+      _showSuccessMessage('تم إنشاء الحساب، يمكنك تسجيل الدخول الآن');
+    }
+  }
+
+  // ========== UI Feedback Methods ==========
+
+  /// Show error message
   void _showError(String message) {
+    if (!mounted) return;
+    
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: const Color(0xFFFF7A59),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
 
+  /// Show success message
+  void _showSuccessMessage(String message) {
+    if (!mounted) return;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
+  /// Show no internet dialog
   void _showNoInternetDialog() {
+    if (!mounted) return;
+    
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -148,7 +259,7 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             Icon(Icons.wifi_off, color: Colors.orange),
             const SizedBox(width: 10),
-            Expanded(
+            const Expanded(
               child: Text(
                 'لا يوجد اتصال بالإنترنت',
                 style: TextStyle(color: Colors.black87),
@@ -169,7 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              _login(); // Retry the login
+              _login();
             },
             child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.blue)),
           ),
@@ -178,294 +289,347 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // ========== Widget Building Methods ==========
+
+  /// Build main app bar
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: const Text('تسجيل الدخول'),
+      centerTitle: true,
+      backgroundColor: Colors.blue[700],
+      foregroundColor: Colors.white,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => Navigator.pop(context),
+      ),
+    );
+  }
+
+  /// Build main body content
+  Widget _buildBody() {
+    return Container(
+      decoration: const BoxDecoration(color: Colors.white),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 32),
+            _buildLoginForm(),
+            const SizedBox(height: 24),
+            _buildRegisterSection(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build login form container
+  Widget _buildLoginForm() {
+    return Container(
+      decoration: _buildFormDecoration(),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            _buildCountryDropdown(),
+            const SizedBox(height: 16),
+            _buildPhoneField(),
+            const SizedBox(height: 16),
+            _buildPasswordField(),
+            const SizedBox(height: 12),
+            _buildRememberMeCheckbox(),
+            const SizedBox(height: 16),
+            _buildLoginButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build form decoration
+  BoxDecoration _buildFormDecoration() {
+    return BoxDecoration(
+      borderRadius: BorderRadius.circular(18),
+      color: Colors.white,
+      border: Border.all(color: Colors.blue[300]!, width: 1.5),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.blue[200]!.withOpacity(0.3),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    );
+  }
+
+  /// Build country dropdown
+  Widget _buildCountryDropdown() {
+    return DropdownButtonFormField<Map<String, String>>(
+      value: _selectedCountry,
+      decoration: _buildInputDecoration(
+        labelText: 'البلد',
+        prefixIcon: Icons.flag,
+      ),
+      items: _countries.map(_buildCountryDropdownItem).toList(),
+      onChanged: (value) => setState(() => _selectedCountry = value),
+    );
+  }
+
+  /// Build country dropdown item
+  DropdownMenuItem<Map<String, String>> _buildCountryDropdownItem(
+    Map<String, String> country,
+  ) {
+    return DropdownMenuItem<Map<String, String>>(
+      value: country,
+      child: Row(
+        children: [
+          Text(
+            country['name']!,
+            style: const TextStyle(fontSize: 14, color: Colors.black87),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            country['code']!,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black87,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build phone number field
+  Widget _buildPhoneField() {
+    return TextField(
+      controller: _phoneController,
+      keyboardType: TextInputType.phone,
+      decoration: _buildInputDecoration(
+        labelText: 'رقم الهاتف',
+        prefixIcon: Icons.phone,
+        helperText: 'رمز البلد: ${_selectedCountry?['code'] ?? ''}',
+      ),
+    );
+  }
+
+  /// Build password field
+  Widget _buildPasswordField() {
+    return TextField(
+      controller: _passwordController,
+      obscureText: !_showPassword,
+      onSubmitted: (_) => _login(),
+      decoration: _buildInputDecoration(
+        labelText: 'كلمة المرور',
+        prefixIcon: Icons.lock,
+        suffixIcon: IconButton(
+          icon: Icon(
+            _showPassword ? Icons.visibility : Icons.visibility_off,
+            color: Colors.grey,
+          ),
+          onPressed: () => setState(() => _showPassword = !_showPassword),
+        ),
+      ),
+    );
+  }
+
+  /// Build input field decoration
+  InputDecoration _buildInputDecoration({
+    required String labelText,
+    required IconData prefixIcon,
+    Widget? suffixIcon,
+    String? helperText,
+  }) {
+    return InputDecoration(
+      labelText: labelText,
+      labelStyle: const TextStyle(color: Colors.black87),
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blue[300]!),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blue[300]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
+      ),
+      prefixIcon: Icon(prefixIcon, color: Colors.blue[600]),
+      suffixIcon: suffixIcon,
+      helperText: helperText,
+      helperStyle: TextStyle(
+        color: Colors.blue[600],
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  /// Build remember me checkbox
+  Widget _buildRememberMeCheckbox() {
+    return CheckboxListTile(
+      value: _rememberMe,
+      onChanged: (value) => setState(() => _rememberMe = value ?? false),
+      title: const Text(
+        "تذكرني",
+        style: TextStyle(color: Colors.black87),
+      ),
+      controlAffinity: ListTileControlAffinity.leading,
+      contentPadding: EdgeInsets.zero,
+      activeColor: Colors.blue[600],
+    );
+  }
+
+  /// Build login button
+  Widget _buildLoginButton() {
+    return _isLoading
+        ? CircularProgressIndicator(color: Colors.blue[600])
+        : ElevatedButton(
+            onPressed: _login,
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 50),
+              backgroundColor: Colors.blue[700],
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+            child: const Text(
+              'تسجيل الدخول',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          );
+  }
+
+  /// Build register section
+  Widget _buildRegisterSection() {
+    return Container(
+      decoration: _buildRegisterDecoration(),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            _buildRegisterIcon(),
+            const SizedBox(height: 12),
+            _buildRegisterTitle(),
+            const SizedBox(height: 8),
+            _buildRegisterSubtitle(),
+            const SizedBox(height: 16),
+            _buildRegisterButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build register section decoration
+  BoxDecoration _buildRegisterDecoration() {
+    return BoxDecoration(
+      borderRadius: BorderRadius.circular(16),
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Colors.blue[50]!, Colors.white],
+      ),
+      border: Border.all(color: Colors.blue[200]!, width: 1.5),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.blue[100]!.withOpacity(0.3),
+          blurRadius: 8,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    );
+  }
+
+  /// Build register icon
+  Widget _buildRegisterIcon() {
+    return Icon(
+      Icons.person_add,
+      size: 32,
+      color: Colors.blue[600],
+    );
+  }
+
+  /// Build register title
+  Widget _buildRegisterTitle() {
+    return const Text(
+      'مستخدم جديد؟',
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Colors.black87,
+      ),
+    );
+  }
+
+  /// Build register subtitle
+  Widget _buildRegisterSubtitle() {
+    return Text(
+      'انضم إلينا واستمتع بجميع الميزات',
+      style: TextStyle(
+        fontSize: 14,
+        color: Colors.grey[600],
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  /// Build register button
+  Widget _buildRegisterButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _navigateToRegister,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.blue[700],
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.blue[300]!, width: 2),
+          ),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.app_registration, size: 20, color: Colors.blue[700]),
+            const SizedBox(width: 8),
+            Text(
+              'إنشاء حساب جديد',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue[700],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ========== Main Build Method ==========
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        appBar: AppBar(
-          title: const Text('تسجيل الدخول'),
-          centerTitle: true,
-          backgroundColor: Colors.blue[700],
-          foregroundColor: Colors.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        body: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-          ),
-          child: SingleChildScrollView(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-            ),
-            child: Column(
-            children: [
-              const SizedBox(height: 32),
-              
-              // Login form container
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
-                  color: Colors.white,
-                  border: Border.all(
-                    color: Colors.blue[300]!,
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blue[200]!.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-              // Country code dropdown (top)
-              DropdownButtonFormField<Map<String, String>>(
-                value: selectedCountry,
-                decoration: InputDecoration(
-                  labelText: 'البلد',
-                  labelStyle: TextStyle(color: Colors.black87),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[300]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[300]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-                  ),
-                  prefixIcon: Icon(Icons.flag, color: Colors.blue[600]),
-                ),
-                items: countries.map((country) {
-                  return DropdownMenuItem<Map<String, String>>(
-                    value: country,
-                    child: Row(
-                      children: [
-                        Text(country['name']!, style: const TextStyle(fontSize: 14, color: Colors.black87)),
-                        const SizedBox(width: 8),
-                        Text(country['code']!, style: const TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedCountry = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-              // Phone number field (bottom) - now full width
-              TextField(
-                controller: phoneController,
-                decoration: InputDecoration(
-                  labelText: 'رقم الهاتف',
-                  labelStyle: TextStyle(color: Colors.black87),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[300]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[300]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-                  ),
-                  prefixIcon: Icon(Icons.phone, color: Colors.blue[600]),
-                  helperText: 'رمز البلد: ${selectedCountry?['code'] ?? ''}',
-                  helperStyle: TextStyle(color: Colors.blue[600], fontWeight: FontWeight.bold),
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: passwordPhoneController,
-                obscureText: !_showPasswordPhone,
-                onSubmitted: (_) => _login(),
-                decoration: InputDecoration(
-                  labelText: 'كلمة المرور',
-                  labelStyle: TextStyle(color: Colors.black87),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[300]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[300]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-                  ),
-                  prefixIcon: Icon(Icons.lock, color: Colors.blue[600]),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      !_showPasswordPhone ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () => setState(() => _showPasswordPhone = !_showPasswordPhone),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              CheckboxListTile(
-                value: _rememberMe,
-                onChanged: (val) => setState(() => _rememberMe = val ?? false),
-                title: const Text("تذكرني", style: TextStyle(color: Colors.black87)),
-                controlAffinity: ListTileControlAffinity.leading,
-                contentPadding: EdgeInsets.zero,
-                activeColor: Colors.blue[600],
-              ),
-              const SizedBox(height: 16),
-              _isLoading
-                  ? CircularProgressIndicator(color: Colors.blue[600])
-                  : ElevatedButton(
-                      onPressed: _login,
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 50),
-                        backgroundColor: Colors.blue[700],
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        elevation: 2,
-                      ),
-                      child: const Text(
-                        'تسجيل الدخول',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              
-              // Register section - more attractive
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.blue[50]!,
-                      Colors.white,
-                    ],
-                  ),
-                  border: Border.all(
-                    color: Colors.blue[200]!,
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blue[100]!.withOpacity(0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.person_add,
-                        size: 32,
-                        color: Colors.blue[600],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'مستخدم جديد؟',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'انضم إلينا واستمتع بجميع الميزات',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                            );
-                            if (result == true) {
-                              _showError('تم إنشاء الحساب، يمكنك تسجيل الدخول الآن');
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.blue[700],
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(color: Colors.blue[300]!, width: 2),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.app_registration,
-                                size: 20,
-                                color: Colors.blue[700],
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'إنشاء حساب جديد',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue[700],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+        appBar: _buildAppBar(),
+        body: _buildBody(),
       ),
     );
   }
