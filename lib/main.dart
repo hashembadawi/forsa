@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sahbo_app/screens/start_screen.dart';
+import 'package:syria_market/screens/start_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
 

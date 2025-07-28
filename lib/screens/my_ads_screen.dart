@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sahbo_app/screens/update_ad_screen.dart';
-import 'package:sahbo_app/screens/home_screen.dart';
+import 'package:syria_market/screens/update_ad_screen.dart';
+import 'package:syria_market/screens/home_screen.dart';
 
 /// Screen displaying user's personal advertisements with edit and delete functionality
 class MyAdsScreen extends StatefulWidget {
