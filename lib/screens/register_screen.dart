@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:sahbo_app/screens/login_screen.dart';
+import 'package:syria_market/screens/login_screen.dart';
 
 /// User registration screen with form validation and country selection
 class RegisterScreen extends StatefulWidget {

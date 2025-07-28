@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:sahbo_app/screens/ad_details_screen.dart';
+import 'package:syria_market/screens/ad_details_screen.dart';
 
 /// Screen displaying search results for advertisements
 class SearchResultsScreen extends StatefulWidget {
