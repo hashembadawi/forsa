@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+/// Multi-step screen for adding new advertisements
 class MultiStepAddAdScreen extends StatefulWidget {
   const MultiStepAddAdScreen({super.key});
 
@@ -16,27 +17,34 @@ class MultiStepAddAdScreen extends StatefulWidget {
 }
 
 class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
-  int currentStep = 0;
-  List<File?> selectedImages = [];
-  String adTitle = '';
-  String price = '';
-  String description = '';
+  // Constants
+  static const String _baseUrl = 'https://sahbo-app-api.onrender.com/api';
+  static const int _totalSteps = 3;
 
-  // Option data from server
-  List<Map<String, dynamic>> currencies = [];
-  List<Map<String, dynamic>> categories = [];
-  List<Map<String, dynamic>> subCategories = [];
-  List<Map<String, dynamic>> provinces = [];
-  List<Map<String, dynamic>> majorAreas = [];
+  // Current step tracker
+  int _currentStep = 0;
+  
+  // Form data
+  final List<File?> _selectedImages = [];
+  String _adTitle = '';
+  String _price = '';
+  String _description = '';
 
-  // Selected values (IDs and Names)
-  Map<String, dynamic>? selectedCurrency;
-  Map<String, dynamic>? selectedCategory;
-  Map<String, dynamic>? selectedSubCategory;
-  Map<String, dynamic>? selectedProvince;
-  Map<String, dynamic>? selectedMajorArea;
+  // Server data
+  List<Map<String, dynamic>> _currencies = [];
+  List<Map<String, dynamic>> _categories = [];
+  List<Map<String, dynamic>> _subCategories = [];
+  List<Map<String, dynamic>> _provinces = [];
+  List<Map<String, dynamic>> _majorAreas = [];
 
-  bool _isUploading = false;
+  // Selected values
+  Map<String, dynamic>? _selectedCurrency;
+  Map<String, dynamic>? _selectedCategory;
+  Map<String, dynamic>? _selectedSubCategory;
+  Map<String, dynamic>? _selectedProvince;
+  Map<String, dynamic>? _selectedMajorArea;
+
+  // State flags
   bool _isLoadingOptions = true;
   String? _optionsError;
 
@@ -46,52 +54,67 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
     _fetchOptions();
   }
 
+  /// Initialize data by fetching options from server
   Future<void> _fetchOptions() async {
     setState(() {
       _isLoadingOptions = true;
       _optionsError = null;
     });
+
     try {
-      final response = await http.get(Uri.parse('https://sahbo-app-api.onrender.com/api/options'));
+      final response = await http.get(Uri.parse('$_baseUrl/options'));
+      
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        
         setState(() {
-          currencies = List<Map<String, dynamic>>.from(data['currencies']);
-          categories = List<Map<String, dynamic>>.from(data['categories']);
-          subCategories = List<Map<String, dynamic>>.from(data['subCategories']);
-          provinces = List<Map<String, dynamic>>.from(data['Province']);
-          majorAreas = List<Map<String, dynamic>>.from(data['majorAreas']);
-          // Set defaults
-          selectedCurrency = currencies.isNotEmpty ? currencies[0] : null;
-          selectedCategory = categories.isNotEmpty ? categories[0] : null;
-          selectedSubCategory = null;
-          selectedProvince = provinces.isNotEmpty ? provinces[0] : null;
-          _updateMajorAreaDefault();
+          _currencies = List<Map<String, dynamic>>.from(data['currencies'] ?? []);
+          _categories = List<Map<String, dynamic>>.from(data['categories'] ?? []);
+          _subCategories = List<Map<String, dynamic>>.from(data['subCategories'] ?? []);
+          _provinces = List<Map<String, dynamic>>.from(data['Province'] ?? []);
+          _majorAreas = List<Map<String, dynamic>>.from(data['majorAreas'] ?? []);
+          
+          _setDefaultSelections();
           _isLoadingOptions = false;
         });
       } else {
-        setState(() {
-          _optionsError = 'فشل تحميل الخيارات من الخادم';
-          _isLoadingOptions = false;
-        });
+        _handleFetchError('فشل تحميل الخيارات من الخادم');
       }
     } catch (e) {
-      setState(() {
-        _optionsError = 'حدث خطأ أثناء الاتصال بالخادم';
-        _isLoadingOptions = false;
-      });
+      _handleFetchError('حدث خطأ أثناء الاتصال بالخادم');
     }
   }
 
+  /// Set default values for dropdowns
+  void _setDefaultSelections() {
+    _selectedCurrency = _currencies.isNotEmpty ? _currencies[0] : null;
+    _selectedCategory = _categories.isNotEmpty ? _categories[0] : null;
+    _selectedSubCategory = null;
+    _selectedProvince = _provinces.isNotEmpty ? _provinces[0] : null;
+    _updateMajorAreaDefault();
+  }
+
+  /// Handle fetch errors
+  void _handleFetchError(String errorMessage) {
+    setState(() {
+      _optionsError = errorMessage;
+      _isLoadingOptions = false;
+    });
+  }
+
+  /// Update major area when province changes
   void _updateMajorAreaDefault() {
-    if (selectedProvince != null) {
-      final filtered = majorAreas.where((area) => area['ProvinceId'] == selectedProvince!['id']).toList();
-      selectedMajorArea = filtered.isNotEmpty ? filtered[0] : null;
+    if (_selectedProvince != null) {
+      final filteredAreas = _majorAreas
+          .where((area) => area['ProvinceId'] == _selectedProvince!['id'])
+          .toList();
+      _selectedMajorArea = filteredAreas.isNotEmpty ? filteredAreas[0] : null;
     } else {
-      selectedMajorArea = null;
+      _selectedMajorArea = null;
     }
   }
 
+  /// Check internet connectivity
   Future<bool> _checkInternetConnectivity() async {
     final connectivityResult = await Connectivity().checkConnectivity();
     return connectivityResult != ConnectivityResult.none;
@@ -99,67 +122,60 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoadingOptions) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('نشر إعلان جديد'),
-          backgroundColor: Colors.blue[700],
-          foregroundColor: Colors.white,
-        ),
-        body: const Center(child: CircularProgressIndicator(color: Colors.blue)),
-      );
-    }
-    if (_optionsError != null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('نشر إعلان جديد'),
-          backgroundColor: Colors.blue[700],
-          foregroundColor: Colors.white,
-        ),
-        body: Center(
+    if (_isLoadingOptions) return _buildLoadingScreen();
+    if (_optionsError != null) return _buildErrorScreen();
+    return _buildMainScreen();
+  }
+
+  /// Loading screen widget
+  Widget _buildLoadingScreen() {
+    return Scaffold(
+      appBar: _buildAppBar(),
+      body: const Center(
+        child: CircularProgressIndicator(color: Colors.blue),
+      ),
+    );
+  }
+
+  /// Error screen widget
+  Widget _buildErrorScreen() {
+    return Scaffold(
+      appBar: _buildAppBar(),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(_optionsError!, style: const TextStyle(color: Colors.red)),
-              const SizedBox(height: 20),
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Colors.red[300],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _optionsError!,
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 16,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _fetchOptions,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue[600],
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 child: const Text('إعادة المحاولة'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'نشر إعلان جديد',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          centerTitle: true,
-          backgroundColor: Colors.blue[700],
-          foregroundColor: Colors.white,
-          elevation: 2,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        body: Container(
-          color: Colors.white,
-          child: Column(
-            children: [
-              _buildProgressIndicator(),
-              Expanded(
-                child: _buildCurrentStep(),
               ),
             ],
           ),
@@ -168,19 +184,57 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
     );
   }
 
+  /// Main screen widget
+  Widget _buildMainScreen() {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: _buildAppBar(),
+        body: Container(
+          color: Colors.white,
+          child: Column(
+            children: [
+              _buildProgressIndicator(),
+              Expanded(child: _buildCurrentStep()),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// App bar widget
+  AppBar _buildAppBar() {
+    return AppBar(
+      title: const Text(
+        'نشر إعلان جديد',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      centerTitle: true,
+      backgroundColor: Colors.blue[700],
+      foregroundColor: Colors.white,
+      elevation: 2,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => Navigator.pop(context),
+      ),
+    );
+  }
+
+  /// Progress indicator widget
   Widget _buildProgressIndicator() {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           Row(
-            children: List.generate(3, (index) {
+            children: List.generate(_totalSteps, (index) {
               return Expanded(
                 child: Container(
                   height: 4,
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   decoration: BoxDecoration(
-                    color: index <= currentStep ? Colors.blue[600] : Colors.grey[300],
+                    color: index <= _currentStep ? Colors.blue[600] : Colors.grey[300],
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -201,14 +255,18 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
     );
   }
 
+  /// Step indicator widget
   Widget _buildStepIndicator(int stepIndex, String title) {
+    final isActive = stepIndex <= _currentStep;
+    final isCurrentStep = stepIndex == _currentStep;
+    
     return Column(
       children: [
         Container(
           width: 30,
           height: 30,
           decoration: BoxDecoration(
-            color: stepIndex <= currentStep ? Colors.blue[600] : Colors.grey[300],
+            color: isActive ? Colors.blue[600] : Colors.grey[300],
             shape: BoxShape.circle,
           ),
           child: Center(
@@ -225,73 +283,76 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         Text(
           title,
           style: TextStyle(
-            color: stepIndex <= currentStep ? Colors.blue[600] : Colors.grey[600],
-            fontWeight: stepIndex == currentStep ? FontWeight.bold : FontWeight.normal,
+            color: isActive ? Colors.blue[600] : Colors.grey[600],
+            fontWeight: isCurrentStep ? FontWeight.bold : FontWeight.normal,
+            fontSize: 12,
           ),
+          textAlign: TextAlign.center,
         ),
       ],
     );
   }
 
+  /// Current step widget
   Widget _buildCurrentStep() {
-    switch (currentStep) {
+    switch (_currentStep) {
       case 0:
         return ImagesSelectionStep(
-          selectedImages: selectedImages,
-          onImagesChanged: (images) => setState(() => selectedImages = images),
-          onNext: () => setState(() => currentStep = 1),
+          selectedImages: _selectedImages,
+          onImagesChanged: (images) => setState(() {
+            _selectedImages.clear();
+            _selectedImages.addAll(images);
+          }),
+          onNext: () => setState(() => _currentStep = 1),
         );
       case 1:
         return CategorySelectionStep(
-          categories: categories,
-          subCategories: subCategories,
-          selectedCategory: selectedCategory,
-          selectedSubCategory: selectedSubCategory,
+          categories: _categories,
+          subCategories: _subCategories,
+          selectedCategory: _selectedCategory,
+          selectedSubCategory: _selectedSubCategory,
           onCategorySelected: (cat, subCat) {
             setState(() {
-              selectedCategory = cat;
-              selectedSubCategory = subCat;
-              currentStep = 2;
+              _selectedCategory = cat;
+              _selectedSubCategory = subCat;
+              _currentStep = 2;
             });
           },
-          onBack: () => setState(() => currentStep = 0),
+          onBack: () => setState(() => _currentStep = 0),
         );
       case 2:
         return AdDetailsStep(
-          adTitle: adTitle,
-          price: price,
-          description: description,
-          currencies: currencies,
-          selectedCurrency: selectedCurrency,
-          provinces: provinces,
-          selectedProvince: selectedProvince,
-          majorAreas: majorAreas,
-          selectedMajorArea: selectedMajorArea,
-          onDetailsChanged: (title, p, desc, currency, province, area) {
+          adTitle: _adTitle,
+          price: _price,
+          description: _description,
+          currencies: _currencies,
+          selectedCurrency: _selectedCurrency,
+          provinces: _provinces,
+          selectedProvince: _selectedProvince,
+          majorAreas: _majorAreas,
+          selectedMajorArea: _selectedMajorArea,
+          onDetailsChanged: (title, price, desc, currency, province, area) {
             setState(() {
-              adTitle = title;
-              price = p;
-              description = desc;
-              selectedCurrency = currency;
-              selectedProvince = province;
-              selectedMajorArea = area;
+              _adTitle = title;
+              _price = price;
+              _description = desc;
+              _selectedCurrency = currency;
+              _selectedProvince = province;
+              _selectedMajorArea = area;
             });
           },
           onSubmit: _submitAd,
-          onBack: () => setState(() => currentStep = 1),
+          onBack: () => setState(() => _currentStep = 1),
         );
       default:
-        return Container();
+        return const SizedBox.shrink();
     }
   }
 
+  /// Submit ad method
   Future<void> _submitAd() async {
-    // Check internet connectivity first
-    setState(() => _isUploading = true);
-    
     final isConnected = await _checkInternetConnectivity();
     if (!isConnected) {
-      setState(() => _isUploading = false);
       _showNoInternetDialog();
       return;
     }
@@ -305,40 +366,16 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       final userPhone = prefs.getString('userPhone') ?? '';
       final username = prefs.getString('userName') ?? '';
 
-      List<String> base64Images = [];
-      for (File? image in selectedImages.where((img) => img != null)) {
-        final compressedBytes = await FlutterImageCompress.compressWithFile(
-          image!.path,
-          quality: 60,
-          format: CompressFormat.jpeg,
-        );
-        if (compressedBytes != null) {
-          base64Images.add(base64Encode(compressedBytes));
-        }
-      }
-
-      Map<String, dynamic> requestData = {
-        'userId': userId,
-        'userPhone': userPhone,
-        'userName': username,
-        'adTitle': adTitle,
-        'price': price,
-        'currencyId': selectedCurrency?['id'],
-        'currencyName': selectedCurrency?['name'],
-        'categoryId': selectedCategory?['id'],
-        'categoryName': selectedCategory?['name'],
-        'subCategoryId': selectedSubCategory?['id'],
-        'subCategoryName': selectedSubCategory?['name'],
-        'cityId': selectedProvince?['id'],
-        'cityName': selectedProvince?['name'],
-        'regionId': selectedMajorArea?['id'],
-        'regionName': selectedMajorArea?['name'],
-        'description': description,
-        'images': base64Images,
-      };
+      final base64Images = await _processImages();
+      final requestData = _buildRequestData(
+        userId: userId,
+        userPhone: userPhone,
+        username: username,
+        base64Images: base64Images,
+      );
 
       final response = await http.post(
-        Uri.parse('https://sahbo-app-api.onrender.com/api/ads/userAds/add'),
+        Uri.parse('$_baseUrl/ads/userAds/add'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -346,16 +383,67 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         body: jsonEncode(requestData),
       );
 
-      Navigator.of(context).pop();
-      response.statusCode == 201 ? _showSuccessDialog() : _showErrorDialog('فشل في نشر الإعلان');
+      Navigator.of(context).pop(); // Close loading dialog
+      
+      if (response.statusCode == 201) {
+        _showSuccessDialog();
+      } else {
+        _showErrorDialog('فشل في نشر الإعلان');
+      }
     } catch (e) {
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(); // Close loading dialog
       _showErrorDialog('حدث خطأ أثناء الاتصال بالخادم');
-    } finally {
-      setState(() => _isUploading = false);
     }
   }
 
+  /// Process images for upload
+  Future<List<String>> _processImages() async {
+    final base64Images = <String>[];
+    
+    for (final image in _selectedImages.where((img) => img != null)) {
+      final compressedBytes = await FlutterImageCompress.compressWithFile(
+        image!.path,
+        quality: 60,
+        format: CompressFormat.jpeg,
+      );
+      
+      if (compressedBytes != null) {
+        base64Images.add(base64Encode(compressedBytes));
+      }
+    }
+    
+    return base64Images;
+  }
+
+  /// Build request data
+  Map<String, dynamic> _buildRequestData({
+    required String userId,
+    required String userPhone,
+    required String username,
+    required List<String> base64Images,
+  }) {
+    return {
+      'userId': userId,
+      'userPhone': userPhone,
+      'userName': username,
+      'adTitle': _adTitle,
+      'price': _price,
+      'currencyId': _selectedCurrency?['id'],
+      'currencyName': _selectedCurrency?['name'],
+      'categoryId': _selectedCategory?['id'],
+      'categoryName': _selectedCategory?['name'],
+      'subCategoryId': _selectedSubCategory?['id'],
+      'subCategoryName': _selectedSubCategory?['name'],
+      'cityId': _selectedProvince?['id'],
+      'cityName': _selectedProvince?['name'],
+      'regionId': _selectedMajorArea?['id'],
+      'regionName': _selectedMajorArea?['name'],
+      'description': _description,
+      'images': base64Images,
+    };
+  }
+
+  // Dialog methods
   void _showUploadingDialog() {
     showDialog(
       context: context,
@@ -365,9 +453,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircularProgressIndicator(
-              color: Colors.blue,
-            ),
+            const CircularProgressIndicator(color: Colors.blue),
             const SizedBox(height: 20),
             const Text(
               'جارٍ رفع الإعلان...',
@@ -386,34 +472,34 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
 
   void _showSuccessDialog() {
     showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      title: const Row(
-        children: [
-          Icon(Icons.check_circle, color: Colors.green),
-          SizedBox(width: 10),
-          Text('تم بنجاح'),
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green),
+            SizedBox(width: 10),
+            Text('تم بنجاح'),
+          ],
+        ),
+        content: const Text('تم نشر إعلانك بنجاح'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close dialog
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (_) => const HomeScreen(refreshOnStart: true),
+                ),
+                (route) => false,
+              );
+            },
+            child: const Text('موافق', style: TextStyle(color: Colors.blue)),
+          ),
         ],
       ),
-      content: const Text('تم نشر إعلانك بنجاح'),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(); // Close dialog
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (_) => const HomeScreen(refreshOnStart: true),
-              ),
-              (route) => false,
-            );
-          },
-          child: const Text('موافق', style: TextStyle(color: Colors.blue)),
-        ),
-      ],
-    ),
-  );
+    );
   }
 
   void _showErrorDialog(String message) {
@@ -448,10 +534,10 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
           side: BorderSide(color: Colors.blue[300]!, width: 1.5),
         ),
         backgroundColor: Colors.white,
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.wifi_off, color: Colors.orange),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Expanded(
               child: Text(
                 'لا يوجد اتصال بالإنترنت',
@@ -483,8 +569,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
   }
 }
 
-// --- ImagesSelectionStep remains unchanged ---
-
+/// Images Selection Step Widget
 class ImagesSelectionStep extends StatefulWidget {
   final List<File?> selectedImages;
   final Function(List<File?>) onImagesChanged;
@@ -502,8 +587,8 @@ class ImagesSelectionStep extends StatefulWidget {
 }
 
 class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
-  final picker = ImagePicker();
-  List<File?> _images = [];
+  final ImagePicker _picker = ImagePicker();
+  late List<File?> _images;
 
   @override
   void initState() {
@@ -515,7 +600,7 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
   }
 
   Future<void> _pickImage(int index) async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _images[index] = File(pickedFile.path);
@@ -541,16 +626,23 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'أضف صور المنتج',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text(
                   'يمكنك إضافة حتى 6 صور للمنتج. الصورة الأولى ستكون الصورة الرئيسية.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
                 ),
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
                 Expanded(
                   child: GridView.builder(
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -559,91 +651,130 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
                       mainAxisSpacing: 10,
                     ),
                     itemCount: 6,
-                    itemBuilder: (context, index) {
-                      return Stack(
-                        children: [
-                          GestureDetector(
-                            onTap: () => _pickImage(index),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.blue[300]!),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: _images[index] != null
-                                  ? ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.file(_images[index]!, fit: BoxFit.cover),
-                              )
-                                  : Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.add_a_photo, size: 40, color: Colors.grey),
-                                  SizedBox(height: 8),
-                                  Text('إضافة صورة', style: TextStyle(color: Colors.grey)),
-                                ],
-                              ),
-                            ),
-                          ),
-                          if (_images[index] != null)
-                            Positioned(
-                              top: 5,
-                              right: 5,
-                              child: GestureDetector(
-                                onTap: () => _removeImage(index),
-                                child: Container(
-                                  padding: EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(Icons.close, color: Colors.white, size: 16),
-                                ),
-                              ),
-                            ),
-                          if (index == 0 && _images[index] != null)
-                            Positioned(
-                              bottom: 5,
-                              left: 5,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.green,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  'رئيسية',
-                                  style: TextStyle(color: Colors.white, fontSize: 12),
-                                ),
-                              ),
-                            ),
-                        ],
-                      );
-                    },
+                    itemBuilder: (context, index) => _buildImageSlot(index),
                   ),
                 ),
               ],
             ),
           ),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: _images.any((image) => image != null) ? widget.onNext : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[600],
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          _buildContinueButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageSlot(int index) {
+    return Stack(
+      children: [
+        GestureDetector(
+          onTap: () => _pickImage(index),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.blue[300]!),
+            ),
+            child: _images[index] != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      _images[index]!,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
+                  )
+                : Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.add_photo_alternate,
+                          size: 30,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          'إضافة صورة',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
+        ),
+        if (_images[index] != null) ...[
+          // Remove button
+          Positioned(
+            top: 5,
+            right: 5,
+            child: GestureDetector(
+              onTap: () => _removeImage(index),
+              child: Container(
+                padding: const EdgeInsets.all(2),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.close,
+                  size: 16,
+                  color: Colors.white,
+                ),
               ),
-              child: Text('متابعة', style: TextStyle(fontSize: 18)),
             ),
           ),
+          // Main image indicator
+          if (index == 0)
+            Positioned(
+              bottom: 5,
+              left: 5,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'رئيسية',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
         ],
+      ],
+    );
+  }
+
+  Widget _buildContinueButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: _images.any((image) => image != null) ? widget.onNext : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue[600],
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        child: const Text(
+          'متابعة',
+          style: TextStyle(fontSize: 18),
+        ),
       ),
     );
   }
 }
 
-// --- CategorySelectionStep updated to use server data ---
+/// Category Selection Step Widget
 class CategorySelectionStep extends StatefulWidget {
   final List<Map<String, dynamic>> categories;
   final List<Map<String, dynamic>> subCategories;
@@ -674,7 +805,8 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
   @override
   void initState() {
     super.initState();
-    _selectedCategory = widget.selectedCategory ?? (widget.categories.isNotEmpty ? widget.categories[0] : null);
+    _selectedCategory = widget.selectedCategory ?? 
+        (widget.categories.isNotEmpty ? widget.categories[0] : null);
     _filterSubCategories();
     _selectedSubCategory = widget.selectedSubCategory;
   }
@@ -687,6 +819,7 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
     } else {
       _filteredSubCategories = [];
     }
+    
     if (!_filteredSubCategories.contains(_selectedSubCategory)) {
       _selectedSubCategory = null;
     }
@@ -702,97 +835,138 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'اختر تصنيف المنتج',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text(
                   'اختر التصنيف المناسب لمنتجك',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                ),
-                SizedBox(height: 30),
-                DropdownButtonFormField<Map<String, dynamic>>(
-                  value: _selectedCategory,
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    labelText: 'التصنيف الرئيسي',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
                   ),
-                  items: widget.categories
-                      .map((cat) => DropdownMenuItem(
-                    value: cat,
-                    child: Text(cat['name']),
-                  ))
-                      .toList(),
-                  onChanged: (cat) {
-                    setState(() {
-                      _selectedCategory = cat;
-                      _selectedSubCategory = null;
-                      _filterSubCategories();
-                    });
-                  },
                 ),
-                SizedBox(height: 20),
-                DropdownButtonFormField<Map<String, dynamic>>(
-                  value: _selectedSubCategory,
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    labelText: 'التصنيف الفرعي',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  items: _filteredSubCategories
-                      .map((subCat) => DropdownMenuItem(
-                    value: subCat,
-                    child: Text(subCat['name']),
-                  ))
-                      .toList(),
-                  onChanged: (subCat) {
-                    setState(() {
-                      _selectedSubCategory = subCat;
-                    });
-                  },
-                ),
+                const SizedBox(height: 30),
+                _buildCategoryDropdown(),
+                const SizedBox(height: 20),
+                _buildSubCategoryDropdown(),
               ],
             ),
           ),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: widget.onBack,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[300],
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: Text('رجوع', style: TextStyle(fontSize: 18)),
-                ),
-              ),
-              SizedBox(width: 15),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: (_selectedCategory != null && _selectedSubCategory != null)
-                      ? () => widget.onCategorySelected(_selectedCategory!, _selectedSubCategory!)
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[600],
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: Text('متابعة', style: TextStyle(fontSize: 18)),
-                ),
-              ),
-            ],
-          ),
+          _buildNavigationButtons(),
         ],
       ),
     );
   }
+
+  Widget _buildCategoryDropdown() {
+    return DropdownButtonFormField<Map<String, dynamic>>(
+      value: _selectedCategory,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: 'التصنيف الرئيسي',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
+      items: widget.categories
+          .map((cat) => DropdownMenuItem(
+                value: cat,
+                child: Text(cat['name'] ?? ''),
+              ))
+          .toList(),
+      onChanged: (cat) {
+        setState(() {
+          _selectedCategory = cat;
+          _filterSubCategories();
+        });
+      },
+    );
+  }
+
+  Widget _buildSubCategoryDropdown() {
+    return DropdownButtonFormField<Map<String, dynamic>>(
+      value: _selectedSubCategory,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: 'التصنيف الفرعي',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
+      items: _filteredSubCategories
+          .map((subCat) => DropdownMenuItem(
+                value: subCat,
+                child: Text(subCat['name'] ?? ''),
+              ))
+          .toList(),
+      onChanged: (subCat) {
+        setState(() {
+          _selectedSubCategory = subCat;
+        });
+      },
+    );
+  }
+
+  Widget _buildNavigationButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton(
+            onPressed: widget.onBack,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.grey[300],
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text(
+              'رجوع',
+              style: TextStyle(fontSize: 18),
+            ),
+          ),
+        ),
+        const SizedBox(width: 15),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: (_selectedCategory != null && _selectedSubCategory != null)
+                ? () => widget.onCategorySelected(_selectedCategory!, _selectedSubCategory!)
+                : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue[600],
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text(
+              'متابعة',
+              style: TextStyle(fontSize: 18),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-// --- AdDetailsStep updated to use server data ---
-
+/// Ad Details Step Widget
 class AdDetailsStep extends StatefulWidget {
   final String adTitle;
   final String price;
@@ -804,13 +978,13 @@ class AdDetailsStep extends StatefulWidget {
   final List<Map<String, dynamic>> majorAreas;
   final Map<String, dynamic>? selectedMajorArea;
   final Function(
-      String,
-      String,
-      String,
-      Map<String, dynamic>?,
-      Map<String, dynamic>?,
-      Map<String, dynamic>?,
-      ) onDetailsChanged;
+    String,
+    String,
+    String,
+    Map<String, dynamic>?,
+    Map<String, dynamic>?,
+    Map<String, dynamic>?,
+  ) onDetailsChanged;
   final VoidCallback onSubmit;
   final VoidCallback onBack;
 
@@ -849,14 +1023,28 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
     _titleController = TextEditingController(text: widget.adTitle);
     _priceController = TextEditingController(text: widget.price);
     _descriptionController = TextEditingController(text: widget.description);
-    _selectedCurrency = widget.selectedCurrency ?? (widget.currencies.isNotEmpty ? widget.currencies[0] : null);
-    _selectedProvince = widget.selectedProvince ?? (widget.provinces.isNotEmpty ? widget.provinces[0] : null);
+    
+    _selectedCurrency = widget.selectedCurrency ?? 
+        (widget.currencies.isNotEmpty ? widget.currencies[0] : null);
+    _selectedProvince = widget.selectedProvince ?? 
+        (widget.provinces.isNotEmpty ? widget.provinces[0] : null);
+    
     _updateMajorAreaDefault();
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _priceController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
   }
 
   void _updateMajorAreaDefault() {
     if (_selectedProvince != null) {
-      final filtered = widget.majorAreas.where((area) => area['ProvinceId'] == _selectedProvince!['id']).toList();
+      final filtered = widget.majorAreas
+          .where((area) => area['ProvinceId'] == _selectedProvince!['id'])
+          .toList();
       _selectedMajorArea = filtered.isNotEmpty ? filtered[0] : null;
     } else {
       _selectedMajorArea = null;
@@ -874,6 +1062,14 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
     );
   }
 
+  bool _canSubmit() {
+    return _titleController.text.isNotEmpty &&
+        _priceController.text.isNotEmpty &&
+        _selectedCurrency != null &&
+        _selectedProvince != null &&
+        _selectedMajorArea != null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -885,190 +1081,233 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'معلومات الإعلان',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
-                  ),
-                  SizedBox(height: 20),
-
-                  TextField(
-                    controller: _titleController,
-                    decoration: InputDecoration(
-                      labelText: 'ما الذي تريد نشره؟',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.blue[300]!),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.blue[600]!),
-                      ),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
-                    onChanged: (value) => _updateData(),
                   ),
-                  SizedBox(height: 15),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: TextField(
-                          controller: _priceController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: 'السعر',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.blue[300]!),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(color: Colors.blue[600]!),
-                            ),
-                          ),
-                          onChanged: (value) => _updateData(),
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.blue[300]!),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: DropdownButton<Map<String, dynamic>>(
-                            value: _selectedCurrency,
-                            isExpanded: true,
-                            underline: SizedBox(),
-                            items: widget.currencies
-                                .map((c) => DropdownMenuItem(value: c, child: Text(c['name'])))
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedCurrency = value;
-                              });
-                              _updateData();
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 15),
-
-                  DropdownButtonFormField<Map<String, dynamic>>(
-                    value: _selectedProvince,
-                    isExpanded: true,
-                    decoration: InputDecoration(
-                      labelText: 'اختر المحافظة',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    items: widget.provinces
-                        .map((province) => DropdownMenuItem(
-                      value: province,
-                      child: Text(province['name']),
-                    ))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedProvince = value;
-                        // Update major area
-                        final filtered = widget.majorAreas.where((area) => area['ProvinceId'] == _selectedProvince!['id']).toList();
-                        _selectedMajorArea = filtered.isNotEmpty ? filtered[0] : null;
-                      });
-                      _updateData();
-                    },
-                  ),
-                  SizedBox(height: 15),
-
-                  DropdownButtonFormField<Map<String, dynamic>>(
-                    value: _selectedMajorArea,
-                    isExpanded: true,
-                    decoration: InputDecoration(
-                      labelText: 'اختر المدينة/المنطقة',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    items: widget.majorAreas
-                        .where((area) => _selectedProvince != null && area['ProvinceId'] == _selectedProvince!['id'])
-                        .map((area) => DropdownMenuItem(
-                      value: area,
-                      child: Text(area['name']),
-                    ))
-                        .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedMajorArea = value;
-                      });
-                      _updateData();
-                    },
-                  ),
-                  SizedBox(height: 15),
-
-                  TextField(
-                    controller: _descriptionController,
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      labelText: 'وصف المنتج',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.blue[300]!),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.blue[600]!),
-                      ),
-                      alignLabelWithHint: true,
-                    ),
-                    onChanged: (value) => _updateData(),
-                  ),
+                  const SizedBox(height: 20),
+                  _buildTitleField(),
+                  const SizedBox(height: 15),
+                  _buildPriceRow(),
+                  const SizedBox(height: 15),
+                  _buildProvinceDropdown(),
+                  const SizedBox(height: 15),
+                  _buildMajorAreaDropdown(),
+                  const SizedBox(height: 15),
+                  _buildDescriptionField(),
                 ],
               ),
             ),
           ),
-
-          SizedBox(height: 20),
-
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: widget.onBack,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[300],
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: EdgeInsets.symmetric(vertical: 15),
-                  ),
-                  child: Text('رجوع', style: TextStyle(fontSize: 16)),
-                ),
-              ),
-              SizedBox(width: 15),
-              Expanded(
-                flex: 2,
-                child: ElevatedButton(
-                  onPressed: _canSubmit() ? widget.onSubmit : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[600],
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                  ),
-                  child: const Text('نشر الإعلان', style: TextStyle(fontSize: 16)),
-                ),
-              ),
-            ],
-          ),
+          const SizedBox(height: 20),
+          _buildNavigationButtons(),
         ],
       ),
     );
   }
 
-  bool _canSubmit() {
-    return _titleController.text.isNotEmpty &&
-        _priceController.text.isNotEmpty &&
-        _selectedCurrency != null &&
-        _selectedProvince != null &&
-        _selectedMajorArea != null;
+  Widget _buildTitleField() {
+    return TextField(
+      controller: _titleController,
+      decoration: InputDecoration(
+        labelText: 'عنوان الإعلان',
+        hintText: 'أدخل عنوان جذاب للمنتج',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
+      onChanged: (_) => _updateData(),
+    );
+  }
+
+  Widget _buildPriceRow() {
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: TextField(
+            controller: _priceController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'السعر',
+              hintText: '0',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+            ),
+            onChanged: (_) => _updateData(),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: DropdownButtonFormField<Map<String, dynamic>>(
+            value: _selectedCurrency,
+            isExpanded: true,
+            decoration: InputDecoration(
+              labelText: 'العملة',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+            ),
+            items: widget.currencies
+                .map((currency) => DropdownMenuItem(
+                      value: currency,
+                      child: Text(currency['name'] ?? ''),
+                    ))
+                .toList(),
+            onChanged: (currency) {
+              setState(() {
+                _selectedCurrency = currency;
+              });
+              _updateData();
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProvinceDropdown() {
+    return DropdownButtonFormField<Map<String, dynamic>>(
+      value: _selectedProvince,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: 'المحافظة',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
+      items: widget.provinces
+          .map((province) => DropdownMenuItem(
+                value: province,
+                child: Text(province['name'] ?? ''),
+              ))
+          .toList(),
+      onChanged: (province) {
+        setState(() {
+          _selectedProvince = province;
+          _updateMajorAreaDefault();
+        });
+        _updateData();
+      },
+    );
+  }
+
+  Widget _buildMajorAreaDropdown() {
+    final filteredAreas = widget.majorAreas
+        .where((area) => 
+            _selectedProvince != null && 
+            area['ProvinceId'] == _selectedProvince!['id'])
+        .toList();
+
+    return DropdownButtonFormField<Map<String, dynamic>>(
+      value: _selectedMajorArea,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: 'المنطقة',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
+      items: filteredAreas
+          .map((area) => DropdownMenuItem(
+                value: area,
+                child: Text(area['name'] ?? ''),
+              ))
+          .toList(),
+      onChanged: (area) {
+        setState(() {
+          _selectedMajorArea = area;
+        });
+        _updateData();
+      },
+    );
+  }
+
+  Widget _buildDescriptionField() {
+    return TextField(
+      controller: _descriptionController,
+      maxLines: 4,
+      decoration: InputDecoration(
+        labelText: 'وصف المنتج',
+        hintText: 'أدخل وصفاً تفصيلياً للمنتج...',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+        alignLabelWithHint: true,
+      ),
+      onChanged: (_) => _updateData(),
+    );
+  }
+
+  Widget _buildNavigationButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton(
+            onPressed: widget.onBack,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.grey[300],
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text(
+              'رجوع',
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+        ),
+        const SizedBox(width: 15),
+        Expanded(
+          flex: 2,
+          child: ElevatedButton(
+            onPressed: _canSubmit() ? widget.onSubmit : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue[600],
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text(
+              'نشر الإعلان',
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
