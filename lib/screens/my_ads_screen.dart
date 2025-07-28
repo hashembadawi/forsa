@@ -275,7 +275,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
           adId: ad['_id'],
           initialTitle: ad['adTitle'] ?? '',
           initialPrice: ad['price']?.toString() ?? '',
-          initialCurrency: ad['currency'] ?? 'ل.س',
+          initialCurrency: ad['currencyName'] ?? 'ل.س',
           initialDescription: ad['description'] ?? '',
         ),
       ),

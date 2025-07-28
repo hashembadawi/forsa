@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+/// Screen for editing existing advertisements
 class EditAdScreen extends StatefulWidget {
   final String adId;
   final String initialTitle;
@@ -25,119 +26,254 @@ class EditAdScreen extends StatefulWidget {
 }
 
 class _EditAdScreenState extends State<EditAdScreen> {
+  // ========== Constants ==========
+  static const String _baseApiUrl = 'https://sahbo-app-api.onrender.com';
+  static const String _optionsEndpoint = '/api/options';
+  static const String _updateAdEndpoint = '/api/ads/userAds/update';
+
+  // ========== Form Controllers ==========
   late TextEditingController _titleController;
   late TextEditingController _priceController;
   late TextEditingController _descriptionController;
+
+  // ========== State Variables ==========
   bool _isUpdating = false;
-  
-  // Currency data from server
-  List<Map<String, dynamic>> currencies = [];
-  Map<String, dynamic>? selectedCurrency;
   bool _isLoadingCurrencies = true;
+  
+  // ========== Currency Data ==========
+  List<Map<String, dynamic>> _currencies = [];
+  Map<String, dynamic>? _selectedCurrency;
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.initialTitle);
-    _priceController = TextEditingController(text: widget.initialPrice);
-    _descriptionController = TextEditingController(text: widget.initialDescription);
+    _initializeControllers();
     _fetchCurrencies();
-  }
-
-  Future<void> _fetchCurrencies() async {
-    setState(() => _isLoadingCurrencies = true);
-    try {
-      final response = await http.get(Uri.parse('https://sahbo-app-api.onrender.com/api/options'));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          currencies = List<Map<String, dynamic>>.from(data['currencies']);
-          // Find the selected currency based on the initial currency
-          selectedCurrency = currencies.firstWhere(
-            (currency) => currency['name'] == widget.initialCurrency,
-            orElse: () => currencies.isNotEmpty ? currencies[0] : {'name': widget.initialCurrency, 'id': null},
-          );
-          _isLoadingCurrencies = false;
-        });
-      } else {
-        setState(() => _isLoadingCurrencies = false);
-      }
-    } catch (e) {
-      setState(() => _isLoadingCurrencies = false);
-    }
   }
 
   @override
   void dispose() {
-    _titleController.dispose();
-    _priceController.dispose();
-    _descriptionController.dispose();
+    _disposeControllers();
     super.dispose();
   }
 
-  Future<bool> _checkInternetConnectivity() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
-    return connectivityResult != ConnectivityResult.none;
+  // ========== Initialization Methods ==========
+
+  /// Initialize form controllers with initial values
+  void _initializeControllers() {
+    _titleController = TextEditingController(text: widget.initialTitle);
+    _priceController = TextEditingController(text: widget.initialPrice);
+    _descriptionController = TextEditingController(text: widget.initialDescription);
   }
 
-  Future<void> _updateAd() async {
-    if (_titleController.text.isEmpty ||
-        _priceController.text.isEmpty ||
-        _descriptionController.text.isEmpty) {
-      _showErrorDialog('يرجى ملء جميع الحقول المطلوبة');
-      return;
-    }
+  /// Dispose form controllers to prevent memory leaks
+  void _disposeControllers() {
+    _titleController.dispose();
+    _priceController.dispose();
+    _descriptionController.dispose();
+  }
 
-    // Check internet connectivity first
-    setState(() => _isUpdating = true);
+  // ========== API Methods ==========
+
+  /// Fetch available currencies from the server
+  Future<void> _fetchCurrencies() async {
+    if (!mounted) return;
+
+    setState(() => _isLoadingCurrencies = true);
+
+    try {
+      final response = await _performCurrenciesRequest();
+      await _handleCurrenciesResponse(response);
+    } catch (e) {
+      debugPrint('Error fetching currencies: $e');
+      _handleCurrenciesError();
+    }
+  }
+
+  /// Perform HTTP request to fetch currencies
+  Future<http.Response> _performCurrenciesRequest() async {
+    final uri = Uri.parse('$_baseApiUrl$_optionsEndpoint');
+    return await http.get(uri);
+  }
+
+  /// Handle currencies API response
+  Future<void> _handleCurrenciesResponse(http.Response response) async {
+    if (!mounted) return;
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final currenciesList = List<Map<String, dynamic>>.from(data['currencies'] ?? []);
+
+      setState(() {
+        _currencies = currenciesList;
+        _selectedCurrency = _findInitialCurrency(currenciesList);
+        _isLoadingCurrencies = false;
+      });
+    } else {
+      _handleCurrenciesError();
+    }
+  }
+
+  /// Find the initial currency based on widget parameter
+  Map<String, dynamic> _findInitialCurrency(List<Map<String, dynamic>> currencies) {
+    // First try to find by exact name match
+    for (final currency in currencies) {
+      if (currency['name'] == widget.initialCurrency) {
+        debugPrint('Found currency by name: ${currency['name']}');
+        return currency;
+      }
+    }
     
-    final isConnected = await _checkInternetConnectivity();
-    if (!isConnected) {
-      setState(() => _isUpdating = false);
+    // If not found by exact name, try case-insensitive search
+    for (final currency in currencies) {
+      if (currency['name']?.toString().toLowerCase() == widget.initialCurrency.toLowerCase()) {
+        debugPrint('Found currency by case-insensitive name: ${currency['name']}');
+        return currency;
+      }
+    }
+    
+    // If still not found, return first currency or create fallback
+    if (currencies.isNotEmpty) {
+      debugPrint('Currency not found, using first available: ${currencies.first['name']}');
+      return currencies.first;
+    } else {
+      debugPrint('No currencies available, creating fallback for: ${widget.initialCurrency}');
+      return {'name': widget.initialCurrency, 'id': null};
+    }
+  }
+
+  /// Handle currencies fetch error
+  void _handleCurrenciesError() {
+    if (!mounted) return;
+
+    setState(() {
+      _isLoadingCurrencies = false;
+      _selectedCurrency = {'name': widget.initialCurrency, 'id': null};
+    });
+  }
+
+  // ========== Network Connectivity ==========
+
+  /// Check if device has internet connection
+  Future<bool> _checkInternetConnectivity() async {
+    try {
+      final connectivityResult = await Connectivity().checkConnectivity();
+      return connectivityResult != ConnectivityResult.none;
+    } catch (e) {
+      debugPrint('Connectivity check error: $e');
+      return false;
+    }
+  }
+
+  // ========== Update Ad Logic ==========
+
+  /// Update advertisement with form data
+  Future<void> _updateAd() async {
+    if (!_validateForm()) return;
+
+    if (!await _checkInternetConnectivity()) {
       _showNoInternetDialog();
       return;
     }
 
+    setState(() => _isUpdating = true);
+
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token') ?? '';
-
-      final response = await http.put(
-        Uri.parse('https://sahbo-app-api.onrender.com/api/ads/userAds/update/${widget.adId}'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'adTitle': _titleController.text,
-          'price': _priceController.text,
-          'currencyId': selectedCurrency?['id'],
-          'currencyName': selectedCurrency?['name'],
-          'description': _descriptionController.text,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        _showSuccessDialog();
-      } else {
-        _showErrorDialog('فشل في تحديث الإعلان: ${response.body}');
-      }
+      await _performUpdateRequest();
     } catch (e) {
+      debugPrint('Update ad error: $e');
       _showErrorDialog('حدث خطأ في الاتصال بالخادم');
     } finally {
-      if (mounted) setState(() => _isUpdating = false);
+      if (mounted) {
+        setState(() => _isUpdating = false);
+      }
     }
   }
 
+  /// Validate form fields
+  bool _validateForm() {
+    final fields = [
+      _titleController.text.trim(),
+      _priceController.text.trim(),
+      _descriptionController.text.trim(),
+    ];
+
+    if (fields.any((field) => field.isEmpty)) {
+      _showErrorDialog('يرجى ملء جميع الحقول المطلوبة');
+      return false;
+    }
+
+    return true;
+  }
+
+  /// Perform the update request
+  Future<void> _performUpdateRequest() async {
+    final token = await _getAuthToken();
+    final requestBody = _buildUpdateRequestBody();
+
+    final response = await http.put(
+      Uri.parse('$_baseApiUrl$_updateAdEndpoint/${widget.adId}'),
+      headers: _buildRequestHeaders(token),
+      body: jsonEncode(requestBody),
+    );
+
+    await _handleUpdateResponse(response);
+  }
+
+  /// Get authentication token from shared preferences
+  Future<String> _getAuthToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token') ?? '';
+  }
+
+  /// Build update request body
+  Map<String, dynamic> _buildUpdateRequestBody() {
+    return {
+      'adTitle': _titleController.text.trim(),
+      'price': _priceController.text.trim(),
+      'currencyId': _selectedCurrency?['id'],
+      'currencyName': _selectedCurrency?['name'],
+      'description': _descriptionController.text.trim(),
+    };
+  }
+
+  /// Build request headers
+  Map<String, String> _buildRequestHeaders(String token) {
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+  }
+
+  /// Handle update response
+  Future<void> _handleUpdateResponse(http.Response response) async {
+    if (response.statusCode == 200) {
+      _showSuccessDialog();
+    } else {
+      final errorMessage = _extractErrorMessage(response);
+      _showErrorDialog(errorMessage);
+    }
+  }
+
+  /// Extract error message from response
+  String _extractErrorMessage(http.Response response) {
+    try {
+      final responseData = jsonDecode(response.body);
+      return responseData['message'] ?? 'فشل في تحديث الإعلان';
+    } catch (e) {
+      return 'فشل في تحديث الإعلان: رمز الخطأ ${response.statusCode}';
+    }
+  }
+
+  // ========== Dialog Methods ==========
+
+  /// Show success dialog after successful update
   void _showSuccessDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: BorderSide(color: Colors.blue[300]!, width: 1.5),
-        ),
+        shape: _buildDialogShape(),
         backgroundColor: Colors.white,
         title: const Row(
           children: [
@@ -146,13 +282,13 @@ class _EditAdScreenState extends State<EditAdScreen> {
             Text('تم التحديث', style: TextStyle(color: Colors.black87)),
           ],
         ),
-        content: const Text('تم تعديل الإعلان بنجاح.', style: TextStyle(color: Colors.black87)),
+        content: const Text(
+          'تم تعديل الإعلان بنجاح.',
+          style: TextStyle(color: Colors.black87),
+        ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop(true);
-            },
+            onPressed: _handleSuccessDialogClose,
             child: const Text('موافق', style: TextStyle(color: Colors.blue)),
           ),
         ],
@@ -160,14 +296,18 @@ class _EditAdScreenState extends State<EditAdScreen> {
     );
   }
 
+  /// Handle success dialog close action
+  void _handleSuccessDialogClose() {
+    Navigator.of(context).pop(); // Close dialog
+    Navigator.of(context).pop(true); // Return to previous screen with success result
+  }
+
+  /// Show error dialog with message
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: BorderSide(color: Colors.blue[300]!, width: 1.5),
-        ),
+        shape: _buildDialogShape(),
         backgroundColor: Colors.white,
         title: const Row(
           children: [
@@ -176,7 +316,10 @@ class _EditAdScreenState extends State<EditAdScreen> {
             Text('خطأ', style: TextStyle(color: Colors.black87)),
           ],
         ),
-        content: Text(message, style: TextStyle(color: Colors.black87)),
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.black87),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -187,19 +330,17 @@ class _EditAdScreenState extends State<EditAdScreen> {
     );
   }
 
+  /// Show no internet connection dialog
   void _showNoInternetDialog() {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: BorderSide(color: Colors.blue[300]!, width: 1.5),
-        ),
+        shape: _buildDialogShape(),
         backgroundColor: Colors.white,
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.wifi_off, color: Colors.orange),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Expanded(
               child: Text(
                 'لا يوجد اتصال بالإنترنت',
@@ -221,7 +362,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              _updateAd(); // Retry the update
+              _updateAd();
             },
             child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.blue)),
           ),
@@ -230,181 +371,226 @@ class _EditAdScreenState extends State<EditAdScreen> {
     );
   }
 
+  /// Build consistent dialog shape
+  RoundedRectangleBorder _buildDialogShape() {
+    return RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(15),
+      side: BorderSide(color: Colors.blue[300]!, width: 1.5),
+    );
+  }
+
+  // ========== Widget Build Methods ==========
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: AppBar(
-          title: const Text('تعديل الإعلان'),
-          centerTitle: true,
+        appBar: _buildAppBar(),
+        body: _buildBody(),
+      ),
+    );
+  }
+
+  /// Build the app bar
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: const Text('تعديل الإعلان'),
+      centerTitle: true,
+      backgroundColor: Colors.blue[700],
+      foregroundColor: Colors.white,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => Navigator.of(context).pop(),
+      ),
+    );
+  }
+
+  /// Build the main body content
+  Widget _buildBody() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          _buildTitleField(),
+          const SizedBox(height: 16),
+          _buildPriceField(),
+          const SizedBox(height: 16),
+          _buildCurrencyField(),
+          const SizedBox(height: 16),
+          _buildDescriptionField(),
+          const SizedBox(height: 24),
+          _buildUpdateButton(),
+        ],
+      ),
+    );
+  }
+
+  /// Build title input field
+  Widget _buildTitleField() {
+    return TextFormField(
+      controller: _titleController,
+      style: const TextStyle(color: Colors.black87),
+      decoration: _buildInputDecoration('عنوان الإعلان'),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'يرجى إدخال عنوان الإعلان';
+        }
+        return null;
+      },
+    );
+  }
+
+  /// Build price input field
+  Widget _buildPriceField() {
+    return TextFormField(
+      controller: _priceController,
+      keyboardType: TextInputType.number,
+      style: const TextStyle(color: Colors.black87),
+      decoration: _buildInputDecoration('السعر'),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'يرجى إدخال السعر';
+        }
+        return null;
+      },
+    );
+  }
+
+  /// Build currency selection field
+  Widget _buildCurrencyField() {
+    if (_isLoadingCurrencies) {
+      return _buildCurrencyLoadingWidget();
+    }
+
+    // Ensure the selected currency is in the dropdown list
+    final allCurrencies = List<Map<String, dynamic>>.from(_currencies);
+    
+    // Check if the selected currency exists in the list
+    final bool currencyExists = allCurrencies.any(
+      (currency) => currency['name'] == _selectedCurrency?['name']
+    );
+    
+    // If the selected currency doesn't exist in the list, add it
+    if (!currencyExists && _selectedCurrency != null) {
+      allCurrencies.insert(0, _selectedCurrency!);
+    }
+
+    return DropdownButtonFormField<Map<String, dynamic>>(
+      value: _selectedCurrency,
+      decoration: _buildInputDecoration('العملة'),
+      items: allCurrencies.map((currency) {
+        return DropdownMenuItem(
+          value: currency,
+          child: Text(
+            currency['name'] ?? '',
+            style: const TextStyle(color: Colors.black87),
+          ),
+        );
+      }).toList(),
+      onChanged: (value) {
+        setState(() => _selectedCurrency = value);
+      },
+      hint: Text(
+        'اختر العملة',
+        style: TextStyle(color: Colors.grey[600]),
+      ),
+    );
+  }
+
+  /// Build currency loading widget
+  Widget _buildCurrencyLoadingWidget() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.blue[300]!),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Text(
+            'العملة: ${widget.initialCurrency}',
+            style: const TextStyle(color: Colors.black87),
+          ),
+          const Spacer(),
+          SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(
+              color: Colors.blue,
+              strokeWidth: 2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build description input field
+  Widget _buildDescriptionField() {
+    return TextFormField(
+      controller: _descriptionController,
+      maxLines: 5,
+      style: const TextStyle(color: Colors.black87),
+      decoration: _buildInputDecoration('الوصف', alignLabelWithHint: true),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'يرجى إدخال الوصف';
+        }
+        return null;
+      },
+    );
+  }
+
+  /// Build update button
+  Widget _buildUpdateButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: _isUpdating ? null : _updateAd,
+        style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
+          elevation: 2,
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _titleController,
-                style: TextStyle(color: Colors.black87),
-                decoration: InputDecoration(
-                  labelText: 'عنوان الإعلان',
-                  labelStyle: TextStyle(color: Colors.black87),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[300]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[300]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'يرجى إدخال عنوان الإعلان';
-                  }
-                  return null;
-                },
+        child: _isUpdating
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text(
+                'حفظ التعديلات',
+                style: TextStyle(fontSize: 16),
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _priceController,
-                keyboardType: TextInputType.number,
-                style: TextStyle(color: Colors.black87),
-                decoration: InputDecoration(
-                  labelText: 'السعر',
-                  labelStyle: TextStyle(color: Colors.black87),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[300]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[300]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'يرجى إدخال السعر';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              _isLoadingCurrencies
-                  ? Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.blue[300]!),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Text('العملة', style: TextStyle(color: Colors.black87)),
-                          Spacer(),
-                          SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.blue,
-                              strokeWidth: 2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : DropdownButtonFormField<Map<String, dynamic>>(
-                      value: selectedCurrency,
-                      decoration: InputDecoration(
-                        labelText: 'العملة',
-                        labelStyle: TextStyle(color: Colors.black87),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blue[300]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blue[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-                        ),
-                      ),
-                      items: currencies
-                          .map((currency) => DropdownMenuItem(
-                        value: currency,
-                        child: Text(currency['name'], style: TextStyle(color: Colors.black87)),
-                      ))
-                          .toList(),
-                      onChanged: (val) => setState(() => selectedCurrency = val),
-                    ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                maxLines: 5,
-                style: TextStyle(color: Colors.black87),
-                decoration: InputDecoration(
-                  labelText: 'الوصف',
-                  labelStyle: TextStyle(color: Colors.black87),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[300]!),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[300]!),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-                  ),
-                  alignLabelWithHint: true,
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'يرجى إدخال الوصف';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isUpdating ? null : _updateAd,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[700],
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                  ),
-                  child: _isUpdating
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('حفظ التعديلات', style: TextStyle(fontSize: 16)),
-                ),
-              ),
-            ],
-          ),
-        ),
+      ),
+    );
+  }
+
+  // ========== Helper Methods ==========
+
+  /// Build consistent input decoration for form fields
+  InputDecoration _buildInputDecoration(
+    String labelText, {
+    bool alignLabelWithHint = false,
+  }) {
+    return InputDecoration(
+      labelText: labelText,
+      labelStyle: const TextStyle(color: Colors.black87),
+      alignLabelWithHint: alignLabelWithHint,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blue[300]!),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blue[300]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
       ),
     );
   }
