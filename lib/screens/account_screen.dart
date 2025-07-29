@@ -43,7 +43,6 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   // Basic state
   bool _isConnected = true;
-  bool _isLoading = false;
   File? _newProfileImage;
   
   // Controllers
@@ -108,7 +107,8 @@ class _AccountScreenState extends State<AccountScreen> {
   Future<void> _updateProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    // Show uploading dialog
+    _showUploadingDialog();
 
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -133,7 +133,7 @@ class _AccountScreenState extends State<AccountScreen> {
       }
 
       final response = await http.put(
-        Uri.parse('https://sahbo-app-api.onrender.com/api/user/update-name'),
+        Uri.parse('https://sahbo-app-api.onrender.com/api/user/update-info'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token'
@@ -141,20 +141,25 @@ class _AccountScreenState extends State<AccountScreen> {
         body: jsonEncode(data),
       );
 
+      // Close uploading dialog
+      Navigator.of(context).pop();
+
       if (response.statusCode == 200) {
+        // Close the edit dialog as well
+        Navigator.of(context).pop();
         _showMessage('لقد تم تغير البيانات بنجاح لملاحظة التغييرات اعد تسجيل الدخول', Colors.green);
       } else {
         _showMessage('حدث خطأ', Colors.red);
       }
     } catch (e) {
+      // Close uploading dialog
+      Navigator.of(context).pop();
       _showMessage('خطأ في الاتصال', Colors.red);
     }
-
-    setState(() => _isLoading = false);
   }
 
   // Simple message with OK button for success
-  void _showMessage(String message, Color color) {
+  void _showMessage(String message, Color color, {bool navigateToHome = false}) {
     if (color == Colors.green) {
       // Show dialog for success message
       showDialog(
@@ -166,7 +171,16 @@ class _AccountScreenState extends State<AccountScreen> {
             content: Text(message),
             actions: [
               ElevatedButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  Navigator.pop(context);
+                  if (navigateToHome) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HomeScreen()),
+                      (route) => false,
+                    );
+                  }
+                },
                 child: const Text('موافق'),
               ),
             ],
@@ -181,8 +195,71 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
+  // Show uploading dialog
+  void _showUploadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(color: Colors.blue),
+              const SizedBox(height: 20),
+              const Text(
+                'جارٍ تحديث البيانات...',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'يرجى الانتظار حتى يتم إرسال البيانات',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Show deleting dialog
+  void _showDeletingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(color: Colors.red),
+              const SizedBox(height: 20),
+              const Text(
+                'جارٍ حذف الحساب...',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'يرجى الانتظار حتى يتم حذف الحساب',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // Simple delete account
   Future<void> _deleteAccount() async {
+    // Show uploading dialog
+    _showDeletingDialog();
+
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
     
@@ -196,23 +273,23 @@ class _AccountScreenState extends State<AccountScreen> {
         body: jsonEncode({'userId': widget.userId}),
       );
       
+      // Close uploading dialog
+      Navigator.of(context).pop();
+      
       if (response.statusCode == 200) {
         await prefs.clear();
-        _showMessage('تم حذف الحساب بنجاح', Colors.green);
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-          (route) => false,
-        );
+        _showMessage('تم حذف الحساب', Colors.green, navigateToHome: true);
       } else {
         _showMessage('حدث خطأ في حذف الحساب', Colors.red);
       }
     } catch (e) {
+      // Close uploading dialog
+      Navigator.of(context).pop();
       _showMessage('خطأ في الاتصال', Colors.red);
     }
   }
 
-  // Simple edit dialog
+  // Simple edit dialog with keyboard handling
   void _showEditDialog() {
     final names = widget.userName.split(' ');
     _firstNameController.text = names.isNotEmpty ? names.first : '';
@@ -223,113 +300,180 @@ class _AccountScreenState extends State<AccountScreen> {
       builder: (context) => Directionality(
         textDirection: TextDirection.rtl,
         child: StatefulBuilder(
-          builder: (context, setDialogState) => AlertDialog(
-            title: const Text('تعديل الملف الشخصي'),
-            content: Form(
-              key: _formKey,
+          builder: (context, setDialogState) => Dialog(
+            insetPadding: const EdgeInsets.all(16),
+            child: Container(
+              width: double.maxFinite,
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Simple image section
-                  GestureDetector(
-                    onTap: () {
-                      _pickImage().then((_) => setDialogState(() {}));
-                    },
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.blue, width: 2),
-                        color: Colors.grey[100],
-                      ),
-                      child: ClipOval(
-                        child: _getAvatarImage() != null
-                            ? Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  Image(image: _getAvatarImage()!, fit: BoxFit.cover),
-                                  if (_newProfileImage != null)
-                                    Positioned(
-                                      top: 5,
-                                      right: 5,
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          setDialogState(() {
-                                            _newProfileImage = null;
-                                          });
-                                        },
-                                        child: Container(
-                                          width: 20,
-                                          height: 20,
-                                          decoration: const BoxDecoration(
-                                            color: Colors.red,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: const Icon(
-                                            Icons.close,
-                                            color: Colors.white,
-                                            size: 12,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              )
-                            : const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.add_a_photo, size: 30, color: Colors.blue),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'اضغط لاختيار صورة',
-                                    style: TextStyle(fontSize: 10, color: Colors.blue),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
+                  // Dialog title
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[50],
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
                       ),
                     ),
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'تعديل الملف الشخصي',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 16),
                   
-                  // Simple name fields
-                  TextFormField(
-                    controller: _firstNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'الاسم الأول',
-                      border: OutlineInputBorder(),
+                  // Scrollable content
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            // Simple image section
+                            GestureDetector(
+                              onTap: () {
+                                _pickImage().then((_) => setDialogState(() {}));
+                              },
+                              child: Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.blue, width: 2),
+                                  color: Colors.grey[100],
+                                ),
+                                child: ClipOval(
+                                  child: _getAvatarImage() != null
+                                      ? Stack(
+                                          fit: StackFit.expand,
+                                          children: [
+                                            Image(image: _getAvatarImage()!, fit: BoxFit.cover),
+                                            if (_newProfileImage != null)
+                                              Positioned(
+                                                top: 5,
+                                                right: 5,
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    setDialogState(() {
+                                                      _newProfileImage = null;
+                                                    });
+                                                  },
+                                                  child: Container(
+                                                    width: 20,
+                                                    height: 20,
+                                                    decoration: const BoxDecoration(
+                                                      color: Colors.red,
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                    child: const Icon(
+                                                      Icons.close,
+                                                      color: Colors.white,
+                                                      size: 12,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        )
+                                      : const Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.add_a_photo, size: 30, color: Colors.blue),
+                                            SizedBox(height: 4),
+                                            Text(
+                                              'اضغط لاختيار صورة',
+                                              style: TextStyle(fontSize: 10, color: Colors.blue),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            
+                            // Simple name fields
+                            TextFormField(
+                              controller: _firstNameController,
+                              decoration: const InputDecoration(
+                                labelText: 'الاسم الأول',
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              ),
+                              validator: (v) => v?.isEmpty == true ? 'مطلوب' : null,
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _lastNameController,
+                              decoration: const InputDecoration(
+                                labelText: 'الاسم الأخير',
+                                border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              ),
+                              validator: (v) => v?.isEmpty == true ? 'مطلوب' : null,
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      ),
                     ),
-                    validator: (v) => v?.isEmpty == true ? 'مطلوب' : null,
                   ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _lastNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'الاسم الأخير',
-                      border: OutlineInputBorder(),
+                  
+                  // Action buttons
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(12),
+                        bottomRight: Radius.circular(12),
+                      ),
                     ),
-                    validator: (v) => v?.isEmpty == true ? 'مطلوب' : null,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('إلغاء'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _updateProfile,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('حفظ'),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('إلغاء'),
-              ),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _updateProfile,
-                child: _isLoading 
-                    ? const SizedBox(
-                        width: 16, 
-                        height: 16, 
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('حفظ'),
-              ),
-            ],
           ),
         ),
       ),
@@ -389,6 +533,7 @@ class _AccountScreenState extends State<AccountScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         appBar: AppBar(
           title: const Text('حسابي'),
           backgroundColor: Colors.blue[700],
@@ -432,110 +577,109 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(16),
                     child: widget.isLoggedIn
                         ? Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Row(
-                                children: [
-                                  // Enhanced Avatar with border and shadow
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.white,
-                                        width: 2,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.2),
-                                          spreadRadius: 1,
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 2),
+                              // Main content: Profile image, separator, and user info
+                              IntrinsicHeight(
+                                child: Row(
+                                  children: [
+                                    // Profile image on the right
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 3,
                                         ),
-                                      ],
-                                    ),
-                                    child: CircleAvatar(
-                                      radius: 28,
-                                      backgroundColor: Colors.grey[100],
-                                      backgroundImage: _getAvatarImage(),
-                                      child: _getAvatarImage() == null 
-                                          ? const Icon(Icons.person, color: Colors.blue, size: 28)
-                                          : null,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 20),
-                                  // User info with enhanced styling
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          widget.userName,
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              '${widget.phoneNumber}',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.grey[700],
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        if (widget.userAccountNumber != null && widget.userAccountNumber!.isNotEmpty) ...[
-                                          const SizedBox(height: 4),
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: Text(
-                                                  widget.userAccountNumber!,
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey[600],
-                                                    fontWeight: FontWeight.w400,
-                                                  ),
-                                                  overflow: TextOverflow.ellipsis,
-                                                  maxLines: 1,
-                                                ),
-                                              ),
-                                            ],
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.2),
+                                            spreadRadius: 2,
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 3),
                                           ),
                                         ],
-                                      ],
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: MediaQuery.of(context).size.width * 0.12, // Responsive radius
+                                        backgroundColor: Colors.grey[100],
+                                        backgroundImage: _getAvatarImage(),
+                                        child: _getAvatarImage() == null 
+                                            ? Icon(
+                                                Icons.person, 
+                                                color: Colors.blue, 
+                                                size: MediaQuery.of(context).size.width * 0.1, // Responsive icon size
+                                              )
+                                            : null,
+                                      ),
                                     ),
-                                  ),
-                                  // Action buttons on the left side without borders
-                                  Column(
-                                    children: [
-                                      // Edit button
-                                      IconButton(
-                                        onPressed: _showEditDialog,
-                                        icon: const Icon(Icons.edit, color: Colors.blue, size: 28),
-                                        tooltip: 'تعديل الملف الشخصي',
-                                        padding: const EdgeInsets.all(8),
-                                        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                                    
+                                    const SizedBox(width: 16),
+                                    
+                                    // Vertical separator
+                                    Container(
+                                      width: 2,
+                                      height: double.infinity,
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue[300]!.withOpacity(0.5),
+                                        borderRadius: BorderRadius.circular(1),
                                       ),
-                                      const SizedBox(height: 12),
-                                      // Delete button
-                                      IconButton(
-                                        onPressed: _showDeleteDialog,
-                                        icon: const Icon(Icons.delete_outline, color: Colors.red, size: 28),
-                                        tooltip: 'حذف الحساب',
-                                        padding: const EdgeInsets.all(8),
-                                        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                                    ),
+                                    
+                                    const SizedBox(width: 16),
+                                    
+                                    // User information column (expandable)
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          // Username
+                                          Text(
+                                            widget.userName,
+                                            style: TextStyle(
+                                              fontSize: MediaQuery.of(context).size.width * 0.045, // Responsive font size
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black87,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          
+                                          const SizedBox(height: 8),
+                                          
+                                          // Phone number
+                                          Text(
+                                            widget.phoneNumber,
+                                            style: TextStyle(
+                                              fontSize: MediaQuery.of(context).size.width * 0.035, // Responsive font size
+                                              color: Colors.black.withOpacity(0.7),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          
+                                          // Account number if available
+                                          if (widget.userAccountNumber != null && widget.userAccountNumber!.isNotEmpty) ...[
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              widget.userAccountNumber!,
+                                              style: TextStyle(
+                                                fontSize: MediaQuery.of(context).size.width * 0.032, // Responsive font size
+                                                color: Colors.black.withOpacity(0.6),
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           )
@@ -603,6 +747,50 @@ class _AccountScreenState extends State<AccountScreen> {
               
               const SizedBox(height: 16),
               
+              // Edit and Delete buttons (only for logged in users)
+              if (widget.isLoggedIn) ...[
+                Row(
+                  children: [
+                    // Edit button
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 4.0),
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onPressed: _showEditDialog,
+                          icon: const Icon(Icons.edit),
+                          label: const Text('تعديل الملف الشخصي'),
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(width: 8), // Spacing between buttons
+                    
+                    // Delete button
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 4.0),
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onPressed: _showDeleteDialog,
+                          icon: const Icon(Icons.delete_outline),
+                          label: const Text('حذف الحساب'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+              
               // Menu items
               Card(
                 elevation: 2,
@@ -641,14 +829,13 @@ class _AccountScreenState extends State<AccountScreen> {
                 ),
               ),
               
-              const Spacer(),
-              
               // Auth button
+              const Spacer(),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: widget.isLoggedIn ? Colors.red : Colors.blue,
+                    backgroundColor: widget.isLoggedIn ? Colors.orange : Colors.blue,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
