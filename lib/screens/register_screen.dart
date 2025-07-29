@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:syria_market/screens/login_screen.dart';
 
 /// User registration screen with form validation and country selection
@@ -31,6 +34,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _showConfirmPassword = false;
   bool _isLoading = false;
   Map<String, String>? _selectedCountry;
+  File? _profileImage;
+  final ImagePicker _picker = ImagePicker();
 
   // ========== Country Data ==========
   static const List<Map<String, String>> _countries = [
@@ -78,6 +83,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  // ========== Profile Image Methods ==========
+
+  /// Pick profile image from gallery
+  Future<void> _pickProfileImage() async {
+    try {
+      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
+        setState(() {
+          _profileImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      _showErrorMessage('حدث خطأ أثناء اختيار الصورة');
+    }
+  }
+
+  /// Remove selected profile image
+  void _removeProfileImage() {
+    setState(() {
+      _profileImage = null;
+    });
+  }
+
+  /// Compress profile image to base64
+  Future<String?> _compressProfileImage() async {
+    if (_profileImage == null) return null;
+    
+    try {
+      final compressedBytes = await FlutterImageCompress.compressWithFile(
+        _profileImage!.path,
+        quality: 70,
+        format: CompressFormat.jpeg,
+      );
+      
+      if (compressedBytes != null) {
+        return base64Encode(compressedBytes);
+      }
+    } catch (e) {
+      debugPrint('Image compression error: $e');
+    }
+    return null;
+  }
+
   // ========== Registration Logic ==========
 
   /// Handle user registration process
@@ -111,16 +159,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// Perform the actual registration API call
   Future<void> _performRegistration() async {
     final String fullPhoneNumber = _buildFullPhoneNumber();
+    final String? profileImageBase64 = await _compressProfileImage();
     
+    final requestBody = {
+      'phoneNumber': fullPhoneNumber,
+      'firstName': _firstNameController.text.trim(),
+      'lastName': _lastNameController.text.trim(),
+      'password': _passwordController.text,
+    };
+
+    // Add profile image if selected
+    if (profileImageBase64 != null) {
+      requestBody['profileImage'] = profileImageBase64;
+    }
     final response = await http.post(
       Uri.parse(_registerApiUrl),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'phoneNumber': fullPhoneNumber,
-        'firstName': _firstNameController.text.trim(),
-        'lastName': _lastNameController.text.trim(),
-        'password': _passwordController.text,
-      }),
+      body: jsonEncode(requestBody),
     );
 
     await _handleRegistrationResponse(response);
@@ -340,6 +395,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
+            _buildProfileImageSection(),
+            const SizedBox(height: 20),
             _buildCountryDropdown(),
             const SizedBox(height: 16),
             _buildPhoneNumberField(),
@@ -488,6 +545,95 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   // ========== Helper Widget Methods ==========
+
+  /// Build profile image selection section
+  Widget _buildProfileImageSection() {
+    return Column(
+      children: [
+        const Text(
+          'صورة الملف الشخصي',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 16),
+        GestureDetector(
+          onTap: _pickProfileImage,
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.blue[300]!,
+                width: 2,
+              ),
+              color: Colors.grey[100],
+            ),
+            child: _profileImage != null
+                ? Stack(
+                    children: [
+                      ClipOval(
+                        child: Image.file(
+                          _profileImage!,
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: _removeProfileImage,
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.camera_alt,
+                        size: 40,
+                        color: Colors.blue[600],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'إضافة صورة',
+                        style: TextStyle(
+                          color: Colors.blue[600],
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'اختيارية',
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
 
   /// Build a reusable text field with consistent styling
   Widget _buildTextField({

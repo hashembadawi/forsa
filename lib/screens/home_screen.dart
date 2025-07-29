@@ -50,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   late ScrollController _adsScrollController;
   String? _username;
+  String? _userProfileImage;
   
   // ========== Connectivity State ==========
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
@@ -141,7 +142,10 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       debugPrint('Error checking login status: $e');
-      setState(() => _username = null);
+      setState(() {
+        _username = null;
+        _userProfileImage = null;
+      });
     }
   }
 
@@ -159,16 +163,25 @@ class _HomeScreenState extends State<HomeScreen> {
       if (response.statusCode == 200) {
         setState(() {
           _username = prefs.getString('userName') ?? 'مستخدم';
+          // Try different possible keys for profile image
+          _userProfileImage = prefs.getString('profileImage') ?? 
+                             prefs.getString('userProfileImage');
         });
       } else {
         await prefs.clear();
-        setState(() => _username = null);
+        setState(() {
+          _username = null;
+          _userProfileImage = null;
+        });
       }
     } catch (e) {
       if (!rememberMe) {
         await prefs.clear();
       }
-      setState(() => _username = null);
+      setState(() {
+        _username = null;
+        _userProfileImage = null;
+      });
     }
   }
 
@@ -177,7 +190,34 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!rememberMe) {
       prefs.clear();
     }
-    setState(() => _username = null);
+    setState(() {
+      _username = null;
+      _userProfileImage = null;
+    });
+  }
+
+  /// Refresh user data from SharedPreferences
+  Future<void> _refreshUserData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      
+      if (token != null && token.isNotEmpty) {
+        setState(() {
+          _username = prefs.getString('userName') ?? 'مستخدم';
+          // Try different possible keys for profile image
+          _userProfileImage = prefs.getString('profileImage') ?? 
+                             prefs.getString('userProfileImage');
+        });
+      } else {
+        setState(() {
+          _username = null;
+          _userProfileImage = null;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error refreshing user data: $e');
+    }
   }
 
   /// Fetch all advertisements
@@ -950,7 +990,19 @@ class _HomeScreenState extends State<HomeScreen> {
             CircleAvatar(
               radius: 32,
               backgroundColor: Colors.white,
-              child: Icon(Icons.person, size: 32, color: Colors.blue[700]),
+              child: _userProfileImage != null && _userProfileImage!.isNotEmpty
+                  ? ClipOval(
+                      child: Image.memory(
+                        base64Decode(_userProfileImage!),
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(Icons.person, size: 32, color: Colors.blue[700]);
+                        },
+                      ),
+                    )
+                  : Icon(Icons.person, size: 32, color: Colors.blue[700]),
             ),
             const SizedBox(height: 12),
             Text(
@@ -993,11 +1045,16 @@ class _HomeScreenState extends State<HomeScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
+      ).then((_) {
+        // Refresh user data when returning from login
+        _refreshUserData();
+      });
     } else {
       final username = prefs.getString('userName') ?? '';
       final email = prefs.getString('userEmail') ?? '';
       final phone = prefs.getString('userPhone') ?? '';
+      final userId = prefs.getString('userId') ?? '';
+      final userAccountNumber = prefs.getString('userAccountNumber') ?? '';
 
       Navigator.push(
         context,
@@ -1007,9 +1064,15 @@ class _HomeScreenState extends State<HomeScreen> {
             userName: username,
             userEmail: email,
             phoneNumber: phone,
+            userId: userId,
+            userProfileImage: _userProfileImage,
+            userAccountNumber: userAccountNumber,
           ),
         ),
-      );
+      ).then((_) {
+        // Refresh user data when returning from account screen
+        _refreshUserData();
+      });
     }
   }
 

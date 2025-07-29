@@ -167,6 +167,8 @@ class _LoginScreenState extends State<LoginScreen> {
       prefs.setString('userEmail', userData['userEmail'] ?? ''),
       prefs.setString('userId', userData['userId'] ?? ''),
       prefs.setString('userPhone', userData['userPhone'] ?? ''),
+      prefs.setString('userProfileImage', userData['userProfileImage'] ?? ''),
+      prefs.setString('userAccountNumber', userData['userAccountNumber'] ?? ''),
     ]);
   }
 
