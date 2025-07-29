@@ -463,163 +463,184 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Show location filter dialog
   Future<void> _showLocationFilterDialog() async {
-    Map<String, dynamic>? tempSelectedProvince;
-    Map<String, dynamic>? tempSelectedArea;
+    // Initialize with current values
+    Map<String, dynamic>? tempSelectedProvince = _selectedCityId != null 
+        ? _provinces.where((p) => p['id'] == _selectedCityId).isNotEmpty
+          ? _provinces.firstWhere((p) => p['id'] == _selectedCityId)
+          : null
+        : null;
+    
+    Map<String, dynamic>? tempSelectedArea = _selectedRegionId != null 
+        ? _majorAreas.where((a) => a['id'] == _selectedRegionId).isNotEmpty
+          ? _majorAreas.firstWhere((a) => a['id'] == _selectedRegionId)
+          : null
+        : null;
+    
     List<Map<String, dynamic>> filteredAreas = [];
+    
+    // Initialize filtered areas if province is selected
+    if (tempSelectedProvince != null) {
+      filteredAreas.addAll(
+        _majorAreas.where((area) => area['ProvinceId'] == tempSelectedProvince!['id']).toList(),
+      );
+    }
 
     await showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setStateDialog) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
-          ),
-          backgroundColor: Colors.white,
-          title: const Text(
-            'تصفية حسب الموقع',
-            style: TextStyle(
-              color: Color(0xFF1E4A47),
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
+        builder: (context, setStateDialog) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: const BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
             ),
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildProvinceDropdown(tempSelectedProvince, setStateDialog, filteredAreas),
-                const SizedBox(height: 16),
-                _buildAreaDropdown(tempSelectedArea, filteredAreas, setStateDialog),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.grey[600],
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              ),
-              child: const Text(
-                'إلغاء',
-                style: TextStyle(fontWeight: FontWeight.w600),
+            backgroundColor: Colors.white,
+            title: const Text(
+              'تصفية حسب الموقع',
+              style: TextStyle(
+                color: Color(0xFF1E4A47),
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
               ),
             ),
-            ElevatedButton(
-              onPressed: () => _applyLocationFilter(tempSelectedProvince, tempSelectedArea),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF7A59),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Province Dropdown
+                  DropdownButtonFormField<Map<String, dynamic>>(
+                    value: tempSelectedProvince,
+                    isExpanded: true,
+                    decoration: _buildDropdownDecoration('اختر المحافظة', 15),
+                    dropdownColor: Colors.white,
+                    style: _buildDropdownTextStyle(),
+                    items: [
+                      const DropdownMenuItem<Map<String, dynamic>>(
+                        value: null,
+                        child: Text(
+                          'كل المحافظات',
+                          style: TextStyle(
+                            color: Color(0xFF1E4A47),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      ..._provinces.map((province) => DropdownMenuItem(
+                        value: province,
+                        child: Text(
+                          province['name'],
+                          style: const TextStyle(
+                            color: Color(0xFF1E4A47),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      )),
+                    ],
+                    onChanged: (value) {
+                      setStateDialog(() {
+                        tempSelectedProvince = value;
+                        tempSelectedArea = null; // Reset area selection when province changes
+                        filteredAreas.clear();
+                        if (value != null) {
+                          filteredAreas.addAll(
+                            _majorAreas.where((area) => area['ProvinceId'] == value['id']).toList(),
+                          );
+                        }
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // Area Dropdown
+                  DropdownButtonFormField<Map<String, dynamic>>(
+                    value: tempSelectedArea,
+                    isExpanded: true,
+                    decoration: _buildDropdownDecoration('اختر المدينة/المنطقة', 25),
+                    dropdownColor: Colors.white,
+                    style: _buildDropdownTextStyle(),
+                    items: [
+                      const DropdownMenuItem<Map<String, dynamic>>(
+                        value: null,
+                        child: Text(
+                          'كل المناطق',
+                          style: TextStyle(
+                            color: Color(0xFF1E4A47),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      ...filteredAreas.map((area) => DropdownMenuItem(
+                        value: area,
+                        child: Text(
+                          area['name'],
+                          style: const TextStyle(
+                            color: Color(0xFF1E4A47),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      )),
+                    ],
+                    onChanged: (value) {
+                      setStateDialog(() {
+                        tempSelectedArea = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.grey[600],
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
-                elevation: 2,
+                child: const Text(
+                  'إلغاء',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
-              child: const Text(
-                'تطبيق',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedCity = tempSelectedProvince?['name'] ?? _defaultCity;
+                    _selectedDistrict = tempSelectedArea?['name'] ?? _defaultDistrict;
+                    _selectedCityId = tempSelectedProvince?['id'];
+                    _selectedRegionId = tempSelectedArea?['id'];
+                    _resetAdsData();
+                  });
+                  
+                  Navigator.pop(context);
+                  
+                  if (_selectedCityId != null || _selectedRegionId != null) {
+                    _fetchFilteredAds(reset: true);
+                  } else {
+                    _fetchAllAds();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF7A59),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: const Text(
+                  'تطبيق',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
-    );
-  }
-
-  /// Build province dropdown
-  Widget _buildProvinceDropdown(
-    Map<String, dynamic>? tempSelectedProvince,
-    StateSetter setStateDialog,
-    List<Map<String, dynamic>> filteredAreas,
-  ) {
-    return DropdownButtonFormField<Map<String, dynamic>>(
-      value: tempSelectedProvince,
-      isExpanded: true,
-      decoration: _buildDropdownDecoration('اختر المحافظة', 15),
-      dropdownColor: Colors.white,
-      style: _buildDropdownTextStyle(),
-      items: [
-        const DropdownMenuItem<Map<String, dynamic>>(
-          value: null,
-          child: Text(
-            'كل المحافظات',
-            style: TextStyle(
-              color: Color(0xFF1E4A47),
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        ..._provinces.map((province) => DropdownMenuItem(
-          value: province,
-          child: Text(
-            province['name'],
-            style: const TextStyle(
-              color: Color(0xFF1E4A47),
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        )),
-      ],
-      onChanged: (value) {
-        setStateDialog(() {
-          tempSelectedProvince = value;
-          filteredAreas.clear();
-          if (value != null) {
-            filteredAreas.addAll(
-              _majorAreas.where((area) => area['ProvinceId'] == value['id']).toList(),
-            );
-          }
-        });
-      },
-    );
-  }
-
-  /// Build area dropdown
-  Widget _buildAreaDropdown(
-    Map<String, dynamic>? tempSelectedArea,
-    List<Map<String, dynamic>> filteredAreas,
-    StateSetter setStateDialog,
-  ) {
-    return DropdownButtonFormField<Map<String, dynamic>>(
-      value: tempSelectedArea,
-      isExpanded: true,
-      decoration: _buildDropdownDecoration('اختر المدينة/المنطقة', 25),
-      dropdownColor: Colors.white,
-      style: _buildDropdownTextStyle(),
-      items: [
-        const DropdownMenuItem<Map<String, dynamic>>(
-          value: null,
-          child: Text(
-            'كل المناطق',
-            style: TextStyle(
-              color: Color(0xFF1E4A47),
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        ...filteredAreas.map((area) => DropdownMenuItem(
-          value: area,
-          child: Text(
-            area['name'],
-            style: const TextStyle(
-              color: Color(0xFF1E4A47),
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        )),
-      ],
-      onChanged: (value) {
-        setStateDialog(() {
-          tempSelectedArea = value;
-        });
-      },
     );
   }
 
@@ -653,28 +674,6 @@ class _HomeScreenState extends State<HomeScreen> {
       fontSize: 15,
       fontWeight: FontWeight.w500,
     );
-  }
-
-  /// Apply location filter
-  void _applyLocationFilter(
-    Map<String, dynamic>? tempSelectedProvince,
-    Map<String, dynamic>? tempSelectedArea,
-  ) {
-    setState(() {
-      _selectedCity = tempSelectedProvince?['name'] ?? _defaultCity;
-      _selectedDistrict = tempSelectedArea?['name'] ?? _defaultDistrict;
-      _selectedCityId = tempSelectedProvince?['id'];
-      _selectedRegionId = tempSelectedArea?['id'];
-      _resetAdsData();
-    });
-    
-    Navigator.pop(context);
-    
-    if (_selectedCityId != null || _selectedRegionId != null) {
-      _fetchFilteredAds(reset: true);
-    } else {
-      _fetchAllAds();
-    }
   }
 
   // ========== Widget Building Methods ==========
