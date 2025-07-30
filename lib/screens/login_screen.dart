@@ -6,6 +6,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:syria_market/utils/dialog_utils.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
+import 'verification_screen.dart';
 import 'my_ads_screen.dart';
 import 'add_ad_screen.dart';
 
@@ -71,12 +72,18 @@ class _LoginScreenState extends State<LoginScreen> {
   /// Validate login form
   bool _validateForm() {
     if (_phoneController.text.trim().isEmpty) {
-      _showError('يرجى إدخال رقم الهاتف');
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: 'يرجى إدخال رقم الهاتف',
+      );
       return false;
     }
     
     if (_passwordController.text.isEmpty) {
-      _showError('يرجى إدخال كلمة المرور');
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: 'يرجى إدخال كلمة المرور',
+      );
       return false;
     }
     
@@ -158,10 +165,33 @@ class _LoginScreenState extends State<LoginScreen> {
     DialogUtils.closeDialog(context); // Close loading dialog
 
     if (response.statusCode == 200 && responseData['token'] != null) {
+      // Check if user is verified
+      final isVerified = responseData['userIsVerified'] ?? false;
+      
+      if (!isVerified) {
+        final phoneNumber = responseData['userPhone'] ?? _formattedPhoneNumber;
+        DialogUtils.showConfirmationDialog(
+          context: context,
+          title: 'المستخدم غير مؤكد',
+          message: 'يرجى تأكيد رقم الهاتف أولاً. هل تريد الذهاب إلى صفحة التحقق؟',
+          confirmText: 'نعم، تأكيد الآن',
+          cancelText: 'إلغاء',
+          onConfirm: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => VerificationScreen(phoneNumber: phoneNumber),
+              ),
+            );
+          },
+        );
+        return;
+      }
+      
       await _saveUserData(responseData);
       await _navigateAfterLogin();
     } else {
-      final errorMessage = 'حدث خطأ أثناء تسجيل الدخول';
+      final errorMessage = responseData['message'] ?? 'حدث خطأ أثناء تسجيل الدخول';
       DialogUtils.showErrorDialog(
         context: context,
         message: errorMessage,
@@ -182,6 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
       prefs.setString('userPhone', userData['userPhone'] ?? ''),
       prefs.setString('userProfileImage', userData['userProfileImage'] ?? ''),
       prefs.setString('userAccountNumber', userData['userAccountNumber'] ?? ''),
+      prefs.setBool('userIsVerified', userData['userIsVerified'] ?? false),
     ]);
   }
 
@@ -224,38 +255,11 @@ class _LoginScreenState extends State<LoginScreen> {
     );
     
     if (result == true) {
-      _showSuccessMessage('تم إنشاء الحساب، يمكنك تسجيل الدخول الآن');
+      DialogUtils.showSuccessDialog(
+        context: context,
+        message: 'تم إنشاء الحساب، يمكنك تسجيل الدخول الآن',
+      );
     }
-  }
-
-  // ========== UI Feedback Methods ==========
-
-  /// Show error message
-  void _showError(String message) {
-    if (!mounted) return;
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: const Color(0xFFFF7A59),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-  }
-
-  /// Show success message
-  void _showSuccessMessage(String message) {
-    if (!mounted) return;
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
   }
 
   // ========== Widget Building Methods ==========

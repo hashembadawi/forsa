@@ -23,10 +23,18 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   /// Validate verification form
   bool _validateForm() {
-    if (_codeController.text.trim().isEmpty) {
+    String code = _codeController.text.trim();
+    if (code.isEmpty) {
       DialogUtils.showErrorDialog(
         context: context,
         message: 'يرجى إدخال رمز التحقق',
+      );
+      return false;
+    }
+    if (code.length != 4) {
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: 'يرجى إدخال رمز التحقق المكون من 4 أرقام',
       );
       return false;
     }
@@ -93,7 +101,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
   /// Build main app bar
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text('تأكيد رقم الهاتف'),
+      title: const Text(
+        'تأكيد رقم الهاتف',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
       centerTitle: true,
       backgroundColor: Colors.blue[700],
       foregroundColor: Colors.white,
@@ -108,58 +119,90 @@ class _VerificationScreenState extends State<VerificationScreen> {
   /// Build main body content
   Widget _buildBody() {
     return Container(
-      decoration: const BoxDecoration(color: Colors.white),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      color: Colors.white,
       child: SingleChildScrollView(
         padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 16,
           bottom: MediaQuery.of(context).viewInsets.bottom + 16,
         ),
         child: Column(
           children: [
-            const SizedBox(height: 32),
-            _buildVerificationForm(),
-            const SizedBox(height: 24),
-            _buildInfoSection(),
+            _buildVerificationContainer(),
           ],
         ),
       ),
     );
   }
 
-  /// Build verification form container
-  Widget _buildVerificationForm() {
-    return Container(
-      decoration: _buildFormDecoration(),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _buildPhoneNumberDisplay(),
-            const SizedBox(height: 16),
-            _buildInstructionText(),
-            const SizedBox(height: 20),
-            _buildCodeField(),
-            const SizedBox(height: 20),
-            _buildVerifyButton(),
-          ],
+  /// Build the main verification container
+  Widget _buildVerificationContainer() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header Section
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.blue[600],
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.verified_user,
+                color: Colors.white,
+                size: 32,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'أدخل رمز التحقق المرسل إلى واتساب',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.9),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
-
-  /// Build form decoration
-  BoxDecoration _buildFormDecoration() {
-    return BoxDecoration(
-      borderRadius: BorderRadius.circular(18),
-      color: Colors.white,
-      border: Border.all(color: Colors.blue[300]!, width: 1.5),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.blue[200]!.withOpacity(0.3),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
+        // Verification Content
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(20),
+              bottomRight: Radius.circular(20),
+            ),
+            border: Border.all(
+              color: Colors.blue[300]!,
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue[200]!.withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildPhoneNumberDisplay(),
+                const SizedBox(height: 20),
+                _buildCodeField(),
+                const SizedBox(height: 20),
+                _buildVerifyButton(),
+              ],
+            ),
+          ),
         ),
       ],
     );
@@ -168,183 +211,135 @@ class _VerificationScreenState extends State<VerificationScreen> {
   /// Build phone number display
   Widget _buildPhoneNumberDisplay() {
     return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue[200]!),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.phone, color: Colors.blue[600], size: 20),
-          const SizedBox(width: 8),
-          Text(
-            'رقم الهاتف: ${widget.phoneNumber}',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[700],
-            ),
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Text(
+          'رقم الهاتف: ${widget.phoneNumber}',
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+            fontSize: 15,
           ),
-        ],
+        ),
       ),
-    );
-  }
-
-  /// Build instruction text
-  Widget _buildInstructionText() {
-    return Text(
-      'أدخل رمز التحقق المرسل إلى واتساب',
-      style: TextStyle(
-        fontSize: 16,
-        color: Colors.grey[700],
-        fontWeight: FontWeight.w500,
-      ),
-      textAlign: TextAlign.center,
     );
   }
 
   /// Build verification code field
   Widget _buildCodeField() {
-    return TextField(
-      controller: _codeController,
-      keyboardType: TextInputType.number,
-      textAlign: TextAlign.center,
-      onSubmitted: (_) => verifyCode(),
-      decoration: _buildInputDecoration(
-        labelText: 'رمز التحقق',
-        prefixIcon: Icons.verified_user,
-        helperText: 'أدخل الرمز المكون من 6 أرقام',
-      ),
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        letterSpacing: 2,
-      ),
-    );
-  }
-
-  /// Build input field decoration
-  InputDecoration _buildInputDecoration({
-    required String labelText,
-    required IconData prefixIcon,
-    String? helperText,
-  }) {
-    return InputDecoration(
-      labelText: labelText,
-      labelStyle: const TextStyle(color: Colors.black87),
-      filled: true,
-      fillColor: Colors.white,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.blue[300]!),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.blue[300]!),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
-      ),
-      prefixIcon: Icon(prefixIcon, color: Colors.blue[600]),
-      helperText: helperText,
-      helperStyle: TextStyle(
-        color: Colors.blue[600],
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
-
-  /// Build verify button
-  Widget _buildVerifyButton() {
-    return ElevatedButton(
-      onPressed: verifyCode,
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size(double.infinity, 50),
-        backgroundColor: Colors.blue[700],
-        foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        elevation: 2,
-      ),
-      child: const Text(
-        'تأكيد رمز التحقق',
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
-  /// Build info section
-  Widget _buildInfoSection() {
     return Container(
-      decoration: _buildInfoDecoration(),
+      width: double.infinity,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoIcon(),
+            const Text(
+              'رمز التحقق',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+                fontSize: 15,
+              ),
+            ),
             const SizedBox(height: 12),
-            _buildInfoTitle(),
-            const SizedBox(height: 8),
-            _buildInfoSubtitle(),
+            TextField(
+              controller: _codeController,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              maxLength: 4,
+              onSubmitted: (_) => verifyCode(),
+              decoration: InputDecoration(
+                hintText: 'أدخل رمز التحقق (4 أرقام)',
+                hintStyle: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 14,
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.blue[200]!),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.blue[200]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                counterText: '', // Hide the character counter
+              ),
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  /// Build info section decoration
-  BoxDecoration _buildInfoDecoration() {
-    return BoxDecoration(
-      borderRadius: BorderRadius.circular(16),
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Colors.blue[50]!, Colors.white],
-      ),
-      border: Border.all(color: Colors.blue[200]!, width: 1.5),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.blue[100]!.withOpacity(0.3),
-          blurRadius: 8,
-          offset: const Offset(0, 3),
+  /// Build verify button
+  Widget _buildVerifyButton() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.blue[600]!, Colors.blue[700]!],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-      ],
-    );
-  }
-
-  /// Build info icon
-  Widget _buildInfoIcon() {
-    return Icon(
-      Icons.info_outline,
-      size: 32,
-      color: Colors.blue[600],
-    );
-  }
-
-  /// Build info title
-  Widget _buildInfoTitle() {
-    return const Text(
-      'معلومة مهمة',
-      style: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue[300]!.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-    );
-  }
-
-  /// Build info subtitle
-  Widget _buildInfoSubtitle() {
-    return Text(
-      'بعد التحقق بنجاح سيتم توجيهك لتسجيل الدخول',
-      style: TextStyle(
-        fontSize: 14,
-        color: Colors.grey[600],
+      child: ElevatedButton(
+        onPressed: verifyCode,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          shadowColor: Colors.transparent,
+          minimumSize: const Size(double.infinity, 50),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.verified_user,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'تأكيد رمز التحقق',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
       ),
-      textAlign: TextAlign.center,
     );
   }
 
