@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:syria_market/utils/dialog_utils.dart';
 
 /// Screen for editing existing advertisements
 class EditAdScreen extends StatefulWidget {
@@ -37,7 +38,6 @@ class _EditAdScreenState extends State<EditAdScreen> {
   late TextEditingController _descriptionController;
 
   // ========== State Variables ==========
-  bool _isUpdating = false;
   bool _isLoadingCurrencies = true;
   
   // ========== Currency Data ==========
@@ -172,21 +172,30 @@ class _EditAdScreenState extends State<EditAdScreen> {
     if (!_validateForm()) return;
 
     if (!await _checkInternetConnectivity()) {
-      _showNoInternetDialog();
+      DialogUtils.showNoInternetDialog(
+        context: context,
+        onRetry: () => _updateAd(),
+      );
       return;
     }
 
-    setState(() => _isUpdating = true);
+    // Show loading dialog
+    DialogUtils.showLoadingDialog(
+      context: context,
+      title: 'جارٍ تحديث الإعلان...',
+      message: 'يرجى الانتظار',
+    );
 
     try {
       await _performUpdateRequest();
     } catch (e) {
+      // Close loading dialog
+      DialogUtils.closeDialog(context);
       debugPrint('Update ad error: $e');
-      _showErrorDialog('حدث خطأ في الاتصال بالخادم');
-    } finally {
-      if (mounted) {
-        setState(() => _isUpdating = false);
-      }
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: 'حدث خطأ في الاتصال بالخادم',
+      );
     }
   }
 
@@ -199,7 +208,10 @@ class _EditAdScreenState extends State<EditAdScreen> {
     ];
 
     if (fields.any((field) => field.isEmpty)) {
-      _showErrorDialog('يرجى ملء جميع الحقول المطلوبة');
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: 'يرجى ملء جميع الحقول المطلوبة',
+      );
       return false;
     }
 
@@ -247,11 +259,24 @@ class _EditAdScreenState extends State<EditAdScreen> {
 
   /// Handle update response
   Future<void> _handleUpdateResponse(http.Response response) async {
+    // Close loading dialog first
+    DialogUtils.closeDialog(context);
+    
     if (response.statusCode == 200) {
-      _showSuccessDialog();
+      DialogUtils.showSuccessDialog(
+        context: context,
+        message: 'تم تعديل الإعلان بنجاح',
+        onPressed: () {
+          Navigator.of(context).pop(); // Close success dialog
+          Navigator.of(context).pop(true); // Return to previous screen with success result
+        },
+      );
     } else {
       final errorMessage = _extractErrorMessage(response);
-      _showErrorDialog(errorMessage);
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: errorMessage,
+      );
     }
   }
 
@@ -263,120 +288,6 @@ class _EditAdScreenState extends State<EditAdScreen> {
     } catch (e) {
       return 'فشل في تحديث الإعلان: رمز الخطأ ${response.statusCode}';
     }
-  }
-
-  // ========== Dialog Methods ==========
-
-  /// Show success dialog after successful update
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        shape: _buildDialogShape(),
-        backgroundColor: Colors.white,
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 10),
-            Text('تم التحديث', style: TextStyle(color: Colors.black87)),
-          ],
-        ),
-        content: const Text(
-          'تم تعديل الإعلان بنجاح.',
-          style: TextStyle(color: Colors.black87),
-        ),
-        actions: [
-          TextButton(
-            onPressed: _handleSuccessDialogClose,
-            child: const Text('موافق', style: TextStyle(color: Colors.blue)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Handle success dialog close action
-  void _handleSuccessDialogClose() {
-    Navigator.of(context).pop(); // Close dialog
-    Navigator.of(context).pop(true); // Return to previous screen with success result
-  }
-
-  /// Show error dialog with message
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: _buildDialogShape(),
-        backgroundColor: Colors.white,
-        title: const Row(
-          children: [
-            Icon(Icons.error, color: Colors.red),
-            SizedBox(width: 10),
-            Text('خطأ', style: TextStyle(color: Colors.black87)),
-          ],
-        ),
-        content: Text(
-          message,
-          style: const TextStyle(color: Colors.black87),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إغلاق', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Show no internet connection dialog
-  void _showNoInternetDialog() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: _buildDialogShape(),
-        backgroundColor: Colors.white,
-        title: const Row(
-          children: [
-            Icon(Icons.wifi_off, color: Colors.orange),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'لا يوجد اتصال بالإنترنت',
-                style: TextStyle(color: Colors.black87),
-                overflow: TextOverflow.visible,
-              ),
-            ),
-          ],
-        ),
-        content: const Text(
-          'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى',
-          style: TextStyle(color: Colors.black87),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إغلاق', style: TextStyle(color: Colors.orange)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _updateAd();
-            },
-            child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.blue)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build consistent dialog shape
-  RoundedRectangleBorder _buildDialogShape() {
-    return RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(15),
-      side: BorderSide(color: Colors.blue[300]!, width: 1.5),
-    );
   }
 
   // ========== Widget Build Methods ==========
@@ -396,7 +307,12 @@ class _EditAdScreenState extends State<EditAdScreen> {
   /// Build the app bar
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text('تعديل الإعلان'),
+      title: const Text(
+        'تعديل الإعلان',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       centerTitle: true,
       backgroundColor: Colors.blue[700],
       foregroundColor: Colors.white,
@@ -550,7 +466,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
-        onPressed: _isUpdating ? null : _updateAd,
+        onPressed: _updateAd,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
@@ -559,12 +475,13 @@ class _EditAdScreenState extends State<EditAdScreen> {
           ),
           elevation: 2,
         ),
-        child: _isUpdating
-            ? const CircularProgressIndicator(color: Colors.white)
-            : const Text(
-                'حفظ التعديلات',
-                style: TextStyle(fontSize: 16),
-              ),
+        child: const Text(
+          'حفظ التغييرات',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }

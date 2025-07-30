@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syria_market/screens/update_ad_screen.dart';
 import 'package:syria_market/screens/home_screen.dart';
 import 'package:syria_market/screens/add_ad_screen.dart';
+import 'package:syria_market/utils/dialog_utils.dart';
 
 /// Screen displaying user's personal advertisements with edit and delete functionality
 class MyAdsScreen extends StatefulWidget {
@@ -63,7 +64,10 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
         await _fetchMyAds();
       }
     } catch (e) {
-      _showError('خطأ في تحميل البيانات');
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: 'خطأ في تحميل البيانات',
+      );
     }
   }
 
@@ -125,14 +129,20 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
   void _handleHttpError(http.Response response) {
     setState(() => _hasMoreAds = false);
     debugPrint('HTTP Error: ${response.statusCode} - ${response.body}');
-    _showError('خطأ في تحميل الإعلانات');
+    DialogUtils.showErrorDialog(
+      context: context,
+      message: 'خطأ في تحميل الإعلانات',
+    );
   }
 
   /// Handle fetch errors
   void _handleFetchError(dynamic error) {
     setState(() => _hasMoreAds = false);
     debugPrint('Fetch Exception: $error');
-    _showError('خطأ في الاتصال بالخادم');
+    DialogUtils.showErrorDialog(
+      context: context,
+      message: 'خطأ في الاتصال بالخادم',
+    );
   }
 
   /// Refresh ads list
@@ -159,18 +169,39 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
 
   /// Delete an advertisement
   Future<void> _deleteAd(String adId) async {
+    // Show loading dialog
+    DialogUtils.showLoadingDialog(
+      context: context,
+      title: 'جارٍ حذف الإعلان...',
+      message: 'يرجى الانتظار',
+    );
+
     try {
       final response = await _performDeleteRequest(adId);
       
+      // Close loading dialog
+      DialogUtils.closeDialog(context);
+      
       if (response.statusCode == 200) {
         _removeAdFromList(adId);
-        _showSuccessMessage('تم حذف الإعلان بنجاح');
+        DialogUtils.showSuccessDialog(
+          context: context,
+          message: 'تم حذف الإعلان بنجاح',
+        );
       } else {
-        _showError('فشل في حذف الإعلان');
+        DialogUtils.showErrorDialog(
+          context: context,
+          message: 'فشل في حذف الإعلان',
+        );
       }
     } catch (e) {
+      // Close loading dialog
+      DialogUtils.closeDialog(context);
       debugPrint('Delete Exception: $e');
-      _showError('حدث خطأ أثناء الحذف');
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: 'حدث خطأ أثناء الحذف',
+      );
     }
   }
 
@@ -193,75 +224,14 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
 
   /// Show delete confirmation dialog
   void _showDeleteConfirmation(String adId, String adTitle) {
-    showDialog(
+    DialogUtils.showConfirmationDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: Colors.blue[300]!, width: 1.5),
-        ),
-        backgroundColor: Colors.white,
-        title: Text(
-          'تأكيد الحذف',
-          style: TextStyle(
-            color: Colors.blue[700],
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'هل أنت متأكد أنك تريد حذف هذا الإعلان؟',
-              style: TextStyle(color: Colors.black87, fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '"$adTitle"',
-              style: TextStyle(
-                color: Colors.blue[700],
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.grey[600],
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-            child: const Text(
-              'إلغاء',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _deleteAd(adId);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE74C3C),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 2,
-            ),
-            child: const Text(
-              'حذف',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
+      title: 'تأكيد الحذف',
+      message: 'هل أنت متأكد أنك تريد حذف هذا الإعلان؟\n"$adTitle"',
+      confirmText: 'حذف',
+      cancelText: 'إلغاء',
+      confirmColor: const Color(0xFFE74C3C),
+      onConfirm: () => _deleteAd(adId),
     );
   }
 
@@ -300,36 +270,6 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const MultiStepAddAdScreen()),
-    );
-  }
-
-  // ========== UI Feedback ==========
-
-  /// Show error message
-  void _showError(String message) {
-    if (!mounted) return;
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-  }
-
-  /// Show success message
-  void _showSuccessMessage(String message) {
-    if (!mounted) return;
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
     );
   }
 
