@@ -15,6 +15,9 @@ import 'contact_us_screen.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 
+// Utils imports
+import '../utils/dialog_utils.dart';
+
 /// SIMPLIFIED VERSION - Much easier to understand and maintain
 class AccountScreen extends StatefulWidget {
   final String userName;
@@ -142,116 +145,64 @@ class _AccountScreenState extends State<AccountScreen> {
       );
 
       // Close uploading dialog
-      Navigator.of(context).pop();
+      DialogUtils.closeDialog(context);
 
       if (response.statusCode == 200) {
         // Close the edit dialog as well
-        Navigator.of(context).pop();
+        DialogUtils.closeDialog(context);
         _showMessage('لقد تم تغير البيانات بنجاح لملاحظة التغييرات اعد تسجيل الدخول', Colors.green);
       } else {
         _showMessage('حدث خطأ', Colors.red);
       }
     } catch (e) {
       // Close uploading dialog
-      Navigator.of(context).pop();
+      DialogUtils.closeDialog(context);
       _showMessage('خطأ في الاتصال', Colors.red);
     }
   }
 
-  // Simple message with OK button for success
+  // Simple message using DialogUtils
   void _showMessage(String message, Color color, {bool navigateToHome = false}) {
     if (color == Colors.green) {
-      // Show dialog for success message
-      showDialog(
+      // Show success dialog
+      DialogUtils.showSuccessDialog(
         context: context,
-        builder: (context) => Directionality(
-          textDirection: TextDirection.rtl,
-          child: AlertDialog(
-            title: const Text('نجح'),
-            content: Text(message),
-            actions: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  if (navigateToHome) {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const HomeScreen()),
-                      (route) => false,
-                    );
-                  }
-                },
-                child: const Text('موافق'),
-              ),
-            ],
-          ),
-        ),
+        message: message,
+        onPressed: () {
+          Navigator.pop(context);
+          if (navigateToHome) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const HomeScreen()),
+              (route) => false,
+            );
+          }
+        },
       );
     } else {
-      // Show snackbar for error messages
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: color),
+      // Show error dialog
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: message,
       );
     }
   }
 
-  // Show uploading dialog
+  // Show uploading dialog using DialogUtils
   void _showUploadingDialog() {
-    showDialog(
+    DialogUtils.showLoadingDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (_) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(color: Colors.blue),
-              const SizedBox(height: 20),
-              const Text(
-                'جارٍ تحديث البيانات...',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'يرجى الانتظار حتى يتم إرسال البيانات',
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-            ],
-          ),
-        ),
-      ),
+      title: 'جارٍ تحديث البيانات...',
+      message: 'يرجى الانتظار حتى يتم إرسال البيانات',
     );
   }
 
-  // Show deleting dialog
+  // Show deleting dialog using DialogUtils
   void _showDeletingDialog() {
-    showDialog(
+    DialogUtils.showLoadingDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (_) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(color: Colors.red),
-              const SizedBox(height: 20),
-              const Text(
-                'جارٍ حذف الحساب...',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'يرجى الانتظار حتى يتم حذف الحساب',
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-            ],
-          ),
-        ),
-      ),
+      title: 'جارٍ حذف الحساب...',
+      message: 'يرجى الانتظار حتى يتم حذف الحساب',
     );
   }
 
@@ -274,7 +225,7 @@ class _AccountScreenState extends State<AccountScreen> {
       );
       
       // Close uploading dialog
-      Navigator.of(context).pop();
+      DialogUtils.closeDialog(context);
       
       if (response.statusCode == 200) {
         await prefs.clear();
@@ -284,7 +235,7 @@ class _AccountScreenState extends State<AccountScreen> {
       }
     } catch (e) {
       // Close uploading dialog
-      Navigator.of(context).pop();
+      DialogUtils.closeDialog(context);
       _showMessage('خطأ في الاتصال', Colors.red);
     }
   }
@@ -302,10 +253,15 @@ class _AccountScreenState extends State<AccountScreen> {
         child: StatefulBuilder(
           builder: (context, setDialogState) => Dialog(
             insetPadding: const EdgeInsets.all(16),
+            backgroundColor: Colors.transparent,
             child: Container(
               width: double.maxFinite,
               constraints: BoxConstraints(
                 maxHeight: MediaQuery.of(context).size.height * 0.8,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -314,7 +270,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.blue[50],
+                      color: Colors.blue,
                       borderRadius: const BorderRadius.only(
                         topLeft: Radius.circular(12),
                         topRight: Radius.circular(12),
@@ -328,12 +284,13 @@ class _AccountScreenState extends State<AccountScreen> {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
                         ),
                         IconButton(
                           onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.close),
+                          icon: const Icon(Icons.close, color: Colors.white),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
@@ -443,7 +400,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.grey[50],
+                      color: Colors.white,
                       borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(12),
                         bottomRight: Radius.circular(12),
@@ -480,31 +437,16 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  // Simple delete dialog
+  // Simple delete dialog using DialogUtils
   void _showDeleteDialog() {
-    showDialog(
+    DialogUtils.showConfirmationDialog(
       context: context,
-      builder: (context) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          title: const Text('حذف الحساب'),
-          content: const Text('هل أنت متأكد من حذف حسابك؟ لا يمكن التراجع عن هذا الإجراء.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('إلغاء'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _deleteAccount();
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('حذف', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
-      ),
+      title: 'حذف الحساب',
+      message: 'هل أنت متأكد من حذف حسابك؟ لا يمكن التراجع عن هذا الإجراء.',
+      confirmText: 'حذف',
+      cancelText: 'إلغاء',
+      confirmColor: Colors.red,
+      onConfirm: _deleteAccount,
     );
   }
 
@@ -521,7 +463,12 @@ class _AccountScreenState extends State<AccountScreen> {
               const Text('لا يوجد اتصال بالإنترنت'),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: _checkConnectivity,
+                onPressed: () {
+                  DialogUtils.showNoInternetDialog(
+                    context: context,
+                    onRetry: _checkConnectivity,
+                  );
+                },
                 child: const Text('إعادة المحاولة'),
               ),
             ],

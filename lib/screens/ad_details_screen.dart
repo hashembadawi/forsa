@@ -402,15 +402,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   BoxDecoration _buildDetailsDecoration() {
     return BoxDecoration(
       borderRadius: BorderRadius.circular(_borderRadius),
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          Colors.white,
-          Color(0xFFF8FBFF),
-          Color(0xFFF0F8FF),
-        ],
-      ),
+      color: Colors.white,
       border: Border.all(color: Colors.blue[300]!, width: 1.5),
     );
   }
@@ -422,7 +414,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
-      elevation: 3,
+      elevation: 0,
     );
   }
 
@@ -433,7 +425,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
-      elevation: 3,
+      elevation: 0,
     );
   }
 
@@ -503,42 +495,68 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'اختر طريقة الاتصال',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            // Blue Header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: Colors.blue,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: const Text(
+                'اختر طريقة الاتصال',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(height: 20),
-            _buildCallOption(
-              Icons.call,
-              'اتصال مباشر',
-              formattedPhone,
-              Colors.blue,
-              () => _makeDirectCall(formattedPhone),
-            ),
-            _buildCallOption(
-              Icons.copy,
-              'نسخ رقم الهاتف',
-              'للاتصال يدوياً',
-              Colors.orange,
-              () => _copyPhoneNumber(formattedPhone),
-            ),
-            _buildCallOption(
-              Icons.sms,
-              'إرسال رسالة نصية',
-              'SMS',
-              Colors.green,
-              () => _sendSMS(formattedPhone),
+            // White Body with Options
+            Container(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  _buildCallOption(
+                    Icons.call,
+                    'اتصال مباشر',
+                    formattedPhone,
+                    Colors.blue,
+                    () => _makeDirectCall(formattedPhone),
+                  ),
+                  const Divider(height: 1, color: Colors.grey),
+                  _buildCallOption(
+                    Icons.copy,
+                    'نسخ رقم الهاتف',
+                    'للاتصال يدوياً',
+                    Colors.orange,
+                    () => _copyPhoneNumber(formattedPhone),
+                  ),
+                  const Divider(height: 1, color: Colors.grey),
+                  _buildCallOption(
+                    Icons.sms,
+                    'إرسال رسالة نصية',
+                    'SMS',
+                    Colors.green,
+                    () => _sendSMS(formattedPhone),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ),
             ),
           ],
         ),

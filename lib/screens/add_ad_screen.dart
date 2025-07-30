@@ -216,7 +216,14 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       elevation: 2,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => Navigator.pop(context),
+        onPressed: () {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (_) => const HomeScreen(refreshOnStart: true),
+            ),
+            (route) => false,
+          );
+        },
       ),
     );
   }

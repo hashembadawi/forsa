@@ -413,26 +413,106 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showLoginRequiredDialog(BuildContext context, String routeKey, SharedPreferences prefs) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تسجيل الدخول مطلوب'),
-        content: const Text('يجب تسجيل الدخول للوصول إلى هذه الصفحة.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: Container(
+          width: double.maxFinite,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
           ),
-          TextButton(
-            onPressed: () async {
-              await prefs.setString('redirect_to', routeKey);
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-              );
-            },
-            child: const Text('تسجيل دخول'),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Blue Header
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: const BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                child: const Text(
+                  'تسجيل الدخول مطلوب',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              // White Body
+              Container(
+                width: double.maxFinite,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'يجب تسجيل الدخول للوصول إلى هذه الصفحة.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    // Action buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.grey[600],
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            ),
+                            child: const Text(
+                              'إلغاء',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              await prefs.setString('redirect_to', routeKey);
+                              Navigator.pop(context);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue[600],
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text(
+                              'تسجيل دخول',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -489,155 +569,189 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setStateDialog) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: BorderSide(color: Colors.blue[600]!, width: 2),
-            ),
-            backgroundColor: Colors.white,
-            title: const Text(
-              'تصفية حسب الموقع',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-            content: SizedBox(
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(16),
+            child: Container(
               width: double.maxFinite,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Province Dropdown
-                  DropdownButtonFormField<Map<String, dynamic>>(
-                    value: tempSelectedProvince,
-                    isExpanded: true,
-                    decoration: _buildDropdownDecoration('اختر المحافظة', 15),
-                    dropdownColor: Colors.white,
-                    style: _buildDropdownTextStyle(),
-                    items: [
-                      const DropdownMenuItem<Map<String, dynamic>>(
-                        value: null,
-                        child: Text(
-                          'كل المحافظات',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                  // Blue Header
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: const BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
                       ),
-                      ..._provinces.map((province) => DropdownMenuItem(
-                        value: province,
-                        child: Text(
-                          province['name'],
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      )),
-                    ],
-                    onChanged: (value) {
-                      setStateDialog(() {
-                        tempSelectedProvince = value;
-                        tempSelectedArea = null; // Reset area selection when province changes
-                        filteredAreas.clear();
-                        if (value != null) {
-                          filteredAreas.addAll(
-                            _majorAreas.where((area) => area['ProvinceId'] == value['id']).toList(),
-                          );
-                        }
-                      });
-                    },
+                    ),
+                    child: const Text(
+                      'تصفية حسب الموقع',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  // Area Dropdown
-                  DropdownButtonFormField<Map<String, dynamic>>(
-                    value: tempSelectedArea,
-                    isExpanded: true,
-                    decoration: _buildDropdownDecoration('اختر المدينة/المنطقة', 25),
-                    dropdownColor: Colors.white,
-                    style: _buildDropdownTextStyle(),
-                    items: [
-                      const DropdownMenuItem<Map<String, dynamic>>(
-                        value: null,
-                        child: Text(
-                          'كل المناطق',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
+                  // White Body
+                  Container(
+                    width: double.maxFinite,
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Province Dropdown
+                        DropdownButtonFormField<Map<String, dynamic>>(
+                          value: tempSelectedProvince,
+                          isExpanded: true,
+                          decoration: _buildDropdownDecoration('اختر المحافظة', 15),
+                          dropdownColor: Colors.white,
+                          style: _buildDropdownTextStyle(),
+                          items: [
+                            const DropdownMenuItem<Map<String, dynamic>>(
+                              value: null,
+                              child: Text(
+                                'كل المحافظات',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            ..._provinces.map((province) => DropdownMenuItem(
+                              value: province,
+                              child: Text(
+                                province['name'],
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            )),
+                          ],
+                          onChanged: (value) {
+                            setStateDialog(() {
+                              tempSelectedProvince = value;
+                              tempSelectedArea = null; // Reset area selection when province changes
+                              filteredAreas.clear();
+                              if (value != null) {
+                                filteredAreas.addAll(
+                                  _majorAreas.where((area) => area['ProvinceId'] == value['id']).toList(),
+                                );
+                              }
+                            });
+                          },
                         ),
-                      ),
-                      ...filteredAreas.map((area) => DropdownMenuItem(
-                        value: area,
-                        child: Text(
-                          area['name'],
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        const SizedBox(height: 16),
+                        // Area Dropdown
+                        DropdownButtonFormField<Map<String, dynamic>>(
+                          value: tempSelectedArea,
+                          isExpanded: true,
+                          decoration: _buildDropdownDecoration('اختر المدينة/المنطقة', 25),
+                          dropdownColor: Colors.white,
+                          style: _buildDropdownTextStyle(),
+                          items: [
+                            const DropdownMenuItem<Map<String, dynamic>>(
+                              value: null,
+                              child: Text(
+                                'كل المناطق',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            ...filteredAreas.map((area) => DropdownMenuItem(
+                              value: area,
+                              child: Text(
+                                area['name'],
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            )),
+                          ],
+                          onChanged: (value) {
+                            setStateDialog(() {
+                              tempSelectedArea = value;
+                            });
+                          },
                         ),
-                      )),
-                    ],
-                    onChanged: (value) {
-                      setStateDialog(() {
-                        tempSelectedArea = value;
-                      });
-                    },
+                        const SizedBox(height: 20),
+                        // Action buttons
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.grey[600],
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                ),
+                                child: const Text(
+                                  'إلغاء',
+                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _selectedCity = tempSelectedProvince?['name'] ?? _defaultCity;
+                                    _selectedDistrict = tempSelectedArea?['name'] ?? _defaultDistrict;
+                                    _selectedCityId = tempSelectedProvince?['id'];
+                                    _selectedRegionId = tempSelectedArea?['id'];
+                                    _resetAdsData();
+                                  });
+                                  
+                                  Navigator.pop(context);
+                                  
+                                  if (_selectedCityId != null || _selectedRegionId != null) {
+                                    _fetchFilteredAds(reset: true);
+                                  } else {
+                                    _fetchAllAds();
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue[600],
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: const Text(
+                                  'تطبيق',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.grey[600],
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                ),
-                child: const Text(
-                  'إلغاء',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _selectedCity = tempSelectedProvince?['name'] ?? _defaultCity;
-                    _selectedDistrict = tempSelectedArea?['name'] ?? _defaultDistrict;
-                    _selectedCityId = tempSelectedProvince?['id'];
-                    _selectedRegionId = tempSelectedArea?['id'];
-                    _resetAdsData();
-                  });
-                  
-                  Navigator.pop(context);
-                  
-                  if (_selectedCityId != null || _selectedRegionId != null) {
-                    _fetchFilteredAds(reset: true);
-                  } else {
-                    _fetchAllAds();
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[600],
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 2,
-                ),
-                child: const Text(
-                  'تطبيق',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
           );
         },
       ),
