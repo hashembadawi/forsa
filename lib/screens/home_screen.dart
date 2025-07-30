@@ -860,14 +860,6 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
             border: Border.all(color: Colors.blue[300]!, width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.blue[200]!.withOpacity(0.3),
-                spreadRadius: 2,
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -877,7 +869,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Icon(Icons.location_on, size: 22, color: Colors.blue[600]),
                   const SizedBox(width: 8),
                   const Text(
-                    'موقع',
+                    'بحث بالموقع',
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
@@ -904,40 +896,38 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSearchField() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Colors.blue[300]!, width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.blue[200]!.withOpacity(0.3),
-              spreadRadius: 2,
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: TextField(
-          controller: _searchController,
-          decoration: InputDecoration(
-            hintText: 'ابحث عن منتج أو خدمة...',
-            hintStyle: TextStyle(color: Colors.grey[600]),
-            prefixIcon: Icon(Icons.search, color: Colors.blue[600]),
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'ابحث عن منتج أو خدمة...',
+          hintStyle: TextStyle(color: Colors.grey[600]),
+          prefixIcon: Icon(Icons.search, color: Colors.blue[600]),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide(color: Colors.blue[300]!, width: 1.5),
           ),
-          onSubmitted: (value) {
-            if (value.trim().isNotEmpty) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => SearchResultsScreen(searchText: value.trim()),
-                ),
-              );
-            }
-          },
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide(color: Colors.blue[300]!, width: 1.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
+        onSubmitted: (value) {
+          if (value.trim().isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => SearchResultsScreen(searchText: value.trim()),
+              ),
+            );
+          }
+        },
       ),
     );
   }
@@ -945,27 +935,85 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Build navigation drawer
   Widget _buildDrawer(BuildContext context) {
     return Drawer(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
+      elevation: 16,
       child: Column(
         children: [
           _buildDrawerHeader(),
           Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.grey[50]!,
+                    Colors.white,
+                  ],
+                ),
+              ),
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 0),
+                children: [
+                  _buildDrawerItem(
+                    Icons.home_rounded, 
+                    'الرئيسية', 
+                    Colors.blue[600]!,
+                    () {
+                      Navigator.pop(context);
+                      _reloadHomeScreen();
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.list_alt_rounded, 
+                    'إعلاناتي', 
+                    Colors.green[600]!,
+                    () {
+                      _handleProtectedNavigation(context, 'myAds');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.add_circle_outline_rounded, 
+                    'إضافة إعلان', 
+                    Colors.orange[600]!,
+                    () {
+                      _handleProtectedNavigation(context, 'addAd');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.person_rounded, 
+                    'حسابي', 
+                    Colors.purple[600]!,
+                    () async {
+                      await _handleAccountNavigation(context);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Footer section
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              border: Border(
+                top: BorderSide(color: Colors.grey[300]!, width: 1),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildDrawerItem(Icons.home, 'الرئيسية', () {
-                  Navigator.pop(context);
-                  _reloadHomeScreen();
-                }),
-                _buildDrawerItem(Icons.list_alt, 'إعلاناتي', () {
-                  _handleProtectedNavigation(context, 'myAds');
-                }),
-                _buildDrawerItem(Icons.add_circle_outline, 'إضافة إعلان', () {
-                  _handleProtectedNavigation(context, 'addAd');
-                }),
-                _buildDrawerItem(Icons.person, 'حسابي', () async {
-                  await _handleAccountNavigation(context);
-                }),
+                Icon(Icons.copyright, size: 16, color: Colors.grey[600]),
+                const SizedBox(width: 4),
+                Text(
+                  '2025 سوق سوريا',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ],
             ),
           ),
@@ -976,34 +1024,44 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Build drawer header
   Widget _buildDrawerHeader() {
-    return DrawerHeader(
+    return Container(
+      width: double.infinity,
+      height: 180,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.blue[700]!, Colors.blue[400]!],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.blue[700]!,
+            Colors.blue[500]!,
+          ],
         ),
       ),
-      child: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Profile image
             CircleAvatar(
-              radius: 32,
+              radius: 40,
               backgroundColor: Colors.white,
               child: _userProfileImage != null && _userProfileImage!.isNotEmpty
                   ? ClipOval(
                       child: Image.memory(
                         base64Decode(_userProfileImage!),
-                        width: 64,
-                        height: 64,
+                        width: 80,
+                        height: 80,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
-                          return Icon(Icons.person, size: 32, color: Colors.blue[700]);
+                          return Icon(Icons.person_rounded, size: 40, color: Colors.blue[700]);
                         },
                       ),
                     )
-                  : Icon(Icons.person, size: 32, color: Colors.blue[700]),
+                  : Icon(Icons.person_rounded, size: 40, color: Colors.blue[700]),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
+            // Welcome text without border
             Text(
               _username != null ? 'مرحباً، $_username 👋' : 'مرحبا بك 👋',
               style: const TextStyle(
@@ -1011,6 +1069,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -1019,17 +1080,64 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Build drawer item
-  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.blue[700]),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: Colors.grey[800],
-          fontWeight: FontWeight.w500,
+  Widget _buildDrawerItem(IconData icon, String title, Color iconColor, VoidCallback onTap) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 1),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.white,
+            Colors.grey[50]!,
+          ],
+        ),
+        border: Border(
+          bottom: BorderSide(color: Colors.grey[200]!, width: 0.5),
         ),
       ),
-      onTap: onTap,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          splashColor: iconColor.withOpacity(0.1),
+          highlightColor: iconColor.withOpacity(0.05),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: iconColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: iconColor.withOpacity(0.2), width: 1),
+                  ),
+                  child: Icon(
+                    icon, 
+                    color: iconColor,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      color: Colors.grey[800],
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: Colors.grey[400],
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -1312,14 +1420,6 @@ class _ImageSliderState extends State<ImageSlider> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.blue[300]!, width: 1.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blue[200]!.withOpacity(0.3),
-                      spreadRadius: 2,
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
                   image: DecorationImage(
                     image: AssetImage(_imagePaths[index]),
                     fit: BoxFit.cover,
