@@ -6,9 +6,9 @@ class ContactUsScreen extends StatelessWidget {
   const ContactUsScreen({super.key});
 
   // Contact information constants
-  static const String _supportEmail = 'support@sahbo.com';
+  static const String _supportEmail = 'support@syria-market.com';
   static const String _phoneNumber = '+905510300730';
-  static const String _websiteUrl = 'https://www.sahbo.com';
+  static const String _websiteUrl = 'https://www.syria-market.com';
 
   /// Launch email client
   Future<void> _launchEmail() async {
@@ -91,112 +91,178 @@ class ContactUsScreen extends StatelessWidget {
   /// Build the main body content
   Widget _buildBody() {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(color: Colors.white),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeaderText(),
-          const SizedBox(height: 24),
-          _buildContactMethods(),
-        ],
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      color: Colors.white,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildContactContainer(),
+          ],
+        ),
       ),
     );
   }
 
-  /// Build the header text
-  Widget _buildHeaderText() {
-    return const Text(
-      'هل لديك أي استفسار أو اقتراح؟ تواصل معنا عبر:',
-      style: TextStyle(
-        fontSize: 16,
-        height: 1.5,
-        color: Colors.black87,
-        fontWeight: FontWeight.w500,
-      ),
+  /// Build the main contact container
+  Widget _buildContactContainer() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header Section
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.blue[600],
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.support_agent,
+                color: Colors.white,
+                size: 32,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'هل لديك أي استفسار أو اقتراح؟ تواصل معنا عبر:',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.9),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        // Contact Content
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(20),
+              bottomRight: Radius.circular(20),
+            ),
+            border: Border.all(
+              color: Colors.blue[300]!,
+              width: 1.5,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ..._buildContactMethods(),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   /// Build all contact methods
-  Widget _buildContactMethods() {
-    return Column(
-      children: [
-        _buildContactCard(
-          icon: Icons.email,
-          title: _supportEmail,
-          onTap: _launchEmail,
-        ),
-        const SizedBox(height: 12),
-        _buildContactCard(
-          icon: Icons.phone,
-          title: 'عبر تطبيق واتس أب',
-          onTap: _launchWhatsApp,
-        ),
-        const SizedBox(height: 12),
-        _buildContactCard(
-          icon: Icons.language,
-          title: 'www.sahbo.com',
-          onTap: _launchWebsite,
-        ),
-      ],
-    );
+  List<Widget> _buildContactMethods() {
+    return [
+      _buildContactCard(
+        icon: Icons.email,
+        title: _supportEmail,
+        subtitle: 'البريد الإلكتروني',
+        onTap: _launchEmail,
+      ),
+      const SizedBox(height: 12),
+      _buildContactCard(
+        icon: Icons.chat,
+        title: 'عبر تطبيق واتس أب',
+        subtitle: _phoneNumber,
+        onTap: _launchWhatsApp,
+      ),
+      const SizedBox(height: 12),
+      _buildContactCard(
+        icon: Icons.language,
+        title: 'www.sahbo.com',
+        subtitle: 'الموقع الإلكتروني',
+        onTap: _launchWebsite,
+      ),
+    ];
   }
 
   /// Build a single contact card
   Widget _buildContactCard({
     required IconData icon,
     required String title,
+    required String subtitle,
     required VoidCallback onTap,
   }) {
     return Container(
-      decoration: _buildCardDecoration(),
-      child: ListTile(
-        leading: Icon(icon, color: Colors.blue[600]),
-        title: Text(
-          title,
-          style: const TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue[50]!.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.blue[100]!,
+          width: 1,
         ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          size: 16,
-          color: Colors.blue[400],
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 4,
-        ),
+      ),
+      child: InkWell(
         onTap: onTap,
-      ),
-    );
-  }
-
-  /// Build card decoration
-  BoxDecoration _buildCardDecoration() {
-    return BoxDecoration(
-      borderRadius: BorderRadius.circular(18),
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          Colors.white,
-          Color(0xFFF8FBFF), // Very light blue
-          Color(0xFFF0F8FF), // Alice blue
-        ],
-      ),
-      border: Border.all(
-        color: Colors.blue[300]!,
-        width: 1.5,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.05),
-          blurRadius: 8,
-          offset: const Offset(0, 4),
+        borderRadius: BorderRadius.circular(12),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.blue[600],
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Icon(
+                  icon,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Colors.blue[400],
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
