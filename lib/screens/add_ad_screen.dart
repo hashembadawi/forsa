@@ -7,6 +7,7 @@ import 'package:syria_market/screens/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:syria_market/utils/dialog_utils.dart';
 
 /// Multi-step screen for adding new advertisements
 class MultiStepAddAdScreen extends StatefulWidget {
@@ -452,126 +453,47 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
 
   // Dialog methods
   void _showUploadingDialog() {
-    showDialog(
+    DialogUtils.showLoadingDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(color: Colors.blue),
-            const SizedBox(height: 20),
-            const Text(
-              'جارٍ رفع الإعلان...',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'يرجى الانتظار حتى يتم إرسال البيانات',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-          ],
-        ),
-      ),
+      title: 'جارٍ رفع الإعلان...',
+      message: 'يرجى الانتظار حتى يتم إرسال البيانات',
     );
   }
 
   void _showSuccessDialog() {
-    showDialog(
+    DialogUtils.showSuccessDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 10),
-            Text('تم بنجاح'),
-          ],
-        ),
-        content: const Text('تم نشر إعلانك بنجاح'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(
-                  builder: (_) => const HomeScreen(refreshOnStart: true),
-                ),
-                (route) => false,
-              );
-            },
-            child: const Text('موافق', style: TextStyle(color: Colors.blue)),
+      title: 'تم بنجاح',
+      message: 'تم نشر إعلانك بنجاح',
+      buttonText: 'موافق',
+      onPressed: () {
+        Navigator.of(context).pop(); // Close dialog
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => const HomeScreen(refreshOnStart: true),
           ),
-        ],
-      ),
+          (route) => false,
+        );
+      },
     );
   }
 
   void _showErrorDialog(String message) {
-    showDialog(
+    DialogUtils.showErrorDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: const Row(
-          children: [
-            Icon(Icons.error, color: Colors.red),
-            SizedBox(width: 10),
-            Text('خطأ'),
-          ],
-        ),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('موافق', style: TextStyle(color: Colors.blue)),
-          ),
-        ],
-      ),
+      title: 'خطأ',
+      message: message,
+      buttonText: 'موافق',
     );
   }
 
   void _showNoInternetDialog() {
-    showDialog(
+    DialogUtils.showNoInternetDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: BorderSide(color: Colors.blue[300]!, width: 1.5),
-        ),
-        backgroundColor: Colors.white,
-        title: const Row(
-          children: [
-            Icon(Icons.wifi_off, color: Colors.orange),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'لا يوجد اتصال بالإنترنت',
-                style: TextStyle(color: Colors.black87),
-                overflow: TextOverflow.visible,
-              ),
-            ),
-          ],
-        ),
-        content: const Text(
-          'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى',
-          style: TextStyle(color: Colors.black87),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إغلاق', style: TextStyle(color: Colors.orange)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _submitAd(); // Retry the submission
-            },
-            child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.blue)),
-          ),
-        ],
-      ),
+      onRetry: () {
+        Navigator.of(context).pop();
+        _submitAd(); // Retry the submission
+      },
     );
   }
 }

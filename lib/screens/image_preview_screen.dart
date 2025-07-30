@@ -85,9 +85,6 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
   /// Check if next navigation is available
   bool get _canNavigateNext => _currentIndex < widget.images.length - 1;
 
-  /// Get current image position text
-  String get _positionText => '${_currentIndex + 1} من ${widget.images.length}';
-
   /// Check if multiple images exist
   bool get _hasMultipleImages => widget.images.length > 1;
 
@@ -99,54 +96,34 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
       backgroundColor: Colors.blue[700],
       foregroundColor: Colors.white,
       elevation: 0,
-      leading: _buildBackButton(),
-      title: _buildAppBarTitle(),
+      automaticallyImplyLeading: false,
+      title: const Text(
+        'معاينة الصور',
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+      ),
       centerTitle: true,
+      actions: [
+        _buildBackButton(),
+      ],
     );
   }
 
   /// Build back button with styling
   Widget _buildBackButton() {
     return IconButton(
-      icon: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Icon(Icons.arrow_back, color: Colors.white),
-      ),
+      icon: const Icon(Icons.arrow_forward, color: Colors.white),
       onPressed: () => Navigator.pop(context),
-    );
-  }
-
-  /// Build app bar title with position indicator
-  Widget _buildAppBarTitle() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
-      child: Text(
-        _positionText,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-        ),
-      ),
     );
   }
 
   /// Build main body container with gradient background
   Widget _buildBody() {
     return Container(
-      decoration: _buildBackgroundDecoration(),
+      color: Colors.white,
       child: Column(
         children: [
           Expanded(child: _buildImageViewer()),
@@ -154,21 +131,6 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
             _buildNavigationSection(),
             const SizedBox(height: 16),
           ],
-        ],
-      ),
-    );
-  }
-
-  /// Build background gradient decoration
-  BoxDecoration _buildBackgroundDecoration() {
-    return const BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Colors.white,
-          Color(0xFFF8FBFF),
-          Color(0xFFF0F8FF),
         ],
       ),
     );
@@ -271,13 +233,7 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: _buildNavigationDecoration(),
-      child: Column(
-        children: [
-          _buildImageCounter(),
-          const SizedBox(height: 16),
-          _buildNavigationRow(),
-        ],
-      ),
+      child: _buildNavigationRow(),
     );
   }
 
@@ -297,45 +253,37 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
     );
   }
 
-  /// Build image counter widget
-  Widget _buildImageCounter() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.blue[200]!, width: 1),
-      ),
-      child: Text(
-        'الصورة ${_currentIndex + 1} من ${widget.images.length}',
-        style: TextStyle(
-          color: Colors.blue[700],
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
   /// Build navigation row with buttons and indicators
   Widget _buildNavigationRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
       children: [
-        _buildNavigationButton(
-          text: 'السابقة',
-          icon: Icons.arrow_back_ios,
-          isEnabled: _canNavigatePrevious,
-          onTap: _navigateToPrevious,
-          isLeftButton: true,
-        ),
-        Expanded(child: _buildDotIndicators()),
-        _buildNavigationButton(
-          text: 'التالية',
-          icon: Icons.arrow_forward_ios,
-          isEnabled: _canNavigateNext,
-          onTap: _navigateToNext,
-          isLeftButton: false,
+        // Dot indicators row
+        _buildDotIndicators(),
+        const SizedBox(height: 16),
+        // Navigation buttons row
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Flexible(
+              child: _buildNavigationButton(
+                text: 'السابقة',
+                icon: Icons.arrow_back_ios,
+                isEnabled: _canNavigatePrevious,
+                onTap: _navigateToPrevious,
+                isLeftButton: true,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Flexible(
+              child: _buildNavigationButton(
+                text: 'التالية',
+                icon: Icons.arrow_forward_ios,
+                isEnabled: _canNavigateNext,
+                onTap: _navigateToNext,
+                isLeftButton: false,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -352,20 +300,37 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
     return GestureDetector(
       onTap: isEnabled ? onTap : null,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        constraints: const BoxConstraints(
+          minWidth: 80,
+          maxWidth: 120,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: _buildButtonDecoration(isEnabled),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: isLeftButton
               ? [
-                  Icon(icon, color: _getButtonColor(isEnabled), size: 16),
+                  Icon(icon, color: _getButtonColor(isEnabled), size: 14),
                   const SizedBox(width: 4),
-                  Text(text, style: _getButtonTextStyle(isEnabled)),
+                  Flexible(
+                    child: Text(
+                      text,
+                      style: _getButtonTextStyle(isEnabled),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ]
               : [
-                  Text(text, style: _getButtonTextStyle(isEnabled)),
+                  Flexible(
+                    child: Text(
+                      text,
+                      style: _getButtonTextStyle(isEnabled),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                   const SizedBox(width: 4),
-                  Icon(icon, color: _getButtonColor(isEnabled), size: 16),
+                  Icon(icon, color: _getButtonColor(isEnabled), size: 14),
                 ],
         ),
       ),
@@ -407,13 +372,24 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
   Widget _buildDotIndicators() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(
-          widget.images.length,
-          (index) => _buildDotIndicator(index),
-        ),
-      ),
+      height: 12,
+      child: widget.images.length <= 10
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                widget.images.length,
+                (index) => _buildDotIndicator(index),
+              ),
+            )
+          : SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: List.generate(
+                  widget.images.length,
+                  (index) => _buildDotIndicator(index),
+                ),
+              ),
+            ),
     );
   }
 
