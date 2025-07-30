@@ -23,19 +23,19 @@ class _LoginScreenState extends State<LoginScreen> {
   
   // ========== Country Data ==========
   static const List<Map<String, String>> _countries = [
-    {'name': 'سوريا', 'code': '+963'},
-    {'name': 'تركيا', 'code': '+90'},
-    {'name': 'الأردن', 'code': '+962'},
-    {'name': 'السعودية', 'code': '+966'},
-    {'name': 'مصر', 'code': '+20'},
-    {'name': 'العراق', 'code': '+964'},
-    {'name': 'لبنان', 'code': '+961'},
-    {'name': 'فلسطين', 'code': '+970'},
-    {'name': 'الإمارات', 'code': '+971'},
-    {'name': 'قطر', 'code': '+974'},
-    {'name': 'الكويت', 'code': '+965'},
-    {'name': 'عمان', 'code': '+968'},
-    {'name': 'البحرين', 'code': '+973'},
+    {'name': 'سوريا', 'code': '963'},
+    {'name': 'تركيا', 'code': '90'},
+    {'name': 'الأردن', 'code': '962'},
+    {'name': 'السعودية', 'code': '966'},
+    {'name': 'مصر', 'code': '20'},
+    {'name': 'العراق', 'code': '964'},
+    {'name': 'لبنان', 'code': '961'},
+    {'name': 'فلسطين', 'code': '970'},
+    {'name': 'الإمارات', 'code': '971'},
+    {'name': 'قطر', 'code': '974'},
+    {'name': 'الكويت', 'code': '965'},
+    {'name': 'عمان', 'code': '968'},
+    {'name': 'البحرين', 'code': '973'},
   ];
 
   // ========== Controllers & State ==========

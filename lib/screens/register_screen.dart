@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:syria_market/screens/login_screen.dart';
+import 'package:syria_market/screens/verification_screen.dart';
 import 'package:syria_market/utils/dialog_utils.dart';
 
 /// User registration screen with form validation and country selection
@@ -38,19 +38,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   // ========== Country Data ==========
   static const List<Map<String, String>> _countries = [
-    {'name': 'سوريا', 'code': '+963', 'flag': '🇸🇾'},
-    {'name': 'تركيا', 'code': '+90', 'flag': '🇹🇷'},
-    {'name': 'الأردن', 'code': '+962', 'flag': '🇯🇴'},
-    {'name': 'السعودية', 'code': '+966', 'flag': '🇸🇦'},
-    {'name': 'مصر', 'code': '+20', 'flag': '🇪🇬'},
-    {'name': 'العراق', 'code': '+964', 'flag': '🇮🇶'},
-    {'name': 'لبنان', 'code': '+961', 'flag': '🇱🇧'},
-    {'name': 'فلسطين', 'code': '+970', 'flag': '🇵🇸'},
-    {'name': 'الإمارات', 'code': '+971', 'flag': '🇦🇪'},
-    {'name': 'قطر', 'code': '+974', 'flag': '🇶🇦'},
-    {'name': 'الكويت', 'code': '+965', 'flag': '🇰🇼'},
-    {'name': 'عمان', 'code': '+968', 'flag': '🇴🇲'},
-    {'name': 'البحرين', 'code': '+973', 'flag': '🇧🇭'},
+    {'name': 'سوريا', 'code': '963', 'flag': '🇸🇾'},
+    {'name': 'تركيا', 'code': '90', 'flag': '🇹🇷'},
+    {'name': 'الأردن', 'code': '962', 'flag': '🇯🇴'},
+    {'name': 'السعودية', 'code': '966', 'flag': '🇸🇦'},
+    {'name': 'مصر', 'code': '20', 'flag': '🇪🇬'},
+    {'name': 'العراق', 'code': '964', 'flag': '🇮🇶'},
+    {'name': 'لبنان', 'code': '961', 'flag': '🇱🇧'},
+    {'name': 'فلسطين', 'code': '970', 'flag': '🇵🇸'},
+    {'name': 'الإمارات', 'code': '971', 'flag': '🇦🇪'},
+    {'name': 'قطر', 'code': '974', 'flag': '🇶🇦'},
+    {'name': 'الكويت', 'code': '965', 'flag': '🇰🇼'},
+    {'name': 'عمان', 'code': '968', 'flag': '🇴🇲'},
+    {'name': 'البحرين', 'code': '973', 'flag': '🇧🇭'},
   ];
 
   @override
@@ -201,12 +201,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (response.statusCode == 201) {
       DialogUtils.showSuccessDialog(
         context: context,
-        message: 'تم إنشاء حسابك بنجاح، يمكنك تسجيل الدخول الآن',
+        message: 'تم إنشاء حسابك بنجاح، سيتم إرسال رمز التحقق إلى رقم هاتفك',
         onPressed: () {
           Navigator.of(context).pop(); // Close dialog
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const LoginScreen()),
+            MaterialPageRoute(
+              builder: (_) => VerificationScreen(
+                phoneNumber: _buildFullPhoneNumber(),
+              ),
+            ),
           );
         },
       );
