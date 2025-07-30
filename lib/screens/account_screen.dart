@@ -559,14 +559,6 @@ class _AccountScreenState extends State<AccountScreen> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: (widget.isLoggedIn ? Colors.blue : Colors.grey).withOpacity(0.3),
-                      spreadRadius: 2,
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
                 ),
                 child: Container(
                   decoration: BoxDecoration(
@@ -591,17 +583,9 @@ class _AccountScreenState extends State<AccountScreen> {
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
                                         border: Border.all(
-                                          color: Colors.white,
-                                          width: 3,
+                                          color: Colors.blue[400]!,
+                                          width: 2,
                                         ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.2),
-                                            spreadRadius: 2,
-                                            blurRadius: 10,
-                                            offset: const Offset(0, 3),
-                                          ),
-                                        ],
                                       ),
                                       child: CircleAvatar(
                                         radius: MediaQuery.of(context).size.width * 0.12, // Responsive radius
@@ -690,17 +674,9 @@ class _AccountScreenState extends State<AccountScreen> {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: Colors.grey[300]!,
-                                    width: 3,
+                                    color: Colors.blue[400]!,
+                                    width: 2,
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      spreadRadius: 2,
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
                                 ),
                                 child: CircleAvatar(
                                   radius: 35,
@@ -793,7 +769,6 @@ class _AccountScreenState extends State<AccountScreen> {
               
               // Menu items
               Card(
-                elevation: 2,
                 child: Column(
                   children: [
                     ListTile(

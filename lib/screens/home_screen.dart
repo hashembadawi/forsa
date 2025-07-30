@@ -1305,12 +1305,45 @@ class _HomeScreenState extends State<HomeScreen> {
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
                         ),
                       ),
+                    if (_allAds.isEmpty && !_isLoadingAds)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.search_off,
+                                size: 64,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'لا يوجد نتائج',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'لم يتم العثور على أي إعلانات',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                   ]),
                 ),
               ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverGrid(
+              if (_allAds.isNotEmpty)
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverGrid(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
                     mainAxisSpacing: 12,

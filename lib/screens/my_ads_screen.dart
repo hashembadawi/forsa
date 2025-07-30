@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syria_market/screens/update_ad_screen.dart';
 import 'package:syria_market/screens/home_screen.dart';
+import 'package:syria_market/screens/add_ad_screen.dart';
 
 /// Screen displaying user's personal advertisements with edit and delete functionality
 class MyAdsScreen extends StatefulWidget {
@@ -294,6 +295,14 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
     );
   }
 
+  /// Navigate to add ad screen
+  void _navigateToAddAd() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const MultiStepAddAdScreen()),
+    );
+  }
+
   // ========== UI Feedback ==========
 
   /// Show error message
@@ -413,12 +422,25 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'ابدأ بإضافة إعلانك الأول',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
+          
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: _navigateToAddAd,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue[700],
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+            child: const Text(
+              'أضف إعلان',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
