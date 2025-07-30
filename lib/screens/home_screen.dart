@@ -492,13 +492,13 @@ class _HomeScreenState extends State<HomeScreen> {
           return AlertDialog(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
-              side: const BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
+              side: BorderSide(color: Colors.blue[600]!, width: 2),
             ),
             backgroundColor: Colors.white,
             title: const Text(
               'تصفية حسب الموقع',
               style: TextStyle(
-                color: Color(0xFF1E4A47),
+                color: Colors.black,
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
               ),
@@ -521,7 +521,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Text(
                           'كل المحافظات',
                           style: TextStyle(
-                            color: Color(0xFF1E4A47),
+                            color: Colors.black,
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
                           ),
@@ -532,7 +532,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Text(
                           province['name'],
                           style: const TextStyle(
-                            color: Color(0xFF1E4A47),
+                            color: Colors.black,
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
                           ),
@@ -566,7 +566,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Text(
                           'كل المناطق',
                           style: TextStyle(
-                            color: Color(0xFF1E4A47),
+                            color: Colors.black,
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
                           ),
@@ -577,7 +577,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Text(
                           area['name'],
                           style: const TextStyle(
-                            color: Color(0xFF1E4A47),
+                            color: Colors.black,
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
                           ),
@@ -624,7 +624,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF7A59),
+                  backgroundColor: Colors.blue[600],
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   shape: RoundedRectangleBorder(
@@ -648,18 +648,18 @@ class _HomeScreenState extends State<HomeScreen> {
   InputDecoration _buildDropdownDecoration(String labelText, double borderRadius) {
     return InputDecoration(
       labelText: labelText,
-      labelStyle: const TextStyle(color: Color(0xFF2E7D78)),
+      labelStyle: TextStyle(color: Colors.blue[600]),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(borderRadius),
-        borderSide: const BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
+        borderSide: BorderSide(color: Colors.blue[400]!, width: 1.5),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(borderRadius),
-        borderSide: const BorderSide(color: Color(0xFF4DD0CC), width: 1.5),
+        borderSide: BorderSide(color: Colors.blue[400]!, width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(borderRadius),
-        borderSide: const BorderSide(color: Color(0xFF2E7D78), width: 2),
+        borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
       ),
       filled: true,
       fillColor: Colors.white,
@@ -670,7 +670,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Build dropdown text style
   TextStyle _buildDropdownTextStyle() {
     return const TextStyle(
-      color: Color(0xFF1E4A47),
+      color: Colors.blue,
       fontSize: 15,
       fontWeight: FontWeight.w500,
     );
