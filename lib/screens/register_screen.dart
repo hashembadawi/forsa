@@ -6,6 +6,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:syria_market/screens/login_screen.dart';
+import 'package:syria_market/utils/dialog_utils.dart';
 
 /// User registration screen with form validation and country selection
 class RegisterScreen extends StatefulWidget {
@@ -19,7 +20,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // ========== Constants ==========
   static const String _registerApiUrl = 'https://sahbo-app-api.onrender.com/api/user/register-phone';
   static const int _minPasswordLength = 6;
-  static const int _successMessageDuration = 3;
   
   // ========== Form Controllers ==========
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -32,7 +32,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // ========== State Variables ==========
   bool _showPassword = false;
   bool _showConfirmPassword = false;
-  bool _isLoading = false;
   Map<String, String>? _selectedCountry;
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
@@ -95,7 +94,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         });
       }
     } catch (e) {
-      _showErrorMessage('حدث خطأ أثناء اختيار الصورة');
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: 'حدث خطأ أثناء اختيار الصورة',
+      );
     }
   }
 
@@ -133,26 +135,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     if (!_validatePasswordMatch()) {
-      _showErrorMessage("كلمتا المرور غير متطابقتين");
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: "كلمتا المرور غير متطابقتين",
+      );
       return;
     }
 
     if (!await _checkInternetConnectivity()) {
-      _showNoInternetDialog();
+      DialogUtils.showNoInternetDialog(
+        context: context,
+        onRetry: _registerUser,
+      );
       return;
     }
 
-    setState(() => _isLoading = true);
+    // Show loading dialog
+    DialogUtils.showLoadingDialog(
+      context: context,
+      title: 'جارٍ إنشاء الحساب...',
+      message: 'يرجى الانتظار حتى يتم إنشاء حسابك',
+    );
 
     try {
       await _performRegistration();
     } catch (e) {
+      DialogUtils.closeDialog(context); // Close loading dialog
       debugPrint('Registration error: $e');
-      _showErrorMessage('حدث خطأ في الاتصال بالخادم');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: 'حدث خطأ في الاتصال بالخادم',
+      );
     }
   }
 
@@ -183,13 +196,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   /// Handle the registration API response
   Future<void> _handleRegistrationResponse(http.Response response) async {
+    DialogUtils.closeDialog(context); // Close loading dialog
+
     if (response.statusCode == 201) {
-      _showSuccessMessage();
-      await _navigateToLoginAfterDelay();
+      DialogUtils.showSuccessDialog(
+        context: context,
+        message: 'تم إنشاء حسابك بنجاح، يمكنك تسجيل الدخول الآن',
+        onPressed: () {
+          Navigator.of(context).pop(); // Close dialog
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+          );
+        },
+      );
     } else {
-      final responseBody = jsonDecode(response.body);
-      final errorMessage = responseBody['message'] ?? 'حدث خطأ، حاول مرة أخرى';
-      _showErrorMessage(errorMessage);
+      final errorMessage = 'يرجى استخدام رقم هاتف غير مسجل مسبقاً';
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: errorMessage,
+      );
     }
   }
 
@@ -203,86 +229,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// Validate if password and confirm password match
   bool _validatePasswordMatch() {
     return _passwordController.text == _confirmPasswordController.text;
-  }
-
-  /// Navigate to login screen after success delay
-  Future<void> _navigateToLoginAfterDelay() async {
-    await Future.delayed(const Duration(seconds: _successMessageDuration));
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-    }
-  }
-
-  // ========== UI Feedback Methods ==========
-
-  /// Show success message to user
-  void _showSuccessMessage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم إضافة المستخدم بنجاح'),
-        backgroundColor: Colors.blue,
-        duration: Duration(seconds: _successMessageDuration),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  /// Show error message to user
-  void _showErrorMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: const Color(0xFFFF7A59),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  /// Show no internet connection dialog
-  void _showNoInternetDialog() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: BorderSide(color: Colors.blue[300]!, width: 1.5),
-        ),
-        backgroundColor: Colors.white,
-        title: Row(
-          children: [
-            const Icon(Icons.wifi_off, color: Colors.orange),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'لا يوجد اتصال بالإنترنت',
-                style: TextStyle(color: Colors.black87),
-                overflow: TextOverflow.visible,
-              ),
-            ),
-          ],
-        ),
-        content: const Text(
-          'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى',
-          style: TextStyle(color: Colors.black87),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إغلاق', style: TextStyle(color: Colors.orange)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _registerUser();
-            },
-            child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.blue)),
-          ),
-        ],
-      ),
-    );
   }
 
   // ========== Form Validation ==========
@@ -520,12 +466,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  /// Build register button or loading indicator
+  /// Build register button
   Widget _buildRegisterButton() {
-    if (_isLoading) {
-      return const CircularProgressIndicator(color: Colors.blue);
-    }
-
     return ElevatedButton(
       onPressed: _registerUser,
       style: ElevatedButton.styleFrom(

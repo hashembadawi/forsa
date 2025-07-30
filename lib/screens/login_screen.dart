@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:syria_market/utils/dialog_utils.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
 import 'my_ads_screen.dart';
@@ -42,7 +43,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   
   Map<String, String>? _selectedCountry;
-  bool _isLoading = false;
   bool _showPassword = false;
   bool _rememberMe = false;
 
@@ -106,26 +106,34 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     if (!_validateForm()) return;
 
-    setState(() => _isLoading = true);
-
     try {
       // Check connectivity first
       final isConnected = await _checkInternetConnectivity();
       if (!isConnected) {
-        _showNoInternetDialog();
+        DialogUtils.showNoInternetDialog(
+          context: context,
+          onRetry: _login,
+        );
         return;
       }
+
+      // Show loading dialog
+      DialogUtils.showLoadingDialog(
+        context: context,
+        title: 'جارٍ تسجيل الدخول...',
+        message: 'يرجى الانتظار حتى يتم التحقق من بياناتك',
+      );
 
       // Perform login request
       final response = await _performLoginRequest();
       await _handleLoginResponse(response);
       
     } catch (e) {
-      _showError('حدث خطأ في الاتصال بالخادم');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      DialogUtils.closeDialog(context); // Close dialog
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: 'حدث خطأ في الاتصال بالخادم',
+      );
     }
   }
 
@@ -147,12 +155,17 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLoginResponse(http.Response response) async {
     final responseData = jsonDecode(response.body);
 
+    DialogUtils.closeDialog(context); // Close loading dialog
+
     if (response.statusCode == 200 && responseData['token'] != null) {
       await _saveUserData(responseData);
       await _navigateAfterLogin();
     } else {
-      final errorMessage = responseData['message'] ?? 'حدث خطأ أثناء تسجيل الدخول';
-      _showError(errorMessage);
+      final errorMessage = 'حدث خطأ أثناء تسجيل الدخول';
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: errorMessage,
+      );
     }
   }
 
@@ -241,52 +254,6 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-  }
-
-  /// Show no internet dialog
-  void _showNoInternetDialog() {
-    if (!mounted) return;
-    
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: BorderSide(color: Colors.blue[300]!, width: 1.5),
-        ),
-        backgroundColor: Colors.white,
-        title: Row(
-          children: [
-            Icon(Icons.wifi_off, color: Colors.orange),
-            const SizedBox(width: 10),
-            const Expanded(
-              child: Text(
-                'لا يوجد اتصال بالإنترنت',
-                style: TextStyle(color: Colors.black87),
-                overflow: TextOverflow.visible,
-              ),
-            ),
-          ],
-        ),
-        content: const Text(
-          'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى',
-          style: TextStyle(color: Colors.black87),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إغلاق', style: TextStyle(color: Colors.orange)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _login();
-            },
-            child: const Text('إعادة المحاولة', style: TextStyle(color: Colors.blue)),
-          ),
-        ],
       ),
     );
   }
@@ -493,24 +460,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// Build login button
   Widget _buildLoginButton() {
-    return _isLoading
-        ? CircularProgressIndicator(color: Colors.blue[600])
-        : ElevatedButton(
-            onPressed: _login,
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 50),
-              backgroundColor: Colors.blue[700],
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 2,
-            ),
-            child: const Text(
-              'تسجيل الدخول',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          );
+    return ElevatedButton(
+      onPressed: _login,
+      style: ElevatedButton.styleFrom(
+        minimumSize: const Size(double.infinity, 50),
+        backgroundColor: Colors.blue[700],
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        elevation: 2,
+      ),
+      child: const Text(
+        'تسجيل الدخول',
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+    );
   }
 
   /// Build register section
