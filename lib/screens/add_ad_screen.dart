@@ -464,7 +464,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
     DialogUtils.showSuccessDialog(
       context: context,
       title: 'تم بنجاح',
-      message: 'تم نشر إعلانك بنجاح',
+      message: 'سيتم مراجعة الإعلان من قبل الإدارة خلا 6 ساعات و سيتم قبوله في حال كان الإعلان موافق للشروط',
       buttonText: 'موافق',
       onPressed: () {
         Navigator.of(context).pop(); // Close dialog
