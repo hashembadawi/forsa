@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'image_preview_screen.dart';
 
@@ -321,6 +322,13 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
               isSelected: _selectedTabIndex == 1,
             ),
           ),
+          Expanded(
+            child: _buildTabButton(
+              title: 'الموقع',
+              index: 2,
+              isSelected: _selectedTabIndex == 2,
+            ),
+          ),
         ],
       ),
     );
@@ -357,7 +365,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       margin: const EdgeInsets.all(20),
       child: _selectedTabIndex == 0 
           ? _buildAdInfoTab() 
-          : _buildDescriptionTab(),
+          : _selectedTabIndex == 1
+              ? _buildDescriptionTab()
+              : _buildLocationTab(),
     );
   }
 
@@ -424,6 +434,126 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
           height: 1.5,
         ),
         textAlign: TextAlign.justify,
+      ),
+    );
+  }
+
+  Widget _buildLocationTab() {
+    final location = widget.ad['location'];
+    
+    // Check if location exists and has the correct structure
+    if (location == null || 
+        location['coordinates'] == null || 
+        location['coordinates'] is! List ||
+        (location['coordinates'] as List).length < 2) {
+      return _buildNoLocationAvailable();
+    }
+
+    final coordinates = location['coordinates'] as List;
+    final longitude = coordinates[0]?.toDouble() ?? 0.0;
+    final latitude = coordinates[1]?.toDouble() ?? 0.0;
+
+    return _buildLocationMap(latitude, longitude);
+  }
+
+  Widget _buildNoLocationAvailable() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: const Center(
+        child: Column(
+          children: [
+            Icon(Icons.location_off_outlined, size: 48, color: Colors.grey),
+            SizedBox(height: 8),
+            Text(
+              'لا يوجد موقع محدد لهذا الإعلان',
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocationMap(double latitude, double longitude) {
+    final LatLng adLocation = LatLng(latitude, longitude);
+    
+    return Container(
+      height: 300,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue[300]!),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          children: [
+            // Map Section
+            Expanded(
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: adLocation,
+                  zoom: 15.0,
+                ),
+                markers: {
+                  Marker(
+                    markerId: const MarkerId('ad_location'),
+                    position: adLocation,
+                    infoWindow: const InfoWindow(
+                      title: 'موقع الإعلان',
+                      snippet: 'اضغط على الزر أدناه للحصول على الاتجاهات',
+                    ),
+                    icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+                  ),
+                },
+                myLocationEnabled: true,
+                myLocationButtonEnabled: false,
+                zoomControlsEnabled: false,
+                mapToolbarEnabled: false,
+                onTap: (_) => _openGoogleMapsDirections(latitude, longitude),
+              ),
+            ),
+            // Directions Button
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue[600],
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
+              ),
+              child: GestureDetector(
+                onTap: () => _openGoogleMapsDirections(latitude, longitude),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.directions, color: Colors.white),
+                    SizedBox(width: 8),
+                    Text(
+                      'الحصول على الاتجاهات في خرائط جوجل',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -763,6 +893,37 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('فشل في إرسال الرسالة')),
+        );
+      }
+    }
+  }
+
+  Future<void> _openGoogleMapsDirections(double latitude, double longitude) async {
+    // Google Maps URL for directions
+    final googleMapsUrl = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=$latitude,$longitude'
+    );
+    
+    // Google Maps app URL
+    final googleMapsAppUrl = Uri.parse(
+      'google.navigation:q=$latitude,$longitude'
+    );
+
+    try {
+      // Try to open Google Maps app first
+      if (await canLaunchUrl(googleMapsAppUrl)) {
+        await launchUrl(googleMapsAppUrl, mode: LaunchMode.externalApplication);
+      } else {
+        // Fallback to web version
+        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('فشل في فتح خرائط جوجل'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
