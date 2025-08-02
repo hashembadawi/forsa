@@ -20,6 +20,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   static const double _padding = 16.0;
   static const double _imageHeight = 200.0;
   static const EdgeInsets _screenPadding = EdgeInsets.all(_padding);
+  
+  // Tab state
+  int _selectedTabIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -160,24 +163,28 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     return Container(
       margin: _screenPadding,
       decoration: _buildDetailsDecoration(),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildAdTitle(),
-            const SizedBox(height: 12),
-            _buildPriceSection(),
-            const SizedBox(height: 16),
-            _buildBasicInfo(),
-            const SizedBox(height: 16),
-            _buildAdvertiserInfo(),
-            const SizedBox(height: 16),
-            _buildCategoryInfo(),
-            const SizedBox(height: 24),
-            _buildActionButtons(),
-          ],
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildAdTitle(),
+                const SizedBox(height: 12),
+                _buildPriceSection(),
+              ],
+            ),
+          ),
+          _buildTabSection(),
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: _buildActionButtons(),
+          ),
+          const SizedBox(height: 10),
+        ],
       ),
     );
   }
@@ -278,6 +285,146 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       Icons.category,
       'التصنيف',
       '${widget.ad['categoryName'] ?? 'غير محدد'} - ${widget.ad['subCategoryName'] ?? 'غير متوفر'}',
+    );
+  }
+
+  // Tab Section Builder
+  Widget _buildTabSection() {
+    return Column(
+      children: [
+        _buildTabHeader(),
+        _buildTabContent(),
+      ],
+    );
+  }
+
+  Widget _buildTabHeader() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildTabButton(
+              title: 'معلومات الإعلان',
+              index: 0,
+              isSelected: _selectedTabIndex == 0,
+            ),
+          ),
+          Expanded(
+            child: _buildTabButton(
+              title: 'الوصف',
+              index: 1,
+              isSelected: _selectedTabIndex == 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabButton({
+    required String title,
+    required int index,
+    required bool isSelected,
+  }) {
+    return GestureDetector(
+      onTap: () => setState(() => _selectedTabIndex = index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue[600] : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          title,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.grey[600],
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabContent() {
+    return Container(
+      margin: const EdgeInsets.all(20),
+      child: _selectedTabIndex == 0 
+          ? _buildAdInfoTab() 
+          : _buildDescriptionTab(),
+    );
+  }
+
+  Widget _buildAdInfoTab() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildBasicInfo(),
+        const SizedBox(height: 16),
+        _buildAdvertiserInfo(),
+        const SizedBox(height: 16),
+        _buildCategoryInfo(),
+      ],
+    );
+  }
+
+  Widget _buildDescriptionTab() {
+    final String description = widget.ad['description'] ?? '';
+    
+    if (description.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: const Center(
+          child: Column(
+            children: [
+              Icon(Icons.description_outlined, size: 48, color: Colors.grey),
+              SizedBox(height: 8),
+              Text(
+                'لا يوجد وصف متاح لهذا الإعلان',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue[50]!.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.blue[200]!.withOpacity(0.5),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        description,
+        style: const TextStyle(
+          fontSize: 14,
+          color: Colors.black87,
+          height: 1.5,
+        ),
+        textAlign: TextAlign.justify,
+      ),
     );
   }
 
