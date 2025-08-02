@@ -7,55 +7,80 @@ class ContactUsScreen extends StatelessWidget {
 
   // Contact information constants
   static const String _supportEmail = 'support@syria-market.com';
-  static const String _phoneNumber = '+905510300730';
+  static const String _phoneNumber = '905510300730';
   static const String _websiteUrl = 'https://www.syria-market.com';
 
   /// Launch email client
   Future<void> _launchEmail() async {
-    final Uri emailUri = Uri(
-      scheme: 'mailto',
-      path: _supportEmail,
-    );
+    const String subject = "استفسار حول تطبيق سوق سوريا";
+    const String body = "السلام عليكم،\n\nأريد الاستفسار عن تطبيق سوق سوريا.\n\nشكراً لكم.";
+    final String encodedSubject = Uri.encodeComponent(subject);
+    final String encodedBody = Uri.encodeComponent(body);
+    
+    final Uri emailUri = Uri.parse("mailto:$_supportEmail?subject=$encodedSubject&body=$encodedBody");
+    final Uri emailUriSimple = Uri(scheme: 'mailto', path: _supportEmail);
 
     try {
       if (await canLaunchUrl(emailUri)) {
-        await launchUrl(emailUri);
+        await launchUrl(emailUri, mode: LaunchMode.externalApplication);
       } else {
-        debugPrint('Cannot launch email client');
+        await launchUrl(emailUriSimple, mode: LaunchMode.externalApplication);
       }
     } catch (e) {
-      debugPrint('Error launching email: $e');
+      try {
+        await launchUrl(emailUriSimple, mode: LaunchMode.platformDefault);
+      } catch (e2) {
+        debugPrint('Error launching email: $e2');
+      }
     }
   }
 
   /// Launch WhatsApp
   Future<void> _launchWhatsApp() async {
-    final String cleanPhoneNumber = _phoneNumber.replaceAll('+', '');
-    final Uri whatsappUri = Uri.parse('https://wa.me/$cleanPhoneNumber');
+    final String cleanPhoneNumber = _phoneNumber;
+    const String message = "السلام عليكم، أريد التواصل معكم بخصوص تطبيق سوق سوريا.";
+    final String encodedMessage = Uri.encodeComponent(message);
+
+    final Uri uriDirect = Uri.parse("whatsapp://send?phone=$cleanPhoneNumber&text=$encodedMessage");
+    final Uri uriWeb = Uri.parse("https://wa.me/$cleanPhoneNumber?text=$encodedMessage");
 
     try {
-      if (await canLaunchUrl(whatsappUri)) {
-        await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+      if (await canLaunchUrl(uriDirect)) {
+        await launchUrl(uriDirect, mode: LaunchMode.externalApplication);
       } else {
-        debugPrint('Cannot launch WhatsApp');
+        await launchUrl(uriWeb, mode: LaunchMode.externalApplication);
       }
     } catch (e) {
-      debugPrint('Error launching WhatsApp: $e');
+      try {
+        await launchUrl(uriWeb, mode: LaunchMode.platformDefault);
+      } catch (e2) {
+        debugPrint('Error launching WhatsApp: $e2');
+      }
     }
   }
 
   /// Launch website
   Future<void> _launchWebsite() async {
     final Uri webUri = Uri.parse(_websiteUrl);
+    final Uri webUriFallback = Uri.parse("https://www.google.com/search?q=syria+market");
 
     try {
       if (await canLaunchUrl(webUri)) {
         await launchUrl(webUri, mode: LaunchMode.externalApplication);
       } else {
-        debugPrint('Cannot launch website');
+        await launchUrl(webUri, mode: LaunchMode.inAppBrowserView);
       }
     } catch (e) {
-      debugPrint('Error launching website: $e');
+      try {
+        await launchUrl(webUri, mode: LaunchMode.platformDefault);
+      } catch (e2) {
+        try {
+          // Fallback to Google search if the website is not accessible
+          await launchUrl(webUriFallback, mode: LaunchMode.externalApplication);
+        } catch (e3) {
+          debugPrint('Error launching website: $e3');
+        }
+      }
     }
   }
 
