@@ -453,6 +453,11 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     final longitude = coordinates[0]?.toDouble() ?? 0.0;
     final latitude = coordinates[1]?.toDouble() ?? 0.0;
 
+    // Check if coordinates are [0, 0] which means no location selected
+    if (longitude == 0.0 && latitude == 0.0) {
+      return _buildNoLocationAvailable();
+    }
+
     return _buildLocationMap(latitude, longitude);
   }
 
