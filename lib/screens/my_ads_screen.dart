@@ -529,6 +529,8 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
           _buildAdLocation(ad),
           const SizedBox(height: 8),
           _buildAdDate(ad),
+          const SizedBox(height: 12),
+          _buildAdStatus(ad),
           _buildDivider(),
           _buildActionButtons(ad),
         ],
@@ -630,6 +632,44 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
         ),
       ],
     );
+  }
+
+  /// Build ad status
+  Widget _buildAdStatus(Map<String, dynamic> ad) {
+    final isApproved = ad['isApproved'] ?? false;
+    
+    if (!isApproved) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.orange.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.orange, width: 1),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.pending,
+              size: 16,
+              color: Colors.orange,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'قيد المراجعة',
+              style: TextStyle(
+                color: Colors.orange,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // Return empty container if approved (no status shown)
+    return const SizedBox.shrink();
   }
 
   /// Build content divider
