@@ -16,6 +16,10 @@
     
     <!-- For Android 13+ photo picker -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    
+    <!-- Location permissions for map functionality -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:label="سوق سوريا"
@@ -49,6 +53,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        
+        <!-- Google Maps API Key -->
+        <meta-data android:name="com.google.android.geo.API_KEY"
+               android:value="AIzaSyAmVeqLslj7sr4R8yPvbhvzkkVGL2d3QjE"/>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

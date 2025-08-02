@@ -8,6 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:syria_market/utils/dialog_utils.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 /// Multi-step screen for adding new advertisements
 class MultiStepAddAdScreen extends StatefulWidget {
@@ -30,6 +33,8 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
   String _adTitle = '';
   String _price = '';
   String _description = '';
+  LatLng? _selectedLocation;
+  bool _useCurrentLocation = false;
 
   // Server data
   List<Map<String, dynamic>> _currencies = [];
@@ -339,7 +344,9 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
           selectedProvince: _selectedProvince,
           majorAreas: _majorAreas,
           selectedMajorArea: _selectedMajorArea,
-          onDetailsChanged: (title, price, desc, currency, province, area) {
+          selectedLocation: _selectedLocation,
+          useCurrentLocation: _useCurrentLocation,
+          onDetailsChanged: (title, price, desc, currency, province, area, location, useCurrentLoc) {
             setState(() {
               _adTitle = title;
               _price = price;
@@ -347,6 +354,8 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
               _selectedCurrency = currency;
               _selectedProvince = province;
               _selectedMajorArea = area;
+              _selectedLocation = location;
+              _useCurrentLocation = useCurrentLoc;
             });
           },
           onSubmit: _submitAd,
@@ -430,7 +439,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
     required String username,
     required List<String> base64Images,
   }) {
-    return {
+    final Map<String, dynamic> requestData = {
       'userId': userId,
       'userPhone': userPhone,
       'userName': username,
@@ -449,6 +458,16 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       'description': _description,
       'images': base64Images,
     };
+
+    // Add location data if available
+    if (_selectedLocation != null) {
+      requestData['location'] = {
+        'type': 'Point',
+        'coordinates': [_selectedLocation!.longitude, _selectedLocation!.latitude],
+      };
+    }
+
+    return requestData;
   }
 
   // Dialog methods
@@ -906,6 +925,8 @@ class AdDetailsStep extends StatefulWidget {
   final Map<String, dynamic>? selectedProvince;
   final List<Map<String, dynamic>> majorAreas;
   final Map<String, dynamic>? selectedMajorArea;
+  final LatLng? selectedLocation;
+  final bool useCurrentLocation;
   final Function(
     String,
     String,
@@ -913,6 +934,8 @@ class AdDetailsStep extends StatefulWidget {
     Map<String, dynamic>?,
     Map<String, dynamic>?,
     Map<String, dynamic>?,
+    LatLng?,
+    bool,
   ) onDetailsChanged;
   final VoidCallback onSubmit;
   final VoidCallback onBack;
@@ -928,6 +951,8 @@ class AdDetailsStep extends StatefulWidget {
     required this.selectedProvince,
     required this.majorAreas,
     required this.selectedMajorArea,
+    this.selectedLocation,
+    this.useCurrentLocation = false,
     required this.onDetailsChanged,
     required this.onSubmit,
     required this.onBack,
@@ -945,6 +970,8 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
   Map<String, dynamic>? _selectedCurrency;
   Map<String, dynamic>? _selectedProvince;
   Map<String, dynamic>? _selectedMajorArea;
+  LatLng? _selectedLocation;
+  bool _useCurrentLocation = false;
 
   @override
   void initState() {
@@ -957,6 +984,8 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
         (widget.currencies.isNotEmpty ? widget.currencies[0] : null);
     _selectedProvince = widget.selectedProvince ?? 
         (widget.provinces.isNotEmpty ? widget.provinces[0] : null);
+    _selectedLocation = widget.selectedLocation;
+    _useCurrentLocation = widget.useCurrentLocation;
     
     _updateMajorAreaDefault();
   }
@@ -988,6 +1017,8 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
       _selectedCurrency,
       _selectedProvince,
       _selectedMajorArea,
+      _selectedLocation,
+      _useCurrentLocation,
     );
   }
 
@@ -997,6 +1028,103 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
         _selectedCurrency != null &&
         _selectedProvince != null &&
         _selectedMajorArea != null;
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      // Check and request location permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _showLocationPermissionDialog();
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        _showLocationPermissionDialog();
+        return;
+      }
+
+      // Get current position
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      setState(() {
+        _selectedLocation = LatLng(position.latitude, position.longitude);
+        _useCurrentLocation = true;
+      });
+      _updateData();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('تم تحديد موقعك الحالي'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('حدث خطأ في تحديد الموقع'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showLocationPermissionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('إذن الموقع مطلوب'),
+        content: const Text('يرجى منح التطبيق إذن الوصول للموقع لاستخدام هذه الميزة'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              openAppSettings();
+            },
+            child: const Text('الإعدادات'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _selectLocationOnMap() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MapLocationPicker(
+          initialLocation: _selectedLocation ?? const LatLng(33.5138, 36.2765), // Default to Damascus
+          onLocationSelected: (location) {
+            setState(() {
+              _selectedLocation = location;
+              _useCurrentLocation = false;
+            });
+            _updateData();
+          },
+        ),
+      ),
+    );
+  }
+
+  void _clearLocation() {
+    setState(() {
+      _selectedLocation = null;
+      _useCurrentLocation = false;
+    });
+    _updateData();
   }
 
   @override
@@ -1026,6 +1154,8 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                   _buildProvinceDropdown(),
                   const SizedBox(height: 15),
                   _buildMajorAreaDropdown(),
+                  const SizedBox(height: 15),
+                  _buildLocationSection(),
                   const SizedBox(height: 15),
                   _buildDescriptionField(),
                 ],
@@ -1197,6 +1327,87 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
     );
   }
 
+  Widget _buildLocationSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'الموقع (اختياري)',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 10),
+        if (_selectedLocation != null) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.green),
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.green.shade50,
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.location_on, color: Colors.green),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _useCurrentLocation 
+                        ? 'تم تحديد موقعك الحالي'
+                        : 'تم تحديد الموقع على الخريطة',
+                    style: const TextStyle(color: Colors.green),
+                  ),
+                ),
+                IconButton(
+                  onPressed: _clearLocation,
+                  icon: const Icon(Icons.clear, color: Colors.red),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _getCurrentLocation,
+                icon: const Icon(Icons.my_location),
+                label: const Text('موقعي الحالي'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue[600],
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _selectLocationOnMap,
+                icon: const Icon(Icons.map),
+                label: const Text('اختر من الخريطة'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green[600],
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildNavigationButtons() {
     return Row(
       children: [
@@ -1237,6 +1448,141 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Map Location Picker Widget
+class MapLocationPicker extends StatefulWidget {
+  final LatLng initialLocation;
+  final Function(LatLng) onLocationSelected;
+
+  const MapLocationPicker({
+    super.key,
+    required this.initialLocation,
+    required this.onLocationSelected,
+  });
+
+  @override
+  State<MapLocationPicker> createState() => _MapLocationPickerState();
+}
+
+class _MapLocationPickerState extends State<MapLocationPicker> {
+  LatLng? _selectedLocation;
+  Set<Marker> _markers = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedLocation = widget.initialLocation;
+    _updateMarker();
+  }
+
+  void _updateMarker() {
+    if (_selectedLocation != null) {
+      setState(() {
+        _markers = {
+          Marker(
+            markerId: const MarkerId('selected_location'),
+            position: _selectedLocation!,
+            infoWindow: const InfoWindow(title: 'الموقع المحدد'),
+          ),
+        };
+      });
+    }
+  }
+
+  void _onMapTapped(LatLng location) {
+    setState(() {
+      _selectedLocation = location;
+    });
+    _updateMarker();
+  }
+
+  void _confirmLocation() {
+    if (_selectedLocation != null) {
+      widget.onLocationSelected(_selectedLocation!);
+      Navigator.pop(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('اختر الموقع'),
+          backgroundColor: Colors.blue[700],
+          foregroundColor: Colors.white,
+          actions: [
+            TextButton(
+              onPressed: _confirmLocation,
+              child: const Text(
+                'تأكيد',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: Colors.blue[50],
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'اضغط على الخريطة لتحديد موقع الإعلان',
+                      style: TextStyle(color: Colors.blue),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: widget.initialLocation,
+                  zoom: 14.0,
+                ),
+                onTap: _onMapTapped,
+                markers: _markers,
+                myLocationEnabled: true,
+                myLocationButtonEnabled: true,
+                mapType: MapType.normal,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _selectedLocation != null ? _confirmLocation : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[600],
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'تأكيد الموقع',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
