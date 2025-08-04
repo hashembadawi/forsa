@@ -735,13 +735,19 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
 
   // Utility Methods
   String _formatDate(String? isoDate) {
-    if (isoDate == null || isoDate.isEmpty) return 'غير معروف';
+    if (isoDate == null || isoDate.isEmpty) return 'غير محدد';
     
     try {
       final date = DateTime.parse(isoDate);
-      return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      final now = DateTime.now();
+      final difference = now.difference(date);
+
+      if (difference.inDays >= 1) return 'منذ ${difference.inDays} يوم';
+      if (difference.inHours >= 1) return 'منذ ${difference.inHours} ساعة';
+      if (difference.inMinutes >= 1) return 'منذ ${difference.inMinutes} دقيقة';
+      return 'الآن';
     } catch (e) {
-      return 'غير معروف';
+      return 'غير محدد';
     }
   }
 
@@ -993,6 +999,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
         setState(() {
           _similarAds = filteredAds.take(_limitSimilarAds).toList();
           _isLoadingSimilarAds = false;
+          _hasErrorSimilarAds = false;
         });
       } else {
         setState(() {
@@ -1174,21 +1181,20 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
 
   /// Build similar ads list
   Widget _buildSimilarAdsList() {
-    return Column(
-      children: [
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.75,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-          ),
-          itemCount: _similarAds.length,
-          itemBuilder: (context, index) => _buildSimilarAdCard(_similarAds[index]),
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.7,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
         ),
-      ],
+        itemCount: _similarAds.length,
+        itemBuilder: (context, index) => _buildSimilarAdCard(_similarAds[index]),
+      ),
     );
   }
 
@@ -1198,9 +1204,8 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     final firstImageBase64 = images.isNotEmpty ? images[0] : null;
 
     return Container(
-      margin: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(15),
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1211,11 +1216,19 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
           ],
         ),
         border: Border.all(color: Colors.blue[300]!, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue[100]!.withOpacity(0.3),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(15),
           splashColor: Colors.blue[300]!.withOpacity(0.2),
           highlightColor: Colors.blue[100]!.withOpacity(0.1),
           onTap: () => _navigateToAdDetails(ad),
@@ -1225,7 +1238,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
               Expanded(
                 flex: 3,
                 child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
                   child: SizedBox(
                     width: double.infinity,
                     child: _buildSimilarAdImage(firstImageBase64),
@@ -1235,7 +1248,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
               Expanded(
                 flex: 2,
                 child: Container(
-                  constraints: const BoxConstraints(minHeight: 80),
+                  constraints: const BoxConstraints(minHeight: 70),
                   child: Padding(
                     padding: const EdgeInsets.all(6),
                     child: _buildSimilarAdDetails(ad),
@@ -1278,13 +1291,13 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.image, size: 40, color: Colors.blue[400]),
-            const SizedBox(height: 4),
+            Icon(Icons.image, size: 32, color: Colors.blue[400]),
+            const SizedBox(height: 2),
             Text(
               'لا توجد صورة',
               style: TextStyle(
                 color: Colors.blue[700],
-                fontSize: 10,
+                fontSize: 9,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -1303,7 +1316,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
         Text(
           '${ad['adTitle'] ?? ''}',
           style: const TextStyle(
-            fontSize: 13,
+            fontSize: 11,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
           ),
@@ -1311,16 +1324,16 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
           maxLines: 1,
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
             color: Colors.blue[50],
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: Colors.blue[300]!, width: 1),
           ),
           child: Text(
             '${ad['price'] ?? '0'} ${ad['currencyName'] ?? ''}',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 10,
               fontWeight: FontWeight.bold,
               color: Colors.blue[700],
             ),
@@ -1331,7 +1344,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
         Text(
           ad['description'] ?? '',
           style: const TextStyle(
-            fontSize: 10,
+            fontSize: 9,
             color: Colors.black87,
             fontWeight: FontWeight.w500,
           ),
@@ -1341,14 +1354,14 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.location_on, size: 12, color: Colors.blue[600]),
+            Icon(Icons.location_on, size: 10, color: Colors.blue[600]),
             const SizedBox(width: 2),
             Expanded(
               child: Text(
                 '${ad['cityName'] ?? ''} - ${_formatDate(ad['createDate'] ?? '')}',
                 style: const TextStyle(
                   color: Colors.black87,
-                  fontSize: 9,
+                  fontSize: 8,
                   fontWeight: FontWeight.w500,
                 ),
                 overflow: TextOverflow.ellipsis,
