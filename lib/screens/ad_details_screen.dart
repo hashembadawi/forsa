@@ -118,13 +118,163 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Images Section
             _buildImageSection(),
-            _buildDetailsSection(),
+            
+            // Ad Content
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Ad Title
+                  _buildAdTitle(),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Price Section
+                  _buildPriceSection(),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Tabs
+                  _buildTabSection(),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Action Buttons
+                  _buildActionButtons(),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildAdTitle() {
+    return Text(
+      '${widget.ad['adTitle'] ?? 'غير متوفر'}',
+      style: const TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
+        color: Colors.black87,
+      ),
+    );
+  }
+
+  Widget _buildPriceSection() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.blue[200]!,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'السعر:',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          Text(
+            '${widget.ad['price'] ?? 'غير محدد'} ${widget.ad['currencyName'] ?? ''}',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue[700],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Tab Section Builder
+  Widget _buildTabSection() {
+    return Column(
+      children: [
+        // Tab Headers
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.blue[300]!, width: 1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            children: [
+              _buildTabButton('معلومات الإعلان', 0),
+              _buildTabButton('الوصف', 1),
+              _buildTabButton('الموقع', 2),
+            ],
+          ),
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // Tab Content
+        _buildTabContent(),
+      ],
+    );
+  }
+
+  Widget _buildTabButton(String title, int index) {
+    final isSelected = _selectedTabIndex == index;
+    final isFirst = index == 0;
+    final isLast = index == 2;
+    
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedTabIndex = index),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.blue[600] : Colors.transparent,
+            borderRadius: BorderRadius.only(
+              topRight: isFirst ? const Radius.circular(9) : Radius.zero,
+              bottomRight: isFirst ? const Radius.circular(9) : Radius.zero,
+              topLeft: isLast ? const Radius.circular(9) : Radius.zero,
+              bottomLeft: isLast ? const Radius.circular(9) : Radius.zero,
+            ),
+            border: !isFirst ? Border(
+              right: BorderSide(color: Colors.blue[300]!, width: 1),
+            ) : null,
+          ),
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.blue[700],
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabContent() {
+    switch (_selectedTabIndex) {
+      case 0:
+        return _buildAdInfoTab();
+      case 1:
+        return _buildDescriptionTab();
+      case 2:
+        return _buildLocationTab();
+      default:
+        return _buildAdInfoTab();
+    }
   }
 
   // Image Section Builders
@@ -182,155 +332,6 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       child: const Center(
         child: Icon(Icons.broken_image, size: 60, color: Colors.grey),
       ),
-    );
-  }
-
-  // Details Section Builder
-  Widget _buildDetailsSection() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: Colors.white,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildAdTitle(),
-                const SizedBox(height: 12),
-                _buildPriceSection(),
-              ],
-            ),
-          ),
-          _buildTabSection(),
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: _buildActionButtons(),
-          ),
-          const SizedBox(height: 10),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAdTitle() {
-    return Text(
-      '${widget.ad['adTitle'] ?? 'غير متوفر'}',
-      style: const TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
-      ),
-    );
-  }
-
-  Widget _buildPriceSection() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.blue[100]!.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: Colors.blue[300]!.withOpacity(0.5),
-          width: 1.5,
-        ),
-      ),
-      child: Text(
-        'السعر: ${widget.ad['price'] ?? 'غير محدد'} ${widget.ad['currencyName'] ?? ''}',
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-        ),
-      ),
-    );
-  }
-
-  // Tab Section Builder
-  Widget _buildTabSection() {
-    return Column(
-      children: [
-        _buildTabHeader(),
-        _buildTabContent(),
-      ],
-    );
-  }
-
-  Widget _buildTabHeader() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildTabButton(
-              title: 'معلومات الإعلان',
-              index: 0,
-              isSelected: _selectedTabIndex == 0,
-            ),
-          ),
-          Expanded(
-            child: _buildTabButton(
-              title: 'الوصف',
-              index: 1,
-              isSelected: _selectedTabIndex == 1,
-            ),
-          ),
-          Expanded(
-            child: _buildTabButton(
-              title: 'الموقع',
-              index: 2,
-              isSelected: _selectedTabIndex == 2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabButton({
-    required String title,
-    required int index,
-    required bool isSelected,
-  }) {
-    return GestureDetector(
-      onTap: () => setState(() => _selectedTabIndex = index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.blue[600] : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          title,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey[600],
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            fontSize: 14,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTabContent() {
-    return Container(
-      margin: const EdgeInsets.all(20),
-      child: _selectedTabIndex == 0 
-          ? _buildAdInfoTab() 
-          : _selectedTabIndex == 1
-              ? _buildDescriptionTab()
-              : _buildLocationTab(),
     );
   }
 
