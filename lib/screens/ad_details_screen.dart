@@ -981,15 +981,12 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       if (subCategoryId != null) {
         params['subCategoryId'] = subCategoryId.toString();
       }
-      print('Fetching similar ads with params: $params');
       final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search-by-category', params);
       final response = await http.get(uri);
 
-      print(response.body);
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         final List<dynamic> fetchedAds = decoded['ads'] ?? [];
-        
         // Filter out the current ad from similar ads
         final filteredAds = fetchedAds.where((ad) => ad['id'] != currentAdId).toList();
         

@@ -420,8 +420,11 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
     for (final image in _selectedImages.where((img) => img != null)) {
       final compressedBytes = await FlutterImageCompress.compressWithFile(
         image!.path,
-        quality: 60,
+        minWidth: 250,    // Maximum width of 250px
+        minHeight: 250,   // Maximum height of 250px
+        quality: 30,       // Very low quality (1-100, lower = smaller file)
         format: CompressFormat.jpeg,
+        rotate: 0,
       );
       
       if (compressedBytes != null) {
