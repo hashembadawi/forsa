@@ -968,7 +968,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   Future<void> _fetchSimilarAds() async {
     final categoryId = widget.ad['categoryId'];
     final subCategoryId = widget.ad['subCategoryId'];
-    final currentAdId = widget.ad['id'];
+    final currentAdId = widget.ad['_id'];
     
     if (categoryId == null) return;
 
@@ -994,7 +994,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
         final decoded = jsonDecode(response.body);
         final List<dynamic> fetchedAds = decoded['ads'] ?? [];
         // Filter out the current ad from similar ads
-        final filteredAds = fetchedAds.where((ad) => ad['id'] != currentAdId).toList();
+        final filteredAds = fetchedAds.where((ad) => ad['_id'] != currentAdId).toList();
         
         setState(() {
           _similarAds = filteredAds.take(_limitSimilarAds).toList();
@@ -1064,8 +1064,8 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
             ),
             
             // Similar Ads Content
-            Container(
-              padding: const EdgeInsets.all(16),
+            Padding(
+              padding: const EdgeInsets.all(12),
               child: _buildSimilarAdsContent(),
             ),
           ],
@@ -1094,19 +1094,25 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   /// Build loading widget for similar ads
   Widget _buildSimilarAdsLoading() {
     return Container(
-      height: 150,
+      height: 120,
+      padding: const EdgeInsets.all(20),
       child: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: CircularProgressIndicator(strokeWidth: 3),
+            ),
+            SizedBox(height: 12),
             Text(
               'جاري تحميل الإعلانات المشابهة...',
               style: TextStyle(
                 color: Colors.grey,
-                fontSize: 14,
+                fontSize: 13,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -1117,34 +1123,39 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   /// Build error widget for similar ads
   Widget _buildSimilarAdsError() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(
             Icons.error_outline,
-            size: 48,
+            size: 40,
             color: Colors.orange,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           const Text(
             'فشل في تحميل الإعلانات المشابهة',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Colors.grey,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: _fetchSimilarAds,
-            icon: const Icon(Icons.refresh),
-            label: const Text('إعادة المحاولة'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[600],
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _fetchSimilarAds,
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('إعادة المحاولة'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue[600],
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ),
@@ -1156,19 +1167,20 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   /// Build no similar ads widget
   Widget _buildNoSimilarAds() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: const Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             Icons.search_off,
-            size: 48,
+            size: 40,
             color: Colors.grey,
           ),
-          SizedBox(height: 16),
+          SizedBox(height: 12),
           Text(
             'لا توجد إعلانات مشابهة في الوقت الحالي',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Colors.grey,
             ),
@@ -1181,20 +1193,36 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
 
   /// Build similar ads list
   Widget _buildSimilarAdsList() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.7,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        itemCount: _similarAds.length,
-        itemBuilder: (context, index) => _buildSimilarAdCard(_similarAds[index]),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate responsive grid
+        int crossAxisCount = 2;
+        double childAspectRatio = 0.75;
+        
+        if (constraints.maxWidth > 600) {
+          crossAxisCount = 3;
+          childAspectRatio = 0.8;
+        } else if (constraints.maxWidth < 350) {
+          crossAxisCount = 1;
+          childAspectRatio = 1.2;
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              childAspectRatio: childAspectRatio,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
+            itemCount: _similarAds.length,
+            itemBuilder: (context, index) => _buildSimilarAdCard(_similarAds[index]),
+          ),
+        );
+      },
     );
   }
 
@@ -1203,62 +1231,66 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     final List<dynamic> images = ad['images'] is List ? ad['images'] : [];
     final firstImageBase64 = images.isNotEmpty ? images[0] : null;
 
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            Color(0xFFF8FBFF),
-            Color(0xFFF0F8FF),
-          ],
-        ),
-        border: Border.all(color: Colors.blue[300]!, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue[100]!.withOpacity(0.3),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(15),
-          splashColor: Colors.blue[300]!.withOpacity(0.2),
-          highlightColor: Colors.blue[100]!.withOpacity(0.1),
-          onTap: () => _navigateToAdDetails(ad),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 3,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: _buildSimilarAdImage(firstImageBase64),
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Container(
-                  constraints: const BoxConstraints(minHeight: 70),
-                  child: Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: _buildSimilarAdDetails(ad),
-                  ),
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white,
+                Color(0xFFF8FBFF),
+                Color(0xFFF0F8FF),
+              ],
+            ),
+            border: Border.all(color: Colors.blue[300]!, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue[100]!.withOpacity(0.3),
+                spreadRadius: 1,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-        ),
-      ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              splashColor: Colors.blue[300]!.withOpacity(0.2),
+              highlightColor: Colors.blue[100]!.withOpacity(0.1),
+              onTap: () => _navigateToAdDetails(ad),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image section - responsive height
+                  Expanded(
+                    flex: constraints.maxHeight > 200 ? 3 : 2,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: _buildSimilarAdImage(firstImageBase64),
+                      ),
+                    ),
+                  ),
+                  // Details section - flexible height
+                  Expanded(
+                    flex: constraints.maxHeight > 200 ? 2 : 3,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(8),
+                      child: _buildSimilarAdDetails(ad, constraints),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -1308,32 +1340,47 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   }
 
   /// Build similar ad details (same style as home screen)
-  Widget _buildSimilarAdDetails(dynamic ad) {
+  Widget _buildSimilarAdDetails(dynamic ad, BoxConstraints constraints) {
+    // Calculate responsive font sizes based on available space
+    final double titleFontSize = constraints.maxWidth > 150 ? 12 : 10;
+    final double priceFontSize = constraints.maxWidth > 150 ? 11 : 9;
+    final double descFontSize = constraints.maxWidth > 150 ? 10 : 8;
+    final double locationFontSize = constraints.maxWidth > 150 ? 9 : 7;
+    final double iconSize = constraints.maxWidth > 150 ? 12 : 10;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Text(
-          '${ad['adTitle'] ?? ''}',
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
+        // Ad Title
+        Flexible(
+          child: Text(
+            '${ad['adTitle'] ?? ''}',
+            style: TextStyle(
+              fontSize: titleFontSize,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: constraints.maxHeight > 150 ? 2 : 1,
           ),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
         ),
+        
+        // Price Container
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          padding: EdgeInsets.symmetric(
+            horizontal: constraints.maxWidth > 150 ? 8 : 6,
+            vertical: constraints.maxWidth > 150 ? 3 : 2,
+          ),
           decoration: BoxDecoration(
             color: Colors.blue[50],
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.blue[300]!, width: 1),
           ),
           child: Text(
             '${ad['price'] ?? '0'} ${ad['currencyName'] ?? ''}',
             style: TextStyle(
-              fontSize: 10,
+              fontSize: priceFontSize,
               fontWeight: FontWeight.bold,
               color: Colors.blue[700],
             ),
@@ -1341,34 +1388,43 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
             maxLines: 1,
           ),
         ),
-        Text(
-          ad['description'] ?? '',
-          style: const TextStyle(
-            fontSize: 9,
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.location_on, size: 10, color: Colors.blue[600]),
-            const SizedBox(width: 2),
-            Expanded(
-              child: Text(
-                '${ad['cityName'] ?? ''} - ${_formatDate(ad['createDate'] ?? '')}',
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontSize: 8,
-                  fontWeight: FontWeight.w500,
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
+        
+        // Description
+        if (constraints.maxHeight > 120)
+          Flexible(
+            child: Text(
+              ad['description'] ?? '',
+              style: TextStyle(
+                fontSize: descFontSize,
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
               ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
-          ],
+          ),
+        
+        // Location and Date
+        Flexible(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(Icons.location_on, size: iconSize, color: Colors.blue[600]),
+              const SizedBox(width: 2),
+              Expanded(
+                child: Text(
+                  '${ad['cityName'] ?? ''} - ${_formatDate(ad['createDate'] ?? '')}',
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: locationFontSize,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
