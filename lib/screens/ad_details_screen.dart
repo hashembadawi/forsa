@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart' as http;
 
 import 'image_preview_screen.dart';
 
@@ -17,13 +18,22 @@ class AdDetailsScreen extends StatefulWidget {
 
 class _AdDetailsScreenState extends State<AdDetailsScreen> {
   // Constants
-  static const double _borderRadius = 18.0;
-  static const double _padding = 16.0;
   static const double _imageHeight = 200.0;
-  static const EdgeInsets _screenPadding = EdgeInsets.all(_padding);
+  static const int _limitSimilarAds = 6;
   
   // Tab state
   int _selectedTabIndex = 0;
+  
+  // Similar ads state
+  List<dynamic> _similarAds = [];
+  bool _isLoadingSimilarAds = false;
+  bool _hasErrorSimilarAds = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSimilarAds();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,14 +70,59 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   // Main Body Builder
   Widget _buildBody() {
     return Container(
-      color: Colors.white,
+      color: Colors.grey[50],
       child: ListView(
         children: [
-          _buildImageSection(),
-          _buildImageCounter(),
-          _buildDivider(),
-          _buildDetailsSection(),
+          // First Section: Current Ad Details
+          _buildCurrentAdSection(),
+          
+          // Divider between sections
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            height: 8,
+            decoration: BoxDecoration(
+              color: Colors.blue[100],
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          
+          // Second Section: Similar Ads
+          _buildSimilarAdsSection(),
+          
+          const SizedBox(height: 20),
         ],
+      ),
+    );
+  }
+
+  // Current Ad Section Builder
+  Widget _buildCurrentAdSection() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.blue[300]!,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue[100]!.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          children: [
+            _buildImageSection(),
+            _buildDetailsSection(),
+          ],
+        ),
       ),
     );
   }
@@ -130,40 +185,14 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     );
   }
 
-  Widget _buildImageCounter() {
-    final List<dynamic> images = widget.ad['images'] ?? [];
-    
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Center(
-        child: Text(
-          'عدد الصور: ${images.length}',
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: _padding, vertical: 8),
-      height: 2,
-      decoration: BoxDecoration(
-        color: Colors.blue[600],
-        borderRadius: BorderRadius.circular(1),
-      ),
-    );
-  }
-
   // Details Section Builder
   Widget _buildDetailsSection() {
     return Container(
-      margin: _screenPadding,
-      decoration: _buildDetailsDecoration(),
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -220,72 +249,6 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
           color: Colors.black87,
         ),
       ),
-    );
-  }
-
-  Widget _buildBasicInfo() {
-    return Column(
-      children: [
-        _buildInfoRow(
-          Icons.location_on,
-          'الموقع',
-          '${widget.ad['cityName'] ?? 'غير محدد'} - ${widget.ad['regionName'] ?? 'غير محدد'}',
-        ),
-        const SizedBox(height: 12),
-        _buildInfoRow(
-          Icons.calendar_today,
-          'تاريخ الإعلان',
-          _formatDate(widget.ad['createDate']),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAdvertiserInfo() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue[50]!.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: Colors.blue[200]!.withOpacity(0.7),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'معلومات المعلن',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8),
-          _buildInfoRow(
-            Icons.person,
-            'الاسم',
-            '${widget.ad['userName'] ?? 'غير متوفر'}',
-          ),
-          const SizedBox(height: 8),
-          _buildInfoRow(
-            Icons.phone,
-            'الهاتف',
-            '${widget.ad['userPhone'] ?? 'غير متوفر'}',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCategoryInfo() {
-    return _buildInfoRow(
-      Icons.category,
-      'التصنيف',
-      '${widget.ad['categoryName'] ?? 'غير محدد'} - ${widget.ad['subCategoryName'] ?? 'غير متوفر'}',
     );
   }
 
@@ -376,11 +339,127 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildBasicInfo(),
-        const SizedBox(height: 16),
+        const Divider(height: 32, thickness: 1, color: Colors.grey),
         _buildAdvertiserInfo(),
-        const SizedBox(height: 16),
+        const Divider(height: 32, thickness: 1, color: Colors.grey),
         _buildCategoryInfo(),
       ],
+    );
+  }
+
+  Widget _buildBasicInfo() {
+    return Column(
+      children: [
+        _buildInfoRow(
+          Icons.location_on,
+          'الموقع',
+          '${widget.ad['cityName'] ?? 'غير محدد'} - ${widget.ad['regionName'] ?? 'غير محدد'}',
+        ),
+        const SizedBox(height: 12),
+        _buildInfoRow(
+          Icons.calendar_today,
+          'تاريخ الإعلان',
+          _formatDate(widget.ad['createDate']),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdvertiserInfo() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue[50]!.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: Colors.blue[200]!.withOpacity(0.7),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'معلومات المعلن',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _buildInfoRow(
+            Icons.person,
+            'الاسم',
+            '${widget.ad['userName'] ?? 'غير متوفر'}',
+          ),
+          const SizedBox(height: 8),
+          _buildInfoRow(
+            Icons.phone,
+            'الهاتف',
+            '${widget.ad['userPhone'] ?? 'غير متوفر'}',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryInfo() {
+    return _buildInfoRow(
+      Icons.category,
+      'التصنيف',
+      '${widget.ad['categoryName'] ?? 'غير محدد'} - ${widget.ad['subCategoryName'] ?? 'غير متوفر'}',
+    );
+  }
+
+  // Info Row Builder
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: Colors.blue[600]),
+        const SizedBox(width: 8),
+        Expanded(child: _buildInfoText(icon, label, value)),
+      ],
+    );
+  }
+
+  Widget _buildInfoText(IconData icon, String label, String value) {
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(fontSize: 14, color: Colors.black87),
+        children: [
+          TextSpan(
+            text: '$label: ',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          // Special handling for phone numbers
+          if (icon == Icons.phone)
+            WidgetSpan(child: _buildPhoneText(value))
+          else
+            TextSpan(
+              text: value,
+              style: const TextStyle(fontWeight: FontWeight.w500),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhoneText(String value) {
+    final formattedPhone = value.startsWith('+') ? value : '+$value';
+    
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Text(
+        formattedPhone,
+        style: const TextStyle(
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+          color: Colors.black87,
+        ),
+      ),
     );
   }
 
@@ -630,65 +709,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     );
   }
 
-  // Info Row Builder
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: Colors.blue[600]),
-        const SizedBox(width: 8),
-        Expanded(child: _buildInfoText(icon, label, value)),
-      ],
-    );
-  }
-
-  Widget _buildInfoText(IconData icon, String label, String value) {
-    return RichText(
-      text: TextSpan(
-        style: const TextStyle(fontSize: 14, color: Colors.black87),
-        children: [
-          TextSpan(
-            text: '$label: ',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          // Special handling for phone numbers
-          if (icon == Icons.phone)
-            WidgetSpan(child: _buildPhoneText(value))
-          else
-            TextSpan(
-              text: value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPhoneText(String value) {
-    final formattedPhone = value.startsWith('+') ? value : '+$value';
-    
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Text(
-        formattedPhone,
-        style: const TextStyle(
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-          color: Colors.black87,
-        ),
-      ),
-    );
-  }
-
   // Style Builders
-  BoxDecoration _buildDetailsDecoration() {
-    return BoxDecoration(
-      borderRadius: BorderRadius.circular(_borderRadius),
-      color: Colors.white,
-      border: Border.all(color: Colors.blue[300]!, width: 1.5),
-    );
-  }
-
   ButtonStyle _buildWhatsAppButtonStyle() {
     return ElevatedButton.styleFrom(
       backgroundColor: const Color(0xFF25D366),
@@ -932,5 +953,423 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
         );
       }
     }
+  }
+
+  // ========== Similar Ads Methods ==========
+
+  /// Fetch similar ads based on category and subcategory
+  Future<void> _fetchSimilarAds() async {
+    final categoryId = widget.ad['categoryId'];
+    final subCategoryId = widget.ad['subCategoryId'];
+    final currentAdId = widget.ad['id'];
+    
+    if (categoryId == null) return;
+
+    setState(() {
+      _isLoadingSimilarAds = true;
+      _hasErrorSimilarAds = false;
+    });
+
+    try {
+      final params = <String, String>{
+        'page': '1',
+        'limit': '$_limitSimilarAds',
+        'categoryId': categoryId.toString(),
+      };
+      
+      if (subCategoryId != null) {
+        params['subCategoryId'] = subCategoryId.toString();
+      }
+      print('Fetching similar ads with params: $params');
+      final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search-by-category', params);
+      final response = await http.get(uri);
+
+      print(response.body);
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        final List<dynamic> fetchedAds = decoded['ads'] ?? [];
+        
+        // Filter out the current ad from similar ads
+        final filteredAds = fetchedAds.where((ad) => ad['id'] != currentAdId).toList();
+        
+        setState(() {
+          _similarAds = filteredAds.take(_limitSimilarAds).toList();
+          _isLoadingSimilarAds = false;
+        });
+      } else {
+        setState(() {
+          _hasErrorSimilarAds = true;
+          _isLoadingSimilarAds = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Exception fetching similar ads: $e');
+      setState(() {
+        _hasErrorSimilarAds = true;
+        _isLoadingSimilarAds = false;
+      });
+    }
+  }
+
+  /// Build similar ads section
+  Widget _buildSimilarAdsSection() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.blue[300]!,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue[100]!.withOpacity(0.3),
+            spreadRadius: 2,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Section Header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.blue[600],
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: const Text(
+                'إعلانات مشابهة',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            
+            // Similar Ads Content
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: _buildSimilarAdsContent(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build similar ads content based on loading state
+  Widget _buildSimilarAdsContent() {
+    if (_isLoadingSimilarAds) {
+      return _buildSimilarAdsLoading();
+    }
+    
+    if (_hasErrorSimilarAds) {
+      return _buildSimilarAdsError();
+    }
+    
+    if (_similarAds.isEmpty) {
+      return _buildNoSimilarAds();
+    }
+    
+    return _buildSimilarAdsList();
+  }
+
+  /// Build loading widget for similar ads
+  Widget _buildSimilarAdsLoading() {
+    return Container(
+      height: 150,
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text(
+              'جاري تحميل الإعلانات المشابهة...',
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build error widget for similar ads
+  Widget _buildSimilarAdsError() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          const Icon(
+            Icons.error_outline,
+            size: 48,
+            color: Colors.orange,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'فشل في تحميل الإعلانات المشابهة',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: _fetchSimilarAds,
+            icon: const Icon(Icons.refresh),
+            label: const Text('إعادة المحاولة'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue[600],
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build no similar ads widget
+  Widget _buildNoSimilarAds() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: const Column(
+        children: [
+          Icon(
+            Icons.search_off,
+            size: 48,
+            color: Colors.grey,
+          ),
+          SizedBox(height: 16),
+          Text(
+            'لا توجد إعلانات مشابهة في الوقت الحالي',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build similar ads list
+  Widget _buildSimilarAdsList() {
+    return Column(
+      children: [
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.75,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+          ),
+          itemCount: _similarAds.length,
+          itemBuilder: (context, index) => _buildSimilarAdCard(_similarAds[index]),
+        ),
+      ],
+    );
+  }
+
+  /// Build similar ad card (same style as home screen)
+  Widget _buildSimilarAdCard(dynamic ad) {
+    final List<dynamic> images = ad['images'] is List ? ad['images'] : [];
+    final firstImageBase64 = images.isNotEmpty ? images[0] : null;
+
+    return Container(
+      margin: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            Color(0xFFF8FBFF),
+            Color(0xFFF0F8FF),
+          ],
+        ),
+        border: Border.all(color: Colors.blue[300]!, width: 1.5),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          splashColor: Colors.blue[300]!.withOpacity(0.2),
+          highlightColor: Colors.blue[100]!.withOpacity(0.1),
+          onTap: () => _navigateToAdDetails(ad),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 3,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: _buildSimilarAdImage(firstImageBase64),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Container(
+                  constraints: const BoxConstraints(minHeight: 80),
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: _buildSimilarAdDetails(ad),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Build similar ad image (same style as home screen)
+  Widget _buildSimilarAdImage(String? firstImageBase64) {
+    if (firstImageBase64 != null) {
+      return Image.memory(
+        base64Decode(firstImageBase64),
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (context, error, stackTrace) => _buildSimilarAdImagePlaceholder(),
+      );
+    } else {
+      return _buildSimilarAdImagePlaceholder();
+    }
+  }
+
+  /// Build similar ad image placeholder (same style as home screen)
+  Widget _buildSimilarAdImagePlaceholder() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFF0F8FF), Color(0xFFE6F3FF)],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.image, size: 40, color: Colors.blue[400]),
+            const SizedBox(height: 4),
+            Text(
+              'لا توجد صورة',
+              style: TextStyle(
+                color: Colors.blue[700],
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build similar ad details (same style as home screen)
+  Widget _buildSimilarAdDetails(dynamic ad) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Text(
+          '${ad['adTitle'] ?? ''}',
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.blue[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.blue[300]!, width: 1),
+          ),
+          child: Text(
+            '${ad['price'] ?? '0'} ${ad['currencyName'] ?? ''}',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue[700],
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        Text(
+          ad['description'] ?? '',
+          style: const TextStyle(
+            fontSize: 10,
+            color: Colors.black87,
+            fontWeight: FontWeight.w500,
+          ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.location_on, size: 12, color: Colors.blue[600]),
+            const SizedBox(width: 2),
+            Expanded(
+              child: Text(
+                '${ad['cityName'] ?? ''} - ${_formatDate(ad['createDate'] ?? '')}',
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Navigate to ad details
+  void _navigateToAdDetails(dynamic ad) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AdDetailsScreen(ad: ad),
+      ),
+    );
   }
 }
