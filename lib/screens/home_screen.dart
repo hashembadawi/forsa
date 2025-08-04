@@ -9,7 +9,7 @@ import 'ad_details_screen.dart';
 import 'add_ad_screen.dart';
 import 'login_screen.dart';
 import 'my_ads_screen.dart';
-import 'search_results_screen.dart';
+import 'suggestions_list_screen.dart';
 
 /// Home screen that displays advertisements with filtering and search capabilities
 class HomeScreen extends StatefulWidget {
@@ -1006,42 +1006,48 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Build search field
+  /// Build search field with autocomplete suggestions
   Widget _buildSearchField() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'ابحث عن منتج أو خدمة...',
-          hintStyle: TextStyle(color: Colors.grey[600]),
-          prefixIcon: Icon(Icons.search, color: Colors.blue[600]),
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: Colors.blue[300]!, width: 1.5),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: Colors.blue[300]!, width: 1.5),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        ),
-        onSubmitted: (value) {
-          if (value.trim().isNotEmpty) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => SearchResultsScreen(searchText: value.trim()),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => SuggestionsListScreen(
+                initialSearchText: _searchController.text,
               ),
-            );
-          }
+            ),
+          );
         },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: Colors.blue[300]!, width: 1.5),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.search, color: Colors.blue[600]),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  _searchController.text.isNotEmpty 
+                      ? _searchController.text
+                      : 'ابحث عن منتج أو خدمة...',
+                  style: TextStyle(
+                    color: _searchController.text.isNotEmpty 
+                        ? Colors.black87 
+                        : Colors.grey[600],
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1359,9 +1365,14 @@ class _HomeScreenState extends State<HomeScreen> {
     // Normal home screen when connected
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        drawer: _buildDrawer(context),
-        body: Container(
+      child: GestureDetector(
+        onTap: () {
+          // Unfocus any text fields
+          FocusScope.of(context).unfocus();
+        },
+        child: Scaffold(
+          drawer: _buildDrawer(context),
+          body: Container(
           decoration: const BoxDecoration(color: Colors.white),
           child: CustomScrollView(
             controller: _adsScrollController,
@@ -1496,6 +1507,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
             ],
           ),
+        ),
         ),
       ),
     );
