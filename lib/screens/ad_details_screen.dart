@@ -118,7 +118,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
             
             // Ad Content
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -196,35 +196,36 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
 
   // Tab Section Builder
   Widget _buildTabSection() {
-    return Column(
-      children: [
-        // Tab Headers
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.blue[300]!, width: 1),
-            borderRadius: BorderRadius.circular(10),
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey[400]!, width: 1.5),
+      ),
+      child: Column(
+        children: [
+          // Tab Headers
+          Container(
+            child: Row(
+              children: [
+                _buildTabButton('معلومات الإعلان', 0),
+                _buildTabButton('الوصف', 1),
+                _buildTabButton('الموقع', 2),
+              ],
+            ),
           ),
-          child: Row(
-            children: [
-              _buildTabButton('معلومات الإعلان', 0),
-              _buildTabButton('الوصف', 1),
-              _buildTabButton('الموقع', 2),
-            ],
+          
+          // Tab Content
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: _buildTabContent(),
           ),
-        ),
-        
-        const SizedBox(height: 16),
-        
-        // Tab Content
-        _buildTabContent(),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildTabButton(String title, int index) {
     final isSelected = _selectedTabIndex == index;
     final isFirst = index == 0;
-    final isLast = index == 2;
     
     return Expanded(
       child: GestureDetector(
@@ -233,12 +234,6 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: isSelected ? Colors.blue[600] : Colors.transparent,
-            borderRadius: BorderRadius.only(
-              topRight: isFirst ? const Radius.circular(9) : Radius.zero,
-              bottomRight: isFirst ? const Radius.circular(9) : Radius.zero,
-              topLeft: isLast ? const Radius.circular(9) : Radius.zero,
-              bottomLeft: isLast ? const Radius.circular(9) : Radius.zero,
-            ),
             border: !isFirst ? Border(
               right: BorderSide(color: Colors.blue[300]!, width: 1),
             ) : null,
@@ -488,11 +483,6 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     if (description.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.grey[50],
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[300]!),
-        ),
         child: const Center(
           child: Column(
             children: [
@@ -516,14 +506,6 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue[50]!.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.blue[200]!.withOpacity(0.5),
-          width: 1,
-        ),
-      ),
       child: Text(
         description,
         style: const TextStyle(
@@ -562,11 +544,6 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   Widget _buildNoLocationAvailable() {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
       child: const Center(
         child: Column(
           children: [
@@ -592,12 +569,8 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     
     return Container(
       height: 300,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue[300]!),
-      ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         child: Column(
           children: [
             // Map Section
@@ -632,8 +605,8 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
               decoration: BoxDecoration(
                 color: Colors.blue[600],
                 borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(12),
-                  bottomRight: Radius.circular(12),
+                  bottomLeft: Radius.circular(8),
+                  bottomRight: Radius.circular(8),
                 ),
               ),
               child: GestureDetector(
@@ -648,7 +621,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 10,
                       ),
                     ),
                   ],
