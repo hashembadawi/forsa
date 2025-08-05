@@ -1379,7 +1379,6 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     // Calculate responsive font sizes based on available space
     final double titleFontSize = constraints.maxWidth > 150 ? 12 : 10;
     final double priceFontSize = constraints.maxWidth > 150 ? 11 : 9;
-    final double descFontSize = constraints.maxWidth > 150 ? 10 : 8;
     final double locationFontSize = constraints.maxWidth > 150 ? 9 : 7;
     final double iconSize = constraints.maxWidth > 150 ? 12 : 10;
     
@@ -1423,21 +1422,6 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
             maxLines: 1,
           ),
         ),
-        
-        // Description
-        if (constraints.maxHeight > 120)
-          Flexible(
-            child: Text(
-              ad['description'] ?? '',
-              style: TextStyle(
-                fontSize: descFontSize,
-                color: Colors.black87,
-                fontWeight: FontWeight.w500,
-              ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-          ),
         
         // Location and Date
         Flexible(
