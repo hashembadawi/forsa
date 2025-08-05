@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 
 import 'image_preview_screen.dart';
+import 'advertiser_page_screen.dart';
 
 class AdDetailsScreen extends StatefulWidget {
   final dynamic ad;
@@ -106,14 +107,6 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
           color: Colors.blue[300]!,
           width: 2,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue[100]!.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
@@ -400,6 +393,31 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
             Icons.phone,
             'الهاتف',
             '${widget.ad['userPhone'] ?? 'غير متوفر'}',
+          ),
+          const SizedBox(height: 12),
+          // Advertiser Page Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.store, color: Colors.white),
+              label: const Text(
+                'صفحة المعلن',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue[600],
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 2,
+              ),
+              onPressed: () => _navigateToAdvertiserPage(),
+            ),
           ),
         ],
       ),
@@ -772,6 +790,31 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     );
   }
 
+  void _navigateToAdvertiserPage() {
+    final userId = widget.ad['userId'];
+    if (userId != null && userId.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AdvertiserPageScreen(
+            userId: userId,
+            initialUserName: widget.ad['userName'],
+            initialUserPhone: widget.ad['userPhone'],
+          ),
+        ),
+      );
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('معرف المعلن غير متوفر'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   // Action Methods
   Future<void> _openWhatsApp(String phone) async {
     final formattedPhone = _cleanPhoneNumber(phone);
@@ -1027,14 +1070,6 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
           color: Colors.blue[300]!,
           width: 2,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue[100]!.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),

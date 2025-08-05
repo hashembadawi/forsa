@@ -929,16 +929,6 @@ class _HomeScreenState extends State<HomeScreen> {
             maxLines: 1,
           ),
         ),
-        Text(
-          ad['description'] ?? '',
-          style: const TextStyle(
-            fontSize: 10,
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
