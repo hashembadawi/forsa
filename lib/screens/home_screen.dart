@@ -1389,9 +1389,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+              const SliverToBoxAdapter(child: ImageSlider()),
               SliverToBoxAdapter(child: _buildLocationButton()),
               SliverToBoxAdapter(child: _buildSearchField()),
-              const SliverToBoxAdapter(child: ImageSlider()),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 sliver: SliverList(
@@ -1565,7 +1565,6 @@ class _ImageSliderState extends State<ImageSlider> {
               itemCount: _imagePaths.length,
               onPageChanged: (index) => setState(() => _currentImageIndex = index),
               itemBuilder: (context, index) => Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.blue[300]!, width: 1.5),
