@@ -4,9 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'image_preview_screen.dart';
 import 'advertiser_page_screen.dart';
+import 'login_screen.dart';
+import '../utils/dialog_utils.dart';
 
 class AdDetailsScreen extends StatefulWidget {
   final dynamic ad;
@@ -21,6 +24,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   // Constants
   static const double _imageHeight = 200.0;
   static const int _limitSimilarAds = 6;
+  static const String _baseUrl = 'https://sahbo-app-api.onrender.com';
   
   // Tab state
   int _selectedTabIndex = 0;
@@ -30,9 +34,16 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   bool _isLoadingSimilarAds = false;
   bool _hasErrorSimilarAds = false;
 
+  // Favorite state
+  bool _isFavorite = false;
+  bool _isLoadingFavorite = false;
+  String? _userId;
+  String? _authToken;
+
   @override
   void initState() {
     super.initState();
+    _checkAuthenticationAndFavorites();
     _fetchSimilarAds();
   }
 
@@ -275,9 +286,20 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
 
     return SizedBox(
       height: _imageHeight,
-      child: PageView.builder(
-        itemCount: images.length,
-        itemBuilder: (context, index) => _buildImageItem(images, index),
+      child: Stack(
+        children: [
+          // Image PageView
+          PageView.builder(
+            itemCount: images.length,
+            itemBuilder: (context, index) => _buildImageItem(images, index),
+          ),
+          // Favorite Heart Icon
+          Positioned(
+            top: 10,
+            left: 10,
+            child: _buildFavoriteButton(),
+          ),
+        ],
       ),
     );
   }
@@ -297,18 +319,32 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   }
 
   Widget _buildNoImagePlaceholder() {
-    return Container(
+    return SizedBox(
       height: _imageHeight,
-      color: Colors.grey[200],
-      child: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.image_not_supported, size: 60, color: Colors.grey),
-            SizedBox(height: 8),
-            Text('لا توجد صور متاحة', style: TextStyle(color: Colors.grey)),
-          ],
-        ),
+      child: Stack(
+        children: [
+          // Placeholder content
+          Container(
+            height: _imageHeight,
+            color: Colors.grey[200],
+            child: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.image_not_supported, size: 60, color: Colors.grey),
+                  SizedBox(height: 8),
+                  Text('لا توجد صور متاحة', style: TextStyle(color: Colors.grey)),
+                ],
+              ),
+            ),
+          ),
+          // Favorite Heart Icon
+          Positioned(
+            top: 10,
+            left: 10,
+            child: _buildFavoriteButton(),
+          ),
+        ],
       ),
     );
   }
@@ -778,11 +814,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       );
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('معرف المعلن غير متوفر'),
-            backgroundColor: Colors.red,
-          ),
+        DialogUtils.showErrorDialog(
+          context: context,
+          message: 'معرف المعلن غير متوفر',
         );
       }
     }
@@ -808,8 +842,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
         await launchUrl(uriWeb, mode: LaunchMode.platformDefault);
       } catch (e2) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('فشل في فتح واتساب')),
+          DialogUtils.showErrorDialog(
+            context: context,
+            message: 'فشل في فتح واتساب',
           );
         }
       }
@@ -915,8 +950,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('فشل في الاتصال المباشر')),
+        DialogUtils.showErrorDialog(
+          context: context,
+          message: 'فشل في الاتصال المباشر',
         );
       }
     }
@@ -925,8 +961,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   Future<void> _copyPhoneNumber(String phone) async {
     await Clipboard.setData(ClipboardData(text: phone));
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تم نسخ رقم الهاتف: $phone')),
+      DialogUtils.showSuccessDialog(
+        context: context,
+        message: 'تم نسخ رقم الهاتف: $phone',
       );
     }
   }
@@ -940,8 +977,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('فشل في إرسال الرسالة')),
+        DialogUtils.showErrorDialog(
+          context: context,
+          message: 'فشل في إرسال الرسالة',
         );
       }
     }
@@ -968,13 +1006,179 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('فشل في فتح خرائط جوجل'),
-            backgroundColor: Colors.red,
-          ),
+        DialogUtils.showErrorDialog(
+          context: context,
+          message: 'فشل في فتح خرائط جوجل',
         );
       }
+    }
+  }
+
+  // ========== Favorite Feature Methods ==========
+
+  /// Check authentication status and load favorites
+  Future<void> _checkAuthenticationAndFavorites() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _authToken = prefs.getString('token');
+      _userId = prefs.getString('userId');
+    } catch (e) {
+      debugPrint('Error checking authentication: $e');
+    }
+  }
+
+  /// Build favorite heart button
+  Widget _buildFavoriteButton() {
+    return GestureDetector(
+      onTap: _isLoadingFavorite ? null : _toggleFavorite,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: _isLoadingFavorite
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                ),
+              )
+            : Icon(
+                _isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: _isFavorite ? Colors.red : Colors.grey[600],
+                size: 24,
+              ),
+      ),
+    );
+  }
+
+  /// Toggle favorite status
+  Future<void> _toggleFavorite() async {
+    // Check if user is logged in
+    if (_authToken == null || _userId == null) {
+      _showLoginRequiredDialog();
+      return;
+    }
+
+    setState(() {
+      _isLoadingFavorite = true;
+    });
+
+    try {
+      final adId = widget.ad['_id'];
+      
+      if (_isFavorite) {
+        // Remove from favorites
+        await _removeFromFavorites(adId);
+      } else {
+        // Add to favorites
+        await _addToFavorites(adId);
+      }
+    } catch (e) {
+      _showErrorMessage('حدث خطأ أثناء تحديث المفضلة');
+    } finally {
+      setState(() {
+        _isLoadingFavorite = false;
+      });
+    }
+  }
+
+  /// Add ad to favorites
+  Future<void> _addToFavorites(String adId) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/api/favorites/add'),
+      headers: {
+        'Authorization': 'Bearer $_authToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'userId': _userId,
+        'adId': adId,
+      }),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      setState(() {
+        _isFavorite = true;
+      });
+      _showSuccessMessage('تم إضافة الإعلان إلى المفضلة');
+    } else {
+      throw Exception('Failed to add to favorites');
+    }
+  }
+
+  /// Remove ad from favorites
+  Future<void> _removeFromFavorites(String adId) async {
+    final response = await http.delete(
+      Uri.parse('$_baseUrl/api/favorites/remove'),
+      headers: {
+        'Authorization': 'Bearer $_authToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'userId': _userId,
+        'adId': adId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _isFavorite = false;
+      });
+      _showSuccessMessage('تم إزالة الإعلان من المفضلة');
+    } else {
+      throw Exception('Failed to remove from favorites');
+    }
+  }
+
+  /// Show login required dialog
+  void _showLoginRequiredDialog() {
+    DialogUtils.showConfirmationDialog(
+      context: context,
+      title: 'تسجيل الدخول مطلوب',
+      message: 'يجب تسجيل الدخول أولاً لإضافة الإعلانات إلى المفضلة',
+      confirmText: 'تسجيل الدخول',
+      cancelText: 'إلغاء',
+      onConfirm: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const LoginScreen(),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Show success message
+  void _showSuccessMessage(String message) {
+    if (mounted) {
+      DialogUtils.showSuccessDialog(
+        context: context,
+        message: message,
+      );
+    }
+  }
+
+  /// Show error message
+  void _showErrorMessage(String message) {
+    if (mounted) {
+      DialogUtils.showErrorDialog(
+        context: context,
+        message: message,
+      );
     }
   }
 

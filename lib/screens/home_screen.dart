@@ -7,6 +7,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'account_screen.dart';
 import 'ad_details_screen.dart';
 import 'add_ad_screen.dart';
+import 'favorites_screen.dart';
 import 'login_screen.dart';
 import 'my_ads_screen.dart';
 import 'suggestions_list_screen.dart';
@@ -527,6 +528,9 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
       case 'addAd':
         targetPage = const MultiStepAddAdScreen();
+        break;
+      case 'favorites':
+        targetPage = const FavoritesScreen();
         break;
     }
 
@@ -1088,6 +1092,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     Colors.orange[600]!,
                     () {
                       _handleProtectedNavigation(context, 'addAd');
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.favorite_rounded, 
+                    'المفضلة', 
+                    Colors.red[600]!,
+                    () {
+                      _handleProtectedNavigation(context, 'favorites');
                     },
                   ),
                   _buildDrawerItem(
