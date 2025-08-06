@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syria_market/screens/update_ad_screen.dart';
-import 'package:syria_market/screens/home_screen.dart';
 import 'package:syria_market/screens/add_ad_screen.dart';
 import 'package:syria_market/utils/dialog_utils.dart';
 
@@ -259,10 +258,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
 
   /// Navigate back to home screen
   void _navigateToHome() {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-      (Route<dynamic> route) => false,
-    );
+    Navigator.pop(context);
   }
 
   /// Navigate to add ad screen

@@ -951,12 +951,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => AdDetailsScreen(ad: ad)),
-          ).then((_) {
-            // Refresh favorites when returning from ad details
-            if (_authToken != null && _userId != null) {
-              _fetchUserFavorites();
-            }
-          }),
+          ),
           child: Stack(
             children: [
               Column(
