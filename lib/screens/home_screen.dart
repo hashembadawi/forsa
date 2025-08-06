@@ -53,6 +53,12 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _username;
   String? _userProfileImage;
   
+  // ========== Favorites State ==========
+  final List<String> _favoriteAdIds = [];
+  bool _isLoadingFavorites = false;
+  String? _authToken;
+  String? _userId;
+  
   // ========== Connectivity State ==========
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
   bool _isConnected = true;
@@ -88,15 +94,19 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _checkInitialConnectivity() async {
     try {
       final connectivityResult = await Connectivity().checkConnectivity();
-      setState(() {
-        _isConnected = connectivityResult != ConnectivityResult.none;
-        _isCheckingConnectivity = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isConnected = connectivityResult != ConnectivityResult.none;
+          _isCheckingConnectivity = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isConnected = false;
-        _isCheckingConnectivity = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isConnected = false;
+          _isCheckingConnectivity = false;
+        });
+      }
     }
   }
 
@@ -104,9 +114,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void _subscribeToConnectivityChanges() {
     _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
       (ConnectivityResult result) {
-        setState(() {
-          _isConnected = result != ConnectivityResult.none;
-        });
+        if (mounted) {
+          setState(() {
+            _isConnected = result != ConnectivityResult.none;
+          });
+        }
       },
     );
   }
@@ -119,10 +131,12 @@ class _HomeScreenState extends State<HomeScreen> {
       final response = await http.get(Uri.parse('$_baseUrl/api/options'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        setState(() {
-          _provinces = List<Map<String, dynamic>>.from(data['Province'] ?? []);
-          _majorAreas = List<Map<String, dynamic>>.from(data['majorAreas'] ?? []);
-        });
+        if (mounted) {
+          setState(() {
+            _provinces = List<Map<String, dynamic>>.from(data['Province'] ?? []);
+            _majorAreas = List<Map<String, dynamic>>.from(data['majorAreas'] ?? []);
+          });
+        }
       }
     } catch (e) {
       debugPrint('Error fetching options: $e');
@@ -143,10 +157,15 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       debugPrint('Error checking login status: $e');
-      setState(() {
-        _username = null;
-        _userProfileImage = null;
-      });
+      if (mounted) {
+        setState(() {
+          _username = null;
+          _userProfileImage = null;
+          _authToken = null;
+          _userId = null;
+          _favoriteAdIds.clear();
+        });
+      }
     }
   }
 
@@ -162,27 +181,44 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       if (response.statusCode == 200) {
-        setState(() {
-          _username = prefs.getString('userName') ?? 'مستخدم';
-          // Try different possible keys for profile image
-          _userProfileImage = prefs.getString('profileImage') ?? 
-                             prefs.getString('userProfileImage');
-        });
+        if (mounted) {
+          setState(() {
+            _username = prefs.getString('userName') ?? 'مستخدم';
+            // Try different possible keys for profile image
+            _userProfileImage = prefs.getString('profileImage') ?? 
+                               prefs.getString('userProfileImage');
+            _authToken = token;
+            _userId = prefs.getString('userId');
+          });
+        }
+        
+        // Fetch favorites after validation
+        await _fetchUserFavorites();
       } else {
         await prefs.clear();
-        setState(() {
-          _username = null;
-          _userProfileImage = null;
-        });
+        if (mounted) {
+          setState(() {
+            _username = null;
+            _userProfileImage = null;
+            _authToken = null;
+            _userId = null;
+            _favoriteAdIds.clear();
+          });
+        }
       }
     } catch (e) {
       if (!rememberMe) {
         await prefs.clear();
       }
-      setState(() {
-        _username = null;
-        _userProfileImage = null;
-      });
+      if (mounted) {
+        setState(() {
+          _username = null;
+          _userProfileImage = null;
+          _authToken = null;
+          _userId = null;
+          _favoriteAdIds.clear();
+        });
+      }
     }
   }
 
@@ -191,10 +227,15 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!rememberMe) {
       prefs.clear();
     }
-    setState(() {
-      _username = null;
-      _userProfileImage = null;
-    });
+    if (mounted) {
+      setState(() {
+        _username = null;
+        _userProfileImage = null;
+        _authToken = null;
+        _userId = null;
+        _favoriteAdIds.clear();
+      });
+    }
   }
 
   /// Refresh user data from SharedPreferences
@@ -204,28 +245,91 @@ class _HomeScreenState extends State<HomeScreen> {
       final token = prefs.getString('token');
       
       if (token != null && token.isNotEmpty) {
-        setState(() {
-          _username = prefs.getString('userName') ?? 'مستخدم';
-          // Try different possible keys for profile image
-          _userProfileImage = prefs.getString('profileImage') ?? 
-                             prefs.getString('userProfileImage');
-        });
+        if (mounted) {
+          setState(() {
+            _username = prefs.getString('userName') ?? 'مستخدم';
+            // Try different possible keys for profile image
+            _userProfileImage = prefs.getString('profileImage') ?? 
+                               prefs.getString('userProfileImage');
+            _authToken = token;
+            _userId = prefs.getString('userId');
+          });
+        }
+        
+        // Fetch favorites after updating auth data
+        await _fetchUserFavorites();
       } else {
-        setState(() {
-          _username = null;
-          _userProfileImage = null;
-        });
+        if (mounted) {
+          setState(() {
+            _username = null;
+            _userProfileImage = null;
+            _authToken = null;
+            _userId = null;
+            _favoriteAdIds.clear();
+          });
+        }
       }
     } catch (e) {
       debugPrint('Error refreshing user data: $e');
     }
   }
 
+  /// Fetch user's favorite advertisements
+  Future<void> _fetchUserFavorites() async {
+    if (_authToken == null || _userId == null) return;
+
+    if (mounted) {
+      setState(() => _isLoadingFavorites = true);
+    }
+
+    try {
+      final url = Uri.parse('$_baseUrl/api/favorites/my-favorites?page=1&limit=1000');
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $_authToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        final List<dynamic> favorites = decoded['favorites'] ?? [];
+        
+        // Extract ad IDs from favorites
+        final List<String> favoriteIds = favorites
+            .map((fav) => fav['ad']?['_id'] as String?)
+            .where((id) => id != null)
+            .cast<String>()
+            .toList();
+
+        if (mounted) {
+          setState(() {
+            _favoriteAdIds.clear();
+            _favoriteAdIds.addAll(favoriteIds);
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching favorites: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingFavorites = false);
+      }
+    }
+  }
+
+  /// Check if an ad is in favorites
+  bool _isAdInFavorites(String adId) {
+    return _favoriteAdIds.contains(adId);
+  }
+
   /// Fetch all advertisements
   Future<void> _fetchAllAds() async {
     if (_isLoadingAds || !_hasMoreAds) return;
 
-    setState(() => _isLoadingAds = true);
+    if (mounted) {
+      setState(() => _isLoadingAds = true);
+    }
 
     try {
       final url = Uri.parse('$_baseUrl/api/ads?page=$_currentPageAds&limit=$_limitAds');
@@ -235,12 +339,14 @@ class _HomeScreenState extends State<HomeScreen> {
         final decoded = jsonDecode(response.body);
         final List<dynamic> fetchedAds = decoded['ads'] ?? [];
 
-        setState(() {
-          _allAds.addAll(fetchedAds);
-          _currentPageAds++;
-          _isLoadingAds = false;
-          _hasMoreAds = fetchedAds.length >= _limitAds;
-        });
+        if (mounted) {
+          setState(() {
+            _allAds.addAll(fetchedAds);
+            _currentPageAds++;
+            _isLoadingAds = false;
+            _hasMoreAds = fetchedAds.length >= _limitAds;
+          });
+        }
       } else {
         _handleFetchError();
       }
@@ -254,7 +360,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _fetchFilteredAds({bool reset = false}) async {
     if (_isLoadingAds || !_hasMoreAds) return;
 
-    setState(() => _isLoadingAds = true);
+    if (mounted) {
+      setState(() => _isLoadingAds = true);
+    }
 
     try {
       final params = <String, String>{
@@ -272,13 +380,15 @@ class _HomeScreenState extends State<HomeScreen> {
         final decoded = jsonDecode(response.body);
         final List<dynamic> fetchedAds = decoded['ads'] ?? [];
 
-        setState(() {
-          if (reset) _allAds.clear();
-          _allAds.addAll(fetchedAds);
-          _currentPageAds++;
-          _isLoadingAds = false;
-          _hasMoreAds = fetchedAds.length >= _limitAds;
-        });
+        if (mounted) {
+          setState(() {
+            if (reset) _allAds.clear();
+            _allAds.addAll(fetchedAds);
+            _currentPageAds++;
+            _isLoadingAds = false;
+            _hasMoreAds = fetchedAds.length >= _limitAds;
+          });
+        }
       } else {
         _handleFetchError();
       }
@@ -292,7 +402,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _fetchCategoryFilteredAds({bool reset = false}) async {
     if (_isLoadingAds || !_hasMoreAds) return;
 
-    setState(() => _isLoadingAds = true);
+    if (mounted) {
+      setState(() => _isLoadingAds = true);
+    }
 
     try {
       final params = <String, String>{
@@ -310,13 +422,15 @@ class _HomeScreenState extends State<HomeScreen> {
         final decoded = jsonDecode(response.body);
         final List<dynamic> fetchedAds = decoded['ads'] ?? [];
 
-        setState(() {
-          if (reset) _allAds.clear();
-          _allAds.addAll(fetchedAds);
-          _currentPageAds++;
-          _isLoadingAds = false;
-          _hasMoreAds = fetchedAds.length >= _limitAds;
-        });
+        if (mounted) {
+          setState(() {
+            if (reset) _allAds.clear();
+            _allAds.addAll(fetchedAds);
+            _currentPageAds++;
+            _isLoadingAds = false;
+            _hasMoreAds = fetchedAds.length >= _limitAds;
+          });
+        }
       } else {
         _handleFetchError();
       }
@@ -328,10 +442,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Handle fetch error
   void _handleFetchError() {
-    setState(() {
-      _isLoadingAds = false;
-      _hasMoreAds = false;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoadingAds = false;
+        _hasMoreAds = false;
+      });
+    }
   }
 
   // ========== Event Handlers ==========
@@ -352,10 +468,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Reload home screen
   void _reloadHomeScreen() {
-    setState(() {
-      _resetFilters();
-      _resetAdsData();
-    });
+    if (mounted) {
+      setState(() {
+        _resetFilters();
+        _resetAdsData();
+      });
+    }
     
     _fetchOptions();
     _fetchAllAds();
@@ -539,7 +657,12 @@ class _HomeScreenState extends State<HomeScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => targetPage!),
-      );
+      ).then((_) {
+        // Refresh favorites when returning from favorites screen
+        if (routeKey == 'favorites' && _authToken != null && _userId != null) {
+          _fetchUserFavorites();
+        }
+      });
     }
   }
 
@@ -717,13 +840,15 @@ class _HomeScreenState extends State<HomeScreen> {
                             Expanded(
                               child: ElevatedButton(
                                 onPressed: () {
-                                  setState(() {
-                                    _selectedCity = tempSelectedProvince?['name'] ?? _defaultCity;
-                                    _selectedDistrict = tempSelectedArea?['name'] ?? _defaultDistrict;
-                                    _selectedCityId = tempSelectedProvince?['id'];
-                                    _selectedRegionId = tempSelectedArea?['id'];
-                                    _resetAdsData();
-                                  });
+                                  if (mounted) {
+                                    setState(() {
+                                      _selectedCity = tempSelectedProvince?['name'] ?? _defaultCity;
+                                      _selectedDistrict = tempSelectedArea?['name'] ?? _defaultDistrict;
+                                      _selectedCityId = tempSelectedProvince?['id'];
+                                      _selectedRegionId = tempSelectedArea?['id'];
+                                      _resetAdsData();
+                                    });
+                                  }
                                   
                                   Navigator.pop(context);
                                   
@@ -800,6 +925,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildAdCard(dynamic ad) {
     final List<dynamic> images = ad['images'] is List ? ad['images'] : [];
     final firstImageBase64 = images.isNotEmpty ? images[0] : null;
+    final String adId = ad['_id'] ?? '';
 
     return Container(
       margin: const EdgeInsets.all(4),
@@ -825,29 +951,44 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => AdDetailsScreen(ad: ad)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          ).then((_) {
+            // Refresh favorites when returning from ad details
+            if (_authToken != null && _userId != null) {
+              _fetchUserFavorites();
+            }
+          }),
+          child: Stack(
             children: [
-              Expanded(
-                flex: 3,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: _buildAdImage(firstImageBase64),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: _buildAdImage(firstImageBase64),
+                      ),
+                    ),
                   ),
-                ),
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      constraints: const BoxConstraints(minHeight: 80),
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: _buildAdDetails(ad),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              Expanded(
-                flex: 2,
-                child: Container(
-                  constraints: const BoxConstraints(minHeight: 80),
-                  child: Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: _buildAdDetails(ad),
-                  ),
-                ),
+              // Favorite Heart Icon - Show for all users
+              Positioned(
+                top: 8,
+                left: 8,
+                child: _buildFavoriteHeartIcon(adId),
               ),
             ],
           ),
@@ -953,6 +1094,45 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  /// Build favorite heart icon for ad card
+  Widget _buildFavoriteHeartIcon(String adId) {
+    // For logged-in users: check if ad is in favorites
+    // For non-logged-in users: always show empty heart
+    final bool isFavorite = (_authToken != null && _userId != null) ? _isAdInFavorites(adId) : false;
+    final bool isLoggedIn = _authToken != null && _userId != null;
+    
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: (isLoggedIn && _isLoadingFavorites)
+          ? const SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(
+                strokeWidth: 1.5,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+              ),
+            )
+          : Icon(
+              isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: isFavorite ? Colors.red : Colors.grey[600],
+              size: 20,
+            ),
     );
   }
 
