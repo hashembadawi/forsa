@@ -44,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // ========== Ads State ==========
   final List<dynamic> _allAds = [];
   bool _isLoadingAds = false;
+  bool _isRefreshing = false;
   int _currentPageAds = 1;
   bool _hasMoreAds = true;
 
@@ -1525,6 +1526,37 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ========== Refresh Handler ==========
+
+  /// Handle pull-to-refresh
+  Future<void> _handleRefresh() async {
+    // Set refreshing state
+    if (mounted) {
+      setState(() {
+        _isRefreshing = true;
+        _resetFilters();
+        _resetAdsData();
+      });
+    }
+    
+    try {
+      // Fetch fresh data
+      await Future.wait([
+        _fetchOptions(),
+        _refreshUserData(),
+      ]);
+      
+      await _fetchAllAds();
+    } finally {
+      // Clear refreshing state
+      if (mounted) {
+        setState(() {
+          _isRefreshing = false;
+        });
+      }
+    }
+  }
+
   // ========== Main Build Method ==========
 
   @override
@@ -1551,9 +1583,15 @@ class _HomeScreenState extends State<HomeScreen> {
           drawer: _buildDrawer(context),
           body: Container(
           decoration: const BoxDecoration(color: Colors.white),
-          child: CustomScrollView(
-            controller: _adsScrollController,
-            slivers: [
+          child: RefreshIndicator(
+            onRefresh: _handleRefresh,
+            color: Colors.blue[600],
+            backgroundColor: Colors.white,
+            strokeWidth: 2.5,
+            child: CustomScrollView(
+              controller: _adsScrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
               SliverAppBar(
                 floating: true,
                 pinned: true,
@@ -1601,13 +1639,34 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    if (_allAds.isEmpty && _isLoadingAds)
+                    if (_isRefreshing)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(24),
+                          child: Column(
+                            children: [
+                              CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                'جاري تحديث الإعلانات...',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else if (_allAds.isEmpty && _isLoadingAds)
                       const Center(
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
                         ),
-                      ),
-                    if (_allAds.isEmpty && !_isLoadingAds)
+                      )
+                    else if (_allAds.isEmpty && !_isLoadingAds)
                       Center(
                         child: Padding(
                           padding: const EdgeInsets.all(32),
@@ -1642,7 +1701,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ]),
                 ),
               ),
-              if (_allAds.isNotEmpty)
+              if (_allAds.isNotEmpty || _isRefreshing)
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   sliver: SliverGrid(
@@ -1683,6 +1742,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
             ],
+            ),
           ),
         ),
         ),
