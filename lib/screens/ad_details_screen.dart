@@ -1022,8 +1022,58 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       final prefs = await SharedPreferences.getInstance();
       _authToken = prefs.getString('token');
       _userId = prefs.getString('userId');
+      
+      // If user is logged in, check if current ad is in favorites
+      if (_authToken != null && _authToken!.isNotEmpty && _userId != null && _userId!.isNotEmpty) {
+        await _checkIfAdIsFavorite();
+      }
     } catch (e) {
       debugPrint('Error checking authentication: $e');
+    }
+  }
+
+  /// Check if current ad is in user's favorites list
+  Future<void> _checkIfAdIsFavorite() async {
+    if (_authToken == null || _userId == null) return;
+
+    try {
+      setState(() {
+        _isLoadingFavorite = true;
+      });
+
+      final response = await http.get(
+        Uri.parse('$_baseUrl/api/favorites/my-favorites?page=1&limit=1000'), // Get all favorites
+        headers: {
+          'Authorization': 'Bearer $_authToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        final List<dynamic> favorites = decoded['favorites'] ?? [];
+        
+        // Check if current ad is in favorites list
+        final currentAdId = widget.ad['_id'];
+        final isCurrentAdFavorite = favorites.any((favorite) {
+          final ad = favorite['ad'];
+          return ad != null && ad['_id'] == currentAdId;
+        });
+
+        setState(() {
+          _isFavorite = isCurrentAdFavorite;
+          _isLoadingFavorite = false;
+        });
+      } else {
+        setState(() {
+          _isLoadingFavorite = false;
+        });
+        debugPrint('Failed to fetch favorites: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        _isLoadingFavorite = false;
+      });
+      debugPrint('Error checking if ad is favorite: $e');
     }
   }
 
@@ -1080,14 +1130,18 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       final adId = widget.ad['_id'];
       
       if (_isFavorite) {
-        // Remove from favorites
+        // Remove from favorites directly without confirmation
         await _removeFromFavorites(adId);
       } else {
-        // Add to favorites
+        // Add to favorites directly
         await _addToFavorites(adId);
       }
     } catch (e) {
-      _showErrorMessage('حدث خطأ أثناء تحديث المفضلة');
+      if (_isFavorite) {
+        _showErrorMessage('حدث خطأ أثناء إزالة الإعلان من المفضلة');
+      } else {
+        _showErrorMessage('حدث خطأ أثناء إضافة الإعلان إلى المفضلة');
+      }
     } finally {
       setState(() {
         _isLoadingFavorite = false;
@@ -1113,7 +1167,6 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       setState(() {
         _isFavorite = true;
       });
-      _showSuccessMessage('تم إضافة الإعلان إلى المفضلة');
     } else {
       throw Exception('Failed to add to favorites');
     }
@@ -1122,7 +1175,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   /// Remove ad from favorites
   Future<void> _removeFromFavorites(String adId) async {
     final response = await http.delete(
-      Uri.parse('$_baseUrl/api/favorites/remove'),
+      Uri.parse('$_baseUrl/api/favorites/delete'),
       headers: {
         'Authorization': 'Bearer $_authToken',
         'Content-Type': 'application/json',
@@ -1137,7 +1190,6 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       setState(() {
         _isFavorite = false;
       });
-      _showSuccessMessage('تم إزالة الإعلان من المفضلة');
     } else {
       throw Exception('Failed to remove from favorites');
     }
@@ -1160,16 +1212,6 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
         );
       },
     );
-  }
-
-  /// Show success message
-  void _showSuccessMessage(String message) {
-    if (mounted) {
-      DialogUtils.showSuccessDialog(
-        context: context,
-        message: message,
-      );
-    }
   }
 
   /// Show error message
