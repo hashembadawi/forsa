@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,6 +14,67 @@ import 'login_screen.dart';
 import 'my_ads_screen.dart';
 import 'suggestions_list_screen.dart';
 
+// Data models for better type safety
+class AdModel {
+  final String? id;
+  final String? adTitle;
+  final String? price;
+  final String? currencyName;
+  final String? cityName;
+  final String? createDate;
+  final List<String>? images;
+
+  AdModel({
+    this.id,
+    this.adTitle,
+    this.price,
+    this.currencyName,
+    this.cityName,
+    this.createDate,
+    this.images,
+  });
+
+  factory AdModel.fromJson(Map<String, dynamic> json) {
+    return AdModel(
+      id: json['_id'],
+      adTitle: json['adTitle'],
+      price: json['price']?.toString(),
+      currencyName: json['currencyName'],
+      cityName: json['cityName'],
+      createDate: json['createDate'],
+      images: json['images'] is List ? List<String>.from(json['images']) : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'adTitle': adTitle,
+      'price': price,
+      'currencyName': currencyName,
+      'cityName': cityName,
+      'createDate': createDate,
+      'images': images,
+    };
+  }
+}
+
+class LocationModel {
+  final int? id;
+  final String? name;
+  final int? provinceId;
+
+  LocationModel({this.id, this.name, this.provinceId});
+
+  factory LocationModel.fromJson(Map<String, dynamic> json) {
+    return LocationModel(
+      id: json['id'],
+      name: json['name'],
+      provinceId: json['ProvinceId'],
+    );
+  }
+}
+
 /// Home screen that displays advertisements with filtering and search capabilities
 class HomeScreen extends StatefulWidget {
   final bool refreshOnStart;
@@ -23,7 +85,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMixin {
   // ========== Constants ==========
   static const String _baseUrl = 'https://sahbo-app-api.onrender.com';
   static const int _limitAds = 10;
@@ -43,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int? _selectedSubCategoryId;
 
   // ========== Ads State ==========
-  final List<dynamic> _allAds = [];
+  final List<AdModel> _allAds = [];
   bool _isLoadingAds = false;
   bool _isRefreshing = false;
   int _currentPageAds = 1;
@@ -56,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _userProfileImage;
   
   // ========== Favorites State ==========
-  final List<String> _favoriteAdIds = [];
+  final Set<String> _favoriteAdIds = {};
   bool _isLoadingFavorites = false;
   String? _authToken;
   String? _userId;
@@ -65,6 +127,30 @@ class _HomeScreenState extends State<HomeScreen> {
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
   bool _isConnected = true;
   bool _isCheckingConnectivity = true;
+
+  // ========== Image Cache ==========
+  final Map<String, Uint8List> _imageCache = {};
+
+  @override
+  bool get wantKeepAlive => true;
+
+  // Optimized image decoding with caching
+  Uint8List? _getDecodedImage(String? base64String) {
+    if (base64String == null || base64String.isEmpty) return null;
+    
+    if (_imageCache.containsKey(base64String)) {
+      return _imageCache[base64String];
+    }
+    
+    try {
+      final decoded = base64Decode(base64String);
+      _imageCache[base64String] = decoded;
+      return decoded;
+    } catch (e) {
+      debugPrint('Error decoding image: $e');
+      return null;
+    }
+  }
 
   @override
   void initState() {
@@ -298,11 +384,11 @@ class _HomeScreenState extends State<HomeScreen> {
         final List<dynamic> favorites = decoded['favorites'] ?? [];
         
         // Extract ad IDs from favorites
-        final List<String> favoriteIds = favorites
+        final favoriteIds = favorites
             .map((fav) => fav['ad']?['_id'] as String?)
             .where((id) => id != null)
             .cast<String>()
-            .toList();
+            .toSet();
 
         if (mounted) {
           setState(() {
@@ -343,7 +429,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         if (mounted) {
           setState(() {
-            _allAds.addAll(fetchedAds);
+            _allAds.addAll(fetchedAds.map((ad) => AdModel.fromJson(ad)));
             _currentPageAds++;
             _isLoadingAds = false;
             _hasMoreAds = fetchedAds.length >= _limitAds;
@@ -385,7 +471,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (mounted) {
           setState(() {
             if (reset) _allAds.clear();
-            _allAds.addAll(fetchedAds);
+            _allAds.addAll(fetchedAds.map((ad) => AdModel.fromJson(ad)));
             _currentPageAds++;
             _isLoadingAds = false;
             _hasMoreAds = fetchedAds.length >= _limitAds;
@@ -427,7 +513,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (mounted) {
           setState(() {
             if (reset) _allAds.clear();
-            _allAds.addAll(fetchedAds);
+            _allAds.addAll(fetchedAds.map((ad) => AdModel.fromJson(ad)));
             _currentPageAds++;
             _isLoadingAds = false;
             _hasMoreAds = fetchedAds.length >= _limitAds;
@@ -833,11 +919,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ========== Widget Building Methods ==========
 
-  /// Build advertisement card
-  Widget _buildAdCard(dynamic ad) {
-    final List<dynamic> images = ad['images'] is List ? ad['images'] : [];
+  /// Build advertisement card (optimized)
+  Widget _buildAdCard(AdModel ad) {
+    final images = ad.images ?? [];
     final firstImageBase64 = images.isNotEmpty ? images[0] : null;
-    final String adId = ad['_id'] ?? '';
+    final String adId = ad.id ?? '';
 
     return Container(
       margin: const EdgeInsets.all(4),
@@ -853,6 +939,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         border: Border.all(color: Colors.blue[300]!, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue[100]!.withOpacity(0.3),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -862,7 +956,7 @@ class _HomeScreenState extends State<HomeScreen> {
           highlightColor: Colors.blue[100]!.withOpacity(0.1),
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => AdDetailsScreen(ad: ad)),
+            MaterialPageRoute(builder: (_) => AdDetailsScreen(ad: ad.toJson())),
           ),
           child: Stack(
             children: [
@@ -904,17 +998,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Build ad image
+  /// Build ad image (optimized with caching)
   Widget _buildAdImage(String? firstImageBase64) {
     if (firstImageBase64 != null) {
-      return Image.memory(
-        base64Decode(firstImageBase64),
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildNoImagePlaceholder(),
-      );
-    } else {
-      return _buildNoImagePlaceholder();
+      final decodedImage = _getDecodedImage(firstImageBase64);
+      if (decodedImage != null) {
+        return Image.memory(
+          decodedImage,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          errorBuilder: (context, error, stackTrace) => _buildNoImagePlaceholder(),
+        );
+      }
     }
+    return _buildNoImagePlaceholder();
   }
 
   /// Build no image placeholder
@@ -947,14 +1045,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Build ad details section
-  Widget _buildAdDetails(dynamic ad) {
+  /// Build ad details section (optimized)
+  Widget _buildAdDetails(AdModel ad) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Text(
-          '${ad['adTitle'] ?? ''}',
+          ad.adTitle ?? '',
           style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
@@ -971,7 +1069,7 @@ class _HomeScreenState extends State<HomeScreen> {
             border: Border.all(color: Colors.blue[300]!, width: 1),
           ),
           child: Text(
-            '${ad['price'] ?? '0'} ${ad['currencyName'] ?? ''}',
+            '${ad.price ?? '0'} ${ad.currencyName ?? ''}',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
@@ -988,7 +1086,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(width: 2),
             Expanded(
               child: Text(
-                '${ad['cityName'] ?? ''} - ${_formatDate(ad['createDate'] ?? '')}',
+                '${ad.cityName ?? ''} - ${_formatDate(ad.createDate ?? '')}',
                 style: const TextStyle(
                   color: Colors.black87,
                   fontSize: 9,
@@ -1472,6 +1570,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+    
     // Show loading screen while checking connectivity
     if (_isCheckingConnectivity) {
       return _buildLoadingScreen();
