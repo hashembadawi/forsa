@@ -205,6 +205,11 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
             ),
           ),
           
+          // Action Buttons Section (Share, Report, Favorite)
+          _buildActionButtonsSection(),
+          
+          const SizedBox(height: 16),
+          
           // Second Section: Similar Ads
           _buildSimilarAdsSection(),
           
@@ -903,6 +908,348 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
     );
   }
 
+  // ========== New Action Buttons Section ==========
+
+  /// Build action buttons section (Share, Report, Favorite)
+  Widget _buildActionButtonsSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: Colors.blue[300]!,
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue[100]!.withOpacity(0.3),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildActionButton(
+            icon: Icons.share,
+            label: 'مشاركة',
+            color: Colors.blue[600]!,
+            onTap: _shareAd,
+          ),
+          _buildActionButton(
+            icon: Icons.report_outlined,
+            label: 'ابلاغ',
+            color: Colors.red[600]!,
+            onTap: _reportAd,
+          ),
+          _buildActionButton(
+            icon: _isFavorite ? Icons.favorite : Icons.favorite_border,
+            label: 'تفضيل',
+            color: _isFavorite ? Colors.red[600]! : Colors.grey[600]!,
+            onTap: _toggleFavorite,
+            isLoading: _isLoadingFavorite,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build individual action button
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+    bool isLoading = false,
+  }) {
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: isLoading ? null : onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isLoading)
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
+                    ),
+                  )
+                else
+                  Icon(
+                    icon,
+                    color: color,
+                    size: 28,
+                  ),
+                const SizedBox(height: 6),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ========== Action Button Methods ==========
+
+  /// Share ad functionality
+  Future<void> _shareAd() async {
+    try {
+      final String shareText = '''
+🏷️ ${_adModel.adTitle ?? 'إعلان مميز'}
+
+💰 السعر: ${_adModel.price ?? 'غير محدد'} ${_adModel.currencyName ?? ''}
+
+📍 الموقع: ${_adModel.cityName ?? 'غير محدد'}${_adModel.regionName != null ? ' - ${_adModel.regionName}' : ''}
+
+📞 للتواصل: ${_adModel.userPhone ?? 'غير متوفر'}
+
+${_adModel.description != null && _adModel.description!.isNotEmpty 
+  ? '📝 الوصف: ${_adModel.description}\n' 
+  : ''}
+🛒 تطبيق السوق السوري
+      '''.trim();
+
+      // Using the share_plus package functionality
+      // Note: You'll need to add share_plus package to pubspec.yaml
+      await _showShareDialog(shareText);
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage('حدث خطأ أثناء المشاركة');
+      }
+    }
+  }
+
+  /// Show share dialog with options
+  Future<void> _showShareDialog(String shareText) async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 10),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            
+            // Title
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                'مشاركة الإعلان',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            
+            // Share options
+            ListTile(
+              leading: const Icon(Icons.copy, color: Colors.blue),
+              title: const Text('نسخ النص'),
+              onTap: () async {
+                Navigator.pop(context);
+                await Clipboard.setData(ClipboardData(text: shareText));
+                if (mounted) {
+                  DialogUtils.showSuccessDialog(
+                    context: context,
+                    message: 'تم نسخ معلومات الإعلان',
+                  );
+                }
+              },
+            ),
+            
+            ListTile(
+              leading: const Icon(Icons.share, color: Colors.green),
+              title: const Text('مشاركة عبر التطبيقات'),
+              onTap: () async {
+                Navigator.pop(context);
+                // This would typically use share_plus package
+                // For now, we'll copy to clipboard as fallback
+                await Clipboard.setData(ClipboardData(text: shareText));
+                if (mounted) {
+                  DialogUtils.showSuccessDialog(
+                    context: context,
+                    message: 'تم نسخ معلومات الإعلان للمشاركة',
+                  );
+                }
+              },
+            ),
+            
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Report ad functionality
+  Future<void> _reportAd() async {
+    // Check if user is logged in first
+    if (_authToken == null || _userId == null) {
+      _showLoginRequiredForReportDialog();
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Red Header (matching call dialog style)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: const Text(
+                'الإبلاغ عن الإعلان',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            // White Body with Options
+            Container(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+            
+                  // Report reasons
+                  _buildReportOption('محتوى غير مناسب', Icons.warning),
+                  _buildReportOption('إعلان مخادع أو احتيالي', Icons.error_outline),
+                  _buildReportOption('منتج مقلد أو مزيف', Icons.copyright),
+                  _buildReportOption('معلومات اتصال خاطئة', Icons.phone_disabled),
+                  _buildReportOption('إعلان مكرر', Icons.repeat),
+                  _buildReportOption('أخرى', Icons.more_horiz),
+            
+                  const SizedBox(height: 10),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build report option
+  Widget _buildReportOption(String reason, IconData icon) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.red[600]),
+      title: Text(reason),
+      onTap: () async {
+        Navigator.pop(context);
+        await _submitReport(reason);
+      },
+    );
+  }
+
+  /// Submit report to server
+  Future<void> _submitReport(String reason) async {
+    try {
+      // Show loading dialog using DialogUtils
+      if (mounted) {
+        DialogUtils.showLoadingDialog(
+          context: context,
+          title: 'جاري إرسال البلاغ',
+          message: 'يرجى الانتظار، سيتم مراجعة البلاغ من قبل فريقنا',
+        );
+      }
+      
+      // Prepare report data
+      final reportData = {
+        'adId': _adModel.id,
+        'userId': _userId,
+        'reason': reason,
+        'reportedAt': DateTime.now().toIso8601String(),
+      };
+      
+      // Send report to server
+      final response = await http.post(
+        Uri.parse('$_baseUrl/api/reports/submit'),
+        headers: {
+          'Authorization': 'Bearer $_authToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(reportData),
+      );
+      
+      if (mounted) {
+        DialogUtils.closeDialog(context); // Close loading dialog
+        
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          DialogUtils.showSuccessDialog(
+            context: context,
+            message: 'تم إرسال البلاغ بنجاح. سيتم مراجعته من قبل فريقنا.',
+          );
+        } else {
+          _showErrorMessage('حدث خطأ أثناء إرسال البلاغ. يرجى المحاولة مرة أخرى.');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        DialogUtils.closeDialog(context); // Close loading dialog
+        _showErrorMessage('حدث خطأ أثناء إرسال البلاغ. يرجى المحاولة مرة أخرى.');
+      }
+    }
+  }
+
   // Utility Methods
   String _formatDate(String? isoDate) {
     if (isoDate == null || isoDate.isEmpty) return 'غير محدد';
@@ -1366,6 +1713,25 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
       context: context,
       title: 'تسجيل الدخول مطلوب',
       message: 'يجب تسجيل الدخول أولاً لإضافة الإعلانات إلى المفضلة',
+      confirmText: 'تسجيل الدخول',
+      cancelText: 'إلغاء',
+      onConfirm: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const LoginScreen(),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Show login required dialog for reporting
+  void _showLoginRequiredForReportDialog() {
+    DialogUtils.showConfirmationDialog(
+      context: context,
+      title: 'تسجيل الدخول مطلوب',
+      message: 'يجب تسجيل الدخول أولاً للإبلاغ عن الإعلانات',
       confirmText: 'تسجيل الدخول',
       cancelText: 'إلغاء',
       onConfirm: () {
