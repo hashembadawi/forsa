@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,6 +12,87 @@ import 'advertiser_page_screen.dart';
 import 'login_screen.dart';
 import '../utils/dialog_utils.dart';
 
+// Models for better type safety
+class AdModel {
+  final String? id;
+  final String? adTitle;
+  final String? description;
+  final String? price;
+  final String? currencyName;
+  final String? categoryName;
+  final String? subCategoryName;
+  final String? cityName;
+  final String? regionName;
+  final String? userName;
+  final String? userPhone;
+  final String? userId;
+  final String? categoryId;
+  final String? subCategoryId;
+  final String? createDate;
+  final List<String>? images;
+  final LocationModel? location;
+
+  AdModel({
+    this.id,
+    this.adTitle,
+    this.description,
+    this.price,
+    this.currencyName,
+    this.categoryName,
+    this.subCategoryName,
+    this.cityName,
+    this.regionName,
+    this.userName,
+    this.userPhone,
+    this.userId,
+    this.categoryId,
+    this.subCategoryId,
+    this.createDate,
+    this.images,
+    this.location,
+  });
+
+  factory AdModel.fromJson(Map<String, dynamic> json) {
+    return AdModel(
+      id: json['_id'],
+      adTitle: json['adTitle'],
+      description: json['description'],
+      price: json['price']?.toString(),
+      currencyName: json['currencyName'],
+      categoryName: json['categoryName'],
+      subCategoryName: json['subCategoryName'],
+      cityName: json['cityName'],
+      regionName: json['regionName'],
+      userName: json['userName'],
+      userPhone: json['userPhone'],
+      userId: json['userId'],
+      categoryId: json['categoryId']?.toString(),
+      subCategoryId: json['subCategoryId']?.toString(),
+      createDate: json['createDate'],
+      images: json['images'] is List ? List<String>.from(json['images']) : null,
+      location: json['location'] != null ? LocationModel.fromJson(json['location']) : null,
+    );
+  }
+}
+
+class LocationModel {
+  final List<double>? coordinates;
+
+  LocationModel({this.coordinates});
+
+  factory LocationModel.fromJson(Map<String, dynamic> json) {
+    return LocationModel(
+      coordinates: json['coordinates'] is List 
+        ? List<double>.from(json['coordinates'].map((e) => e?.toDouble() ?? 0.0))
+        : null,
+    );
+  }
+
+  double? get longitude => coordinates != null && coordinates!.length >= 2 ? coordinates![0] : null;
+  double? get latitude => coordinates != null && coordinates!.length >= 2 ? coordinates![1] : null;
+  bool get isValid => longitude != null && latitude != null && longitude != 0.0 && latitude != 0.0;
+}
+
 class AdDetailsScreen extends StatefulWidget {
   final dynamic ad;
 
@@ -20,38 +102,60 @@ class AdDetailsScreen extends StatefulWidget {
   State<AdDetailsScreen> createState() => _AdDetailsScreenState();
 }
 
-class _AdDetailsScreenState extends State<AdDetailsScreen> {
+class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAliveClientMixin {
   // Constants
   static const double _imageHeight = 200.0;
   static const int _limitSimilarAds = 6;
   static const String _baseUrl = 'https://sahbo-app-api.onrender.com';
   
-  // Tab state
-  int _selectedTabIndex = 0;
+  // Models
+  late final AdModel _adModel;
   
-  // Similar ads state
-  List<dynamic> _similarAds = [];
+  // State variables
+  int _selectedTabIndex = 0;
+  List<AdModel> _similarAds = [];
   bool _isLoadingSimilarAds = false;
   bool _hasErrorSimilarAds = false;
-
-  // Favorite state
   bool _isFavorite = false;
   bool _isLoadingFavorite = false;
+  
+  // Auth variables
   String? _userId;
   String? _authToken;
   
-  // Future for authentication check
-  late Future<void> _authCheckFuture;
+  // Cache for decoded images
+  final Map<String, Uint8List> _imageCache = {};
+  
+  // Controllers
+  PageController? _pageController;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-    _authCheckFuture = _checkAuthenticationAndFavorites();
-    _fetchSimilarAds();
+    _adModel = AdModel.fromJson(widget.ad);
+    _pageController = PageController();
+    _initializeData();
+  }
+
+  @override
+  void dispose() {
+    _pageController?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initializeData() async {
+    await Future.wait([
+      _checkAuthenticationAndFavorites(),
+      _fetchSimilarAds(),
+    ]);
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -162,9 +266,28 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     );
   }
 
+  // Optimized image decoding with caching
+  Uint8List? _getDecodedImage(String? base64String) {
+    if (base64String == null || base64String.isEmpty) return null;
+    
+    if (_imageCache.containsKey(base64String)) {
+      return _imageCache[base64String];
+    }
+    
+    try {
+      final decoded = base64Decode(base64String);
+      _imageCache[base64String] = decoded;
+      return decoded;
+    } catch (e) {
+      debugPrint('Error decoding image: $e');
+      return null;
+    }
+  }
+
+  // Optimized widget builders
   Widget _buildAdTitle() {
     return Text(
-      '${widget.ad['adTitle'] ?? 'غير متوفر'}',
+      _adModel.adTitle ?? 'غير متوفر',
       style: const TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.bold,
@@ -196,7 +319,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
             ),
           ),
           Text(
-            '${widget.ad['price'] ?? 'غير محدد'} ${widget.ad['currencyName'] ?? ''}',
+            '${_adModel.price ?? 'غير محدد'} ${_adModel.currencyName ?? ''}',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -279,9 +402,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     }
   }
 
-  // Image Section Builders
+  // Image Section Builders with optimization
   Widget _buildImageSection() {
-    final List<dynamic> images = widget.ad['images'] ?? [];
+    final images = _adModel.images ?? [];
     
     if (images.isEmpty) {
       return _buildNoImagePlaceholder();
@@ -291,11 +414,20 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       height: _imageHeight,
       child: Stack(
         children: [
-          // Image PageView
+          // Optimized Image PageView
           PageView.builder(
+            controller: _pageController,
             itemCount: images.length,
             itemBuilder: (context, index) => _buildImageItem(images, index),
           ),
+          // Image indicator if multiple images
+          if (images.length > 1)
+            Positioned(
+              bottom: 10,
+              left: 0,
+              right: 0,
+              child: _buildImageIndicator(images.length),
+            ),
           // Favorite Heart Icon
           Positioned(
             top: 10,
@@ -307,16 +439,37 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     );
   }
 
-  Widget _buildImageItem(List<dynamic> images, int index) {
+  Widget _buildImageItem(List<String> images, int index) {
     final imgBase64 = images[index];
+    final decodedImage = _getDecodedImage(imgBase64);
     
     return GestureDetector(
       onTap: () => _navigateToImagePreview(images, index),
-      child: Image.memory(
-        base64Decode(imgBase64),
-        fit: BoxFit.cover,
-        width: double.infinity,
-        errorBuilder: (context, error, stackTrace) => _buildImageErrorWidget(),
+      child: decodedImage != null
+          ? Image.memory(
+              decodedImage,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              errorBuilder: (context, error, stackTrace) => _buildImageErrorWidget(),
+            )
+          : _buildImageErrorWidget(),
+    );
+  }
+
+  Widget _buildImageIndicator(int imageCount) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(
+        imageCount,
+        (index) => Container(
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white.withOpacity(0.8),
+          ),
+        ),
       ),
     );
   }
@@ -381,13 +534,13 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
         _buildInfoRow(
           Icons.location_on,
           'الموقع',
-          '${widget.ad['cityName'] ?? 'غير محدد'} - ${widget.ad['regionName'] ?? 'غير محدد'}',
+          '${_adModel.cityName ?? 'غير محدد'} - ${_adModel.regionName ?? 'غير محدد'}',
         ),
         const SizedBox(height: 12),
         _buildInfoRow(
           Icons.calendar_today,
           'تاريخ الإعلان',
-          _formatDate(widget.ad['createDate']),
+          _formatDate(_adModel.createDate),
         ),
       ],
     );
@@ -420,13 +573,13 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
           _buildInfoRow(
             Icons.person,
             'الاسم',
-            '${widget.ad['userName'] ?? 'غير متوفر'}',
+            _adModel.userName ?? 'غير متوفر',
           ),
           const SizedBox(height: 8),
           _buildInfoRow(
             Icons.phone,
             'الهاتف',
-            '${widget.ad['userPhone'] ?? 'غير متوفر'}',
+            _adModel.userPhone ?? 'غير متوفر',
           ),
           const SizedBox(height: 12),
           // Advertiser Page Button
@@ -462,7 +615,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     return _buildInfoRow(
       Icons.category,
       'التصنيف',
-      '${widget.ad['categoryName'] ?? 'غير محدد'} - ${widget.ad['subCategoryName'] ?? 'غير متوفر'}',
+      '${_adModel.categoryName ?? 'غير محدد'} - ${_adModel.subCategoryName ?? 'غير متوفر'}',
     );
   }
 
@@ -517,7 +670,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   }
 
   Widget _buildDescriptionTab() {
-    final String description = widget.ad['description'] ?? '';
+    final description = _adModel.description ?? '';
     
     if (description.isEmpty) {
       return Container(
@@ -558,26 +711,13 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   }
 
   Widget _buildLocationTab() {
-    final location = widget.ad['location'];
+    final location = _adModel.location;
     
-    // Check if location exists and has the correct structure
-    if (location == null || 
-        location['coordinates'] == null || 
-        location['coordinates'] is! List ||
-        (location['coordinates'] as List).length < 2) {
+    if (location == null || !location.isValid) {
       return _buildNoLocationAvailable();
     }
 
-    final coordinates = location['coordinates'] as List;
-    final longitude = coordinates[0]?.toDouble() ?? 0.0;
-    final latitude = coordinates[1]?.toDouble() ?? 0.0;
-
-    // Check if coordinates are [0, 0] which means no location selected
-    if (longitude == 0.0 && latitude == 0.0) {
-      return _buildNoLocationAvailable();
-    }
-
-    return _buildLocationMap(latitude, longitude);
+    return _buildLocationMap(location.latitude!, location.longitude!);
   }
 
   Widget _buildNoLocationAvailable() {
@@ -674,7 +814,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   }
 
   Widget _buildActionButtons() {
-    final String phone = widget.ad['userPhone'] ?? '';
+    final phone = _adModel.userPhone ?? '';
     
     if (phone.isEmpty) {
       return _buildNoContactInfo();
@@ -790,7 +930,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   }
 
   // Navigation Methods
-  void _navigateToImagePreview(List<dynamic> images, int index) {
+  void _navigateToImagePreview(List<String> images, int index) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -803,15 +943,15 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   }
 
   void _navigateToAdvertiserPage() {
-    final userId = widget.ad['userId'];
+    final userId = _adModel.userId;
     if (userId != null && userId.isNotEmpty) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => AdvertiserPageScreen(
             userId: userId,
-            initialUserName: widget.ad['userName'],
-            initialUserPhone: widget.ad['userPhone'],
+            initialUserName: _adModel.userName,
+            initialUserPhone: _adModel.userPhone,
           ),
         ),
       );
@@ -1071,7 +1211,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
         final List<dynamic> favorites = decoded['favorites'] ?? [];
         
         // Check if current ad is in favorites list
-        final currentAdId = widget.ad['_id'];
+        final currentAdId = _adModel.id;
         final isCurrentAdFavorite = favorites.any((favorite) {
           final ad = favorite['ad'];
           return ad != null && ad['_id'] == currentAdId;
@@ -1103,48 +1243,38 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
 
   /// Build favorite heart button
   Widget _buildFavoriteButton() {
-    return FutureBuilder<void>(
-      future: _authCheckFuture,
-      builder: (context, snapshot) {
-        return GestureDetector(
-          onTap: _isLoadingFavorite ? null : _toggleFavorite,
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                ),
-              ],
+    return GestureDetector(
+      onTap: _isLoadingFavorite ? null : _toggleFavorite,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.9),
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, 1),
             ),
-            child: _isLoadingFavorite
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-                    ),
-                  )
-                : Icon(
-                    // Show filled heart only if auth check is done AND user is logged in AND ad is favorite
-                    (snapshot.connectionState == ConnectionState.done && _isFavorite) 
-                        ? Icons.favorite 
-                        : Icons.favorite_border,
-                    color: (snapshot.connectionState == ConnectionState.done && _isFavorite) 
-                        ? Colors.red 
-                        : Colors.grey[600],
-                    size: 24,
-                  ),
-          ),
-        );
-      },
+          ],
+        ),
+        child: _isLoadingFavorite
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                ),
+              )
+            : Icon(
+                _isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: _isFavorite ? Colors.red : Colors.grey[600],
+                size: 24,
+              ),
+      ),
     );
   }
 
@@ -1161,7 +1291,8 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     });
 
     try {
-      final adId = widget.ad['_id'];
+      final adId = _adModel.id;
+      if (adId == null) return;
       
       if (_isFavorite) {
         // Remove from favorites directly without confirmation
@@ -1262,9 +1393,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
 
   /// Fetch similar ads based on category and subcategory
   Future<void> _fetchSimilarAds() async {
-    final categoryId = widget.ad['categoryId'];
-    final subCategoryId = widget.ad['subCategoryId'];
-    final currentAdId = widget.ad['_id'];
+    final categoryId = _adModel.categoryId;
+    final subCategoryId = _adModel.subCategoryId;
+    final currentAdId = _adModel.id;
     
     if (categoryId == null) return;
 
@@ -1277,11 +1408,11 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       final params = <String, String>{
         'page': '1',
         'limit': '$_limitSimilarAds',
-        'categoryId': categoryId.toString(),
+        'categoryId': categoryId,
       };
       
       if (subCategoryId != null) {
-        params['subCategoryId'] = subCategoryId.toString();
+        params['subCategoryId'] = subCategoryId;
       }
       final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search-by-category', params);
       final response = await http.get(uri);
@@ -1293,7 +1424,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
         final filteredAds = fetchedAds.where((ad) => ad['_id'] != currentAdId).toList();
         
         setState(() {
-          _similarAds = filteredAds.take(_limitSimilarAds).toList();
+          _similarAds = filteredAds.map((ad) => AdModel.fromJson(ad)).take(_limitSimilarAds).toList();
           _isLoadingSimilarAds = false;
           _hasErrorSimilarAds = false;
         });
@@ -1514,9 +1645,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     );
   }
 
-  /// Build similar ad card (same style as home screen)
-  Widget _buildSimilarAdCard(dynamic ad) {
-    final List<dynamic> images = ad['images'] is List ? ad['images'] : [];
+  /// Build similar ad card (optimized with model)
+  Widget _buildSimilarAdCard(AdModel ad) {
+    final images = ad.images ?? [];
     final firstImageBase64 = images.isNotEmpty ? images[0] : null;
 
     return LayoutBuilder(
@@ -1582,19 +1713,21 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     );
   }
 
-  /// Build similar ad image (same style as home screen)
+  /// Build similar ad image (optimized with caching)
   Widget _buildSimilarAdImage(String? firstImageBase64) {
     if (firstImageBase64 != null) {
-      return Image.memory(
-        base64Decode(firstImageBase64),
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: double.infinity,
-        errorBuilder: (context, error, stackTrace) => _buildSimilarAdImagePlaceholder(),
-      );
-    } else {
-      return _buildSimilarAdImagePlaceholder();
+      final decodedImage = _getDecodedImage(firstImageBase64);
+      if (decodedImage != null) {
+        return Image.memory(
+          decodedImage,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          errorBuilder: (context, error, stackTrace) => _buildSimilarAdImagePlaceholder(),
+        );
+      }
     }
+    return _buildSimilarAdImagePlaceholder();
   }
 
   /// Build similar ad image placeholder (same style as home screen)
@@ -1627,8 +1760,8 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
     );
   }
 
-  /// Build similar ad details (same style as home screen)
-  Widget _buildSimilarAdDetails(dynamic ad, BoxConstraints constraints) {
+  /// Build similar ad details (optimized with model)
+  Widget _buildSimilarAdDetails(AdModel ad, BoxConstraints constraints) {
     // Calculate responsive font sizes based on available space
     final double titleFontSize = constraints.maxWidth > 150 ? 12 : 10;
     final double priceFontSize = constraints.maxWidth > 150 ? 11 : 9;
@@ -1642,7 +1775,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
         // Ad Title
         Flexible(
           child: Text(
-            '${ad['adTitle'] ?? ''}',
+            ad.adTitle ?? '',
             style: TextStyle(
               fontSize: titleFontSize,
               fontWeight: FontWeight.bold,
@@ -1665,7 +1798,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
             border: Border.all(color: Colors.blue[300]!, width: 1),
           ),
           child: Text(
-            '${ad['price'] ?? '0'} ${ad['currencyName'] ?? ''}',
+            '${ad.price ?? '0'} ${ad.currencyName ?? ''}',
             style: TextStyle(
               fontSize: priceFontSize,
               fontWeight: FontWeight.bold,
@@ -1685,7 +1818,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
               const SizedBox(width: 2),
               Expanded(
                 child: Text(
-                  '${ad['cityName'] ?? ''} - ${_formatDate(ad['createDate'] ?? '')}',
+                  '${ad.cityName ?? ''} - ${_formatDate(ad.createDate)}',
                   style: TextStyle(
                     color: Colors.black87,
                     fontSize: locationFontSize,
@@ -1703,11 +1836,34 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   }
 
   /// Navigate to ad details
-  void _navigateToAdDetails(dynamic ad) {
+  void _navigateToAdDetails(AdModel ad) {
+    // Convert back to dynamic for navigation (maintaining compatibility)
+    final Map<String, dynamic> adData = {
+      '_id': ad.id,
+      'adTitle': ad.adTitle,
+      'description': ad.description,
+      'price': ad.price,
+      'currencyName': ad.currencyName,
+      'categoryName': ad.categoryName,
+      'subCategoryName': ad.subCategoryName,
+      'cityName': ad.cityName,
+      'regionName': ad.regionName,
+      'userName': ad.userName,
+      'userPhone': ad.userPhone,
+      'userId': ad.userId,
+      'categoryId': ad.categoryId,
+      'subCategoryId': ad.subCategoryId,
+      'createDate': ad.createDate,
+      'images': ad.images,
+      'location': ad.location != null ? {
+        'coordinates': ad.location!.coordinates,
+      } : null,
+    };
+    
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => AdDetailsScreen(ad: ad),
+        builder: (_) => AdDetailsScreen(ad: adData),
       ),
     );
   }
