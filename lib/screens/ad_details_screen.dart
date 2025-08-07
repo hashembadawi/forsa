@@ -39,11 +39,14 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
   bool _isLoadingFavorite = false;
   String? _userId;
   String? _authToken;
+  
+  // Future for authentication check
+  late Future<void> _authCheckFuture;
 
   @override
   void initState() {
     super.initState();
-    _checkAuthenticationAndFavorites();
+    _authCheckFuture = _checkAuthenticationAndFavorites();
     _fetchSimilarAds();
   }
 
@@ -1026,8 +1029,23 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
       // If user is logged in, check if current ad is in favorites
       if (_authToken != null && _authToken!.isNotEmpty && _userId != null && _userId!.isNotEmpty) {
         await _checkIfAdIsFavorite();
+      } else {
+        // For non-logged-in users, set stable states to prevent flashing
+        if (mounted) {
+          setState(() {
+            _isFavorite = false;
+            _isLoadingFavorite = false;
+          });
+        }
       }
     } catch (e) {
+      // Ensure stable state even on error
+      if (mounted) {
+        setState(() {
+          _isFavorite = false;
+          _isLoadingFavorite = false;
+        });
+      }
       debugPrint('Error checking authentication: $e');
     }
   }
@@ -1059,58 +1077,74 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> {
           return ad != null && ad['_id'] == currentAdId;
         });
 
-        setState(() {
-          _isFavorite = isCurrentAdFavorite;
-          _isLoadingFavorite = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isFavorite = isCurrentAdFavorite;
+            _isLoadingFavorite = false;
+          });
+        }
       } else {
-        setState(() {
-          _isLoadingFavorite = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isLoadingFavorite = false;
+          });
+        }
         debugPrint('Failed to fetch favorites: ${response.statusCode}');
       }
     } catch (e) {
-      setState(() {
-        _isLoadingFavorite = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingFavorite = false;
+        });
+      }
       debugPrint('Error checking if ad is favorite: $e');
     }
   }
 
   /// Build favorite heart button
   Widget _buildFavoriteButton() {
-    return GestureDetector(
-      onTap: _isLoadingFavorite ? null : _toggleFavorite,
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 3,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        child: _isLoadingFavorite
-            ? const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+    return FutureBuilder<void>(
+      future: _authCheckFuture,
+      builder: (context, snapshot) {
+        return GestureDetector(
+          onTap: _isLoadingFavorite ? null : _toggleFavorite,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 3,
+                  offset: const Offset(0, 1),
                 ),
-              )
-            : Icon(
-                _isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: _isFavorite ? Colors.red : Colors.grey[600],
-                size: 24,
-              ),
-      ),
+              ],
+            ),
+            child: _isLoadingFavorite
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                    ),
+                  )
+                : Icon(
+                    // Show filled heart only if auth check is done AND user is logged in AND ad is favorite
+                    (snapshot.connectionState == ConnectionState.done && _isFavorite) 
+                        ? Icons.favorite 
+                        : Icons.favorite_border,
+                    color: (snapshot.connectionState == ConnectionState.done && _isFavorite) 
+                        ? Colors.red 
+                        : Colors.grey[600],
+                    size: 24,
+                  ),
+          ),
+        );
+      },
     );
   }
 
