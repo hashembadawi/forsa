@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import '../utils/dialog_utils.dart';
 import 'account_screen.dart';
 import 'ad_details_screen.dart';
 import 'add_ad_screen.dart';
@@ -531,109 +532,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Show login required dialog
   void _showLoginRequiredDialog(BuildContext context, String routeKey, SharedPreferences prefs) {
-    showDialog(
+    DialogUtils.showConfirmationDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.all(16),
-        child: Container(
-          width: double.maxFinite,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Blue Header
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                ),
-                child: const Text(
-                  'تسجيل الدخول مطلوب',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              // White Body
-              Container(
-                width: double.maxFinite,
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'يجب تسجيل الدخول للوصول إلى هذه الصفحة.',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 20),
-                    // Action buttons
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Expanded(
-                          child: TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.grey[600],
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                            ),
-                            child: const Text(
-                              'إلغاء',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              await prefs.setString('redirect_to', routeKey);
-                              Navigator.pop(context);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const LoginScreen()),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue[600],
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: const Text(
-                              'تسجيل دخول',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      title: 'تسجيل الدخول مطلوب',
+      message: 'يجب تسجيل الدخول للوصول إلى هذه الصفحة.',
+      confirmText: 'تسجيل دخول',
+      cancelText: 'إلغاء',
+      onConfirm: () async {
+        await prefs.setString('redirect_to', routeKey);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      },
     );
   }
 
@@ -721,7 +632,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     child: const Text(
-                      'تصفية حسب الموقع',
+                      'بحث حسب الموقع',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
