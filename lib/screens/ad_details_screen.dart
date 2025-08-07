@@ -1015,23 +1015,15 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   /// Share ad functionality
   Future<void> _shareAd() async {
     try {
+      final String adId = _adModel.id ?? '';
       final String shareText = '''
-🏷️ ${_adModel.adTitle ?? 'إعلان مميز'}
+${_adModel.adTitle ?? 'إعلان مميز'}
 
-💰 السعر: ${_adModel.price ?? 'غير محدد'} ${_adModel.currencyName ?? ''}
-
-📍 الموقع: ${_adModel.cityName ?? 'غير محدد'}${_adModel.regionName != null ? ' - ${_adModel.regionName}' : ''}
-
-📞 للتواصل: ${_adModel.userPhone ?? 'غير متوفر'}
-
-${_adModel.description != null && _adModel.description!.isNotEmpty 
-  ? '📝 الوصف: ${_adModel.description}\n' 
-  : ''}
-🛒 تطبيق السوق السوري
+شاهد هذا الاعلان على موقع سوق سوريا
+https://syria-market.onrender.com/$adId
       '''.trim();
 
-      // Using the share_plus package functionality
-      // Note: You'll need to add share_plus package to pubspec.yaml
+      // Show share dialog with app options
       await _showShareDialog(shareText);
     } catch (e) {
       if (mounted) {
@@ -1040,7 +1032,7 @@ ${_adModel.description != null && _adModel.description!.isNotEmpty
     }
   }
 
-  /// Show share dialog with options
+  /// Show share dialog with social media apps
   Future<void> _showShareDialog(String shareText) async {
     showModalBottomSheet(
       context: context,
@@ -1056,67 +1048,201 @@ ${_adModel.description != null && _adModel.description!.isNotEmpty
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Handle bar
+            // Blue Header (matching other dialogs)
             Container(
-              margin: const EdgeInsets.only(top: 10),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: Colors.blue,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-            ),
-            
-            // Title
-            const Padding(
-              padding: EdgeInsets.all(20),
-              child: Text(
+              child: const Text(
                 'مشاركة الإعلان',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
             
-            // Share options
-            ListTile(
-              leading: const Icon(Icons.copy, color: Colors.blue),
-              title: const Text('نسخ النص'),
-              onTap: () async {
-                Navigator.pop(context);
-                await Clipboard.setData(ClipboardData(text: shareText));
-                if (mounted) {
-                  DialogUtils.showSuccessDialog(
-                    context: context,
-                    message: 'تم نسخ معلومات الإعلان',
-                  );
-                }
-              },
+            // White Body with Share Options
+            Container(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  
+                  // WhatsApp Share
+                  _buildShareOption(
+                    Icons.message,
+                    'مشاركة عبر واتساب',
+                    Colors.green,
+                    () => _shareViaWhatsApp(shareText),
+                  ),
+                  
+                  const Divider(height: 1, color: Colors.grey),
+                  
+                  // Facebook Share
+                  _buildShareOption(
+                    Icons.facebook,
+                    'مشاركة عبر فيسبوك',
+                    Colors.blue,
+                    () => _shareViaFacebook(shareText),
+                  ),
+                  
+                  const Divider(height: 1, color: Colors.grey),
+                  
+                  // Telegram Share
+                  _buildShareOption(
+                    Icons.send,
+                    'مشاركة عبر تيليجرام',
+                    Colors.blue[400]!,
+                    () => _shareViaTelegram(shareText),
+                  ),
+                  
+                  const Divider(height: 1, color: Colors.grey),
+                  
+                  // Copy Link
+                  _buildShareOption(
+                    Icons.copy,
+                    'نسخ الرابط',
+                    Colors.orange,
+                    () => _copyShareText(shareText),
+                  ),
+                  
+                  const Divider(height: 1, color: Colors.grey),
+                  
+                  // More Apps
+                  _buildShareOption(
+                    Icons.share,
+                    'مشاركة عبر تطبيقات أخرى',
+                    Colors.grey[600]!,
+                    () => _shareViaOtherApps(shareText),
+                  ),
+                  
+                  const SizedBox(height: 10),
+                ],
+              ),
             ),
-            
-            ListTile(
-              leading: const Icon(Icons.share, color: Colors.green),
-              title: const Text('مشاركة عبر التطبيقات'),
-              onTap: () async {
-                Navigator.pop(context);
-                // This would typically use share_plus package
-                // For now, we'll copy to clipboard as fallback
-                await Clipboard.setData(ClipboardData(text: shareText));
-                if (mounted) {
-                  DialogUtils.showSuccessDialog(
-                    context: context,
-                    message: 'تم نسخ معلومات الإعلان للمشاركة',
-                  );
-                }
-              },
-            ),
-            
-            const SizedBox(height: 20),
           ],
         ),
       ),
     );
+  }
+
+  /// Build share option item
+  Widget _buildShareOption(IconData icon, String title, Color color, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: color),
+      title: Text(title),
+      onTap: () {
+        Navigator.pop(context);
+        onTap();
+      },
+    );
+  }
+
+  /// Share via WhatsApp
+  Future<void> _shareViaWhatsApp(String shareText) async {
+    try {
+      final encodedMessage = Uri.encodeComponent(shareText);
+      final uriDirect = Uri.parse("whatsapp://send?text=$encodedMessage");
+      final uriWeb = Uri.parse("https://wa.me/?text=$encodedMessage");
+
+      if (await canLaunchUrl(uriDirect)) {
+        await launchUrl(uriDirect, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(uriWeb, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage('فشل في فتح واتساب');
+      }
+    }
+  }
+
+  /// Share via Facebook
+  Future<void> _shareViaFacebook(String shareText) async {
+    try {
+      final String adId = _adModel.id ?? '';
+      final String adUrl = 'https://syria-market.onrender.com/$adId';
+      final encodedMessage = Uri.encodeComponent(shareText);
+      // Facebook app URL scheme
+      final uriDirect = Uri.parse("fb://facewebmodal/f?href=$adUrl");
+      // Facebook web URL
+      final uriWeb = Uri.parse("https://www.facebook.com/sharer/sharer.php?u=$adUrl&quote=$encodedMessage");
+
+      if (await canLaunchUrl(uriDirect)) {
+        await launchUrl(uriDirect, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(uriWeb, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage('فشل في فتح فيسبوك');
+      }
+    }
+  }
+
+  /// Share via Telegram
+  Future<void> _shareViaTelegram(String shareText) async {
+    try {
+      final String adId = _adModel.id ?? '';
+      final String adUrl = 'https://syria-market.onrender.com/$adId';
+      final encodedMessage = Uri.encodeComponent(shareText);
+      // Telegram app URL scheme
+      final uriDirect = Uri.parse("tg://msg?text=$encodedMessage");
+      // Telegram web URL
+      final uriWeb = Uri.parse("https://t.me/share/url?url=$adUrl&text=$encodedMessage");
+
+      if (await canLaunchUrl(uriDirect)) {
+        await launchUrl(uriDirect, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(uriWeb, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage('فشل في فتح تيليجرام');
+      }
+    }
+  }
+
+  /// Copy share text to clipboard
+  Future<void> _copyShareText(String shareText) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: shareText));
+      if (mounted) {
+        DialogUtils.showSuccessDialog(
+          context: context,
+          message: 'تم نسخ رابط الإعلان',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage('فشل في نسخ الرابط');
+      }
+    }
+  }
+
+  /// Share via other apps (system share)
+  Future<void> _shareViaOtherApps(String shareText) async {
+    try {
+      // For now, we'll copy to clipboard as fallback
+      // In a real app, you would use the share_plus package here
+      await Clipboard.setData(ClipboardData(text: shareText));
+      if (mounted) {
+        DialogUtils.showSuccessDialog(
+          context: context,
+          message: 'تم نسخ النص للمشاركة. يمكنك لصقه في أي تطبيق تريده.',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorMessage('حدث خطأ أثناء المشاركة');
+      }
+    }
   }
 
   /// Report ad functionality
