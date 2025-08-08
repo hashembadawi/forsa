@@ -11,6 +11,7 @@ import 'package:syria_market/utils/dialog_utils.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Multi-step screen for adding new advertisements
 class MultiStepAddAdScreen extends StatefulWidget {
@@ -161,7 +162,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
               const SizedBox(height: 16),
               Text(
                 _optionsError!,
-                style: const TextStyle(
+                style: GoogleFonts.cairo(
                   color: Colors.red,
                   fontSize: 16,
                 ),
@@ -181,7 +182,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                child: const Text('إعادة المحاولة'),
+                child: Text('إعادة المحاولة', style: GoogleFonts.cairo()),
               ),
             ],
           ),
@@ -212,9 +213,9 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
   /// App bar widget
   AppBar _buildAppBar() {
     return AppBar(
-      title: const Text(
+      title: Text(
         'نشر إعلان جديد',
-        style: TextStyle(fontWeight: FontWeight.bold),
+        style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
       backgroundColor: Colors.blue[700],
@@ -285,7 +286,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
           child: Center(
             child: Text(
               '${stepIndex + 1}',
-              style: const TextStyle(
+              style: GoogleFonts.cairo(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
@@ -295,7 +296,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         const SizedBox(height: 8),
         Text(
           title,
-          style: TextStyle(
+          style: GoogleFonts.cairo(
             color: isActive ? Colors.blue[600] : Colors.grey[600],
             fontWeight: isCurrentStep ? FontWeight.bold : FontWeight.normal,
             fontSize: 12,
@@ -577,9 +578,9 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'أضف صور المنتج',
-                  style: TextStyle(
+                  style: GoogleFonts.cairo(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -588,7 +589,7 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
                 const SizedBox(height: 10),
                 Text(
                   'يمكنك إضافة حتى 6 صور للمنتج. الصورة الأولى ستكون الصورة الرئيسية.',
-                  style: TextStyle(
+                  style: GoogleFonts.cairo(
                     fontSize: 16,
                     color: Colors.grey[600],
                   ),
@@ -646,7 +647,7 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
                         const SizedBox(height: 5),
                         Text(
                           'إضافة صورة',
-                          style: TextStyle(
+                          style: GoogleFonts.cairo(
                             color: Colors.grey[600],
                             fontSize: 12,
                           ),
@@ -688,9 +689,9 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
                   color: Colors.blue,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
+                child: Text(
                   'رئيسية',
-                  style: TextStyle(
+                  style: GoogleFonts.cairo(
                     color: Colors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -716,9 +717,9 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        child: const Text(
+        child: Text(
           'متابعة',
-          style: TextStyle(fontSize: 18),
+          style: GoogleFonts.cairo(fontSize: 18),
         ),
       ),
     );
@@ -786,9 +787,9 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'اختر تصنيف المنتج',
-                  style: TextStyle(
+                  style: GoogleFonts.cairo(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -797,7 +798,7 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
                 const SizedBox(height: 10),
                 Text(
                   'اختر التصنيف المناسب لمنتجك',
-                  style: TextStyle(
+                  style: GoogleFonts.cairo(
                     fontSize: 16,
                     color: Colors.grey[600],
                   ),
@@ -821,6 +822,7 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
       isExpanded: true,
       decoration: InputDecoration(
         labelText: 'التصنيف الرئيسي',
+        labelStyle: GoogleFonts.cairo(),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -832,7 +834,7 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
       items: widget.categories
           .map((cat) => DropdownMenuItem(
                 value: cat,
-                child: Text(cat['name'] ?? ''),
+                child: Text(cat['name'] ?? '', style: GoogleFonts.cairo()),
               ))
           .toList(),
       onChanged: (cat) {
@@ -850,6 +852,7 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
       isExpanded: true,
       decoration: InputDecoration(
         labelText: 'التصنيف الفرعي',
+        labelStyle: GoogleFonts.cairo(),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -861,7 +864,7 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
       items: _filteredSubCategories
           .map((subCat) => DropdownMenuItem(
                 value: subCat,
-                child: Text(subCat['name'] ?? ''),
+                child: Text(subCat['name'] ?? '', style: GoogleFonts.cairo()),
               ))
           .toList(),
       onChanged: (subCat) {
@@ -886,9 +889,9 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            child: const Text(
+            child: Text(
               'رجوع',
-              style: TextStyle(fontSize: 18),
+              style: GoogleFonts.cairo(fontSize: 18),
             ),
           ),
         ),
@@ -906,9 +909,9 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            child: const Text(
+            child: Text(
               'متابعة',
-              style: TextStyle(fontSize: 18),
+              style: GoogleFonts.cairo(fontSize: 18),
             ),
           ),
         ),
@@ -1063,8 +1066,8 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم تحديد موقعك الحالي'),
+          SnackBar(
+            content: Text('تم تحديد موقعك الحالي', style: GoogleFonts.cairo()),
             backgroundColor: Colors.green,
           ),
         );
@@ -1072,8 +1075,8 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('حدث خطأ في تحديد الموقع'),
+          SnackBar(
+            content: Text('حدث خطأ في تحديد الموقع', style: GoogleFonts.cairo()),
             backgroundColor: Colors.red,
           ),
         );
@@ -1085,19 +1088,19 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('إذن الموقع مطلوب'),
-        content: const Text('يرجى منح التطبيق إذن الوصول للموقع لاستخدام هذه الميزة'),
+        title: Text('إذن الموقع مطلوب', style: GoogleFonts.cairo()),
+        content: Text('يرجى منح التطبيق إذن الوصول للموقع لاستخدام هذه الميزة', style: GoogleFonts.cairo()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+            child: Text('إلغاء', style: GoogleFonts.cairo()),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               openAppSettings();
             },
-            child: const Text('الإعدادات'),
+            child: Text('الإعدادات', style: GoogleFonts.cairo()),
           ),
         ],
       ),
@@ -1141,9 +1144,9 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'معلومات الإعلان',
-                    style: TextStyle(
+                    style: GoogleFonts.cairo(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
@@ -1177,7 +1180,9 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
       controller: _titleController,
       decoration: InputDecoration(
         labelText: 'عنوان الإعلان',
+        labelStyle: GoogleFonts.cairo(),
         hintText: 'أدخل عنوان جذاب للمنتج',
+        hintStyle: GoogleFonts.cairo(),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -1200,7 +1205,9 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
               labelText: 'السعر',
+              labelStyle: GoogleFonts.cairo(),
               hintText: '0',
+              hintStyle: GoogleFonts.cairo(),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -1219,6 +1226,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
             isExpanded: true,
             decoration: InputDecoration(
               labelText: 'العملة',
+              labelStyle: GoogleFonts.cairo(),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -1230,7 +1238,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
             items: widget.currencies
                 .map((currency) => DropdownMenuItem(
                       value: currency,
-                      child: Text(currency['name'] ?? ''),
+                      child: Text(currency['name'] ?? '', style: GoogleFonts.cairo()),
                     ))
                 .toList(),
             onChanged: (currency) {
@@ -1251,6 +1259,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
       isExpanded: true,
       decoration: InputDecoration(
         labelText: 'المحافظة',
+        labelStyle: GoogleFonts.cairo(),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -1262,7 +1271,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
       items: widget.provinces
           .map((province) => DropdownMenuItem(
                 value: province,
-                child: Text(province['name'] ?? ''),
+                child: Text(province['name'] ?? '', style: GoogleFonts.cairo()),
               ))
           .toList(),
       onChanged: (province) {
@@ -1287,6 +1296,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
       isExpanded: true,
       decoration: InputDecoration(
         labelText: 'المنطقة',
+        labelStyle: GoogleFonts.cairo(),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -1298,7 +1308,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
       items: filteredAreas
           .map((area) => DropdownMenuItem(
                 value: area,
-                child: Text(area['name'] ?? ''),
+                child: Text(area['name'] ?? '', style: GoogleFonts.cairo()),
               ))
           .toList(),
       onChanged: (area) {
@@ -1316,7 +1326,9 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
       maxLines: 4,
       decoration: InputDecoration(
         labelText: 'وصف المنتج',
+        labelStyle: GoogleFonts.cairo(),
         hintText: 'أدخل وصفاً تفصيلياً للمنتج...',
+        hintStyle: GoogleFonts.cairo(),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -1334,9 +1346,9 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'الموقع (اختياري)',
-          style: TextStyle(
+          style: GoogleFonts.cairo(
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
@@ -1360,7 +1372,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                     _useCurrentLocation 
                         ? 'تم تحديد موقعك الحالي'
                         : 'تم تحديد الموقع على الخريطة',
-                    style: const TextStyle(color: Colors.green),
+                    style: GoogleFonts.cairo(color: Colors.green),
                   ),
                 ),
                 IconButton(
@@ -1378,7 +1390,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
               child: ElevatedButton.icon(
                 onPressed: _getCurrentLocation,
                 icon: const Icon(Icons.my_location),
-                label: const Text('موقعي الحالي'),
+                label: Text('موقعي الحالي', style: GoogleFonts.cairo()),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue[600],
                   foregroundColor: Colors.white,
@@ -1394,7 +1406,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
               child: ElevatedButton.icon(
                 onPressed: _selectLocationOnMap,
                 icon: const Icon(Icons.map),
-                label: const Text('اختر من الخريطة'),
+                label: Text('اختر من الخريطة', style: GoogleFonts.cairo()),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green[600],
                   foregroundColor: Colors.white,
@@ -1425,9 +1437,9 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            child: const Text(
+            child: Text(
               'رجوع',
-              style: TextStyle(fontSize: 16),
+              style: GoogleFonts.cairo(fontSize: 16),
             ),
           ),
         ),
@@ -1444,9 +1456,9 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            child: const Text(
+            child: Text(
               'نشر الإعلان',
-              style: TextStyle(fontSize: 16),
+              style: GoogleFonts.cairo(fontSize: 16),
             ),
           ),
         ),
@@ -1515,15 +1527,15 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('اختر الموقع'),
+          title: Text('اختر الموقع', style: GoogleFonts.cairo()),
           backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
           actions: [
             TextButton(
               onPressed: _confirmLocation,
-              child: const Text(
+              child: Text(
                 'تأكيد',
-                style: TextStyle(
+                style: GoogleFonts.cairo(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -1536,14 +1548,14 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
             Container(
               padding: const EdgeInsets.all(16),
               color: Colors.blue[50],
-              child: const Row(
+              child: Row(
                 children: [
                   Icon(Icons.info_outline, color: Colors.blue),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'اضغط على الخريطة لتحديد موقع الإعلان',
-                      style: TextStyle(color: Colors.blue),
+                      style: GoogleFonts.cairo(color: Colors.blue),
                     ),
                   ),
                 ],
@@ -1576,9 +1588,9 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'تأكيد الموقع',
-                    style: TextStyle(fontSize: 18),
+                    style: GoogleFonts.cairo(fontSize: 18),
                   ),
                 ),
               ),

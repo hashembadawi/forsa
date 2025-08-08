@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AdTermsScreen extends StatelessWidget {
   const AdTermsScreen({super.key});
@@ -32,9 +33,9 @@ class AdTermsScreen extends StatelessWidget {
   // App Bar Builder
   AppBar _buildAppBar(BuildContext context) {
     return AppBar(
-      title: const Text(
+      title: Text(
         'شروط الإعلان',
-        style: TextStyle(fontWeight: FontWeight.bold),
+        style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
       backgroundColor: Colors.blue[700],
@@ -88,7 +89,7 @@ class AdTermsScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'يرجى قراءة الشروط بعناية قبل نشر إعلانك',
-                style: TextStyle(
+                style: GoogleFonts.cairo(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -169,7 +170,7 @@ class AdTermsScreen extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
+              style: GoogleFonts.cairo(
                 fontSize: 15,
                 height: 1.5,
                 color: Colors.black87,
@@ -205,7 +206,7 @@ class AdTermsScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             _footerMessage,
-            style: const TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 15,
               fontWeight: FontWeight.w600,
               color: Colors.white,
