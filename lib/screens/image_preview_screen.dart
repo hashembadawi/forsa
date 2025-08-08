@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// A screen for previewing images with navigation and zoom capabilities
 class ImagePreviewScreen extends StatefulWidget {
@@ -97,9 +98,9 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
       foregroundColor: Colors.white,
       elevation: 0,
       automaticallyImplyLeading: false,
-      title: const Text(
+      title: Text(
         'معاينة الصور',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           color: Colors.white,
           fontWeight: FontWeight.bold,
           fontSize: 18,
@@ -215,7 +216,7 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
             const SizedBox(height: 16),
             Text(
               'تعذر تحميل الصورة',
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 color: Colors.blue[700],
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -361,7 +362,7 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
 
   /// Get button text style based on enabled state
   TextStyle _getButtonTextStyle(bool isEnabled) {
-    return TextStyle(
+    return GoogleFonts.cairo(
       color: _getButtonColor(isEnabled),
       fontSize: 12,
       fontWeight: FontWeight.bold,

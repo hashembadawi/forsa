@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:syria_market/utils/dialog_utils.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
 import 'verification_screen.dart';
@@ -267,7 +268,12 @@ class _LoginScreenState extends State<LoginScreen> {
   /// Build main app bar
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text('تسجيل الدخول'),
+      title: Text(
+        'تسجيل الدخول',
+        style: GoogleFonts.cairo(
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       centerTitle: true,
       backgroundColor: Colors.blue[700],
       foregroundColor: Colors.white,
@@ -364,12 +370,12 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           Text(
             country['name']!,
-            style: const TextStyle(fontSize: 14, color: Colors.black87),
+            style: GoogleFonts.cairo(fontSize: 14, color: Colors.black87),
           ),
           const SizedBox(width: 8),
           Text(
             country['code']!,
-            style: const TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 14,
               color: Colors.black87,
               fontWeight: FontWeight.bold,
@@ -422,7 +428,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     return InputDecoration(
       labelText: labelText,
-      labelStyle: const TextStyle(color: Colors.black87),
+      labelStyle: GoogleFonts.cairo(color: Colors.black87),
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
@@ -440,7 +446,7 @@ class _LoginScreenState extends State<LoginScreen> {
       prefixIcon: Icon(prefixIcon, color: Colors.blue[600]),
       suffixIcon: suffixIcon,
       helperText: helperText,
-      helperStyle: TextStyle(
+      helperStyle: GoogleFonts.cairo(
         color: Colors.blue[600],
         fontWeight: FontWeight.bold,
       ),
@@ -452,9 +458,9 @@ class _LoginScreenState extends State<LoginScreen> {
     return CheckboxListTile(
       value: _rememberMe,
       onChanged: (value) => setState(() => _rememberMe = value ?? false),
-      title: const Text(
+      title: Text(
         "تذكرني",
-        style: TextStyle(color: Colors.black87),
+        style: GoogleFonts.cairo(color: Colors.black87),
       ),
       controlAffinity: ListTileControlAffinity.leading,
       contentPadding: EdgeInsets.zero,
@@ -475,9 +481,9 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         elevation: 2,
       ),
-      child: const Text(
+      child: Text(
         'تسجيل الدخول',
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -534,9 +540,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// Build register title
   Widget _buildRegisterTitle() {
-    return const Text(
+    return Text(
       'مستخدم جديد؟',
-      style: TextStyle(
+      style: GoogleFonts.cairo(
         fontSize: 18,
         fontWeight: FontWeight.bold,
         color: Colors.black87,
@@ -548,7 +554,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildRegisterSubtitle() {
     return Text(
       'انضم إلينا واستمتع بجميع الميزات',
-      style: TextStyle(
+      style: GoogleFonts.cairo(
         fontSize: 14,
         color: Colors.grey[600],
       ),
@@ -579,7 +585,7 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(width: 8),
             Text(
               'إنشاء حساب جديد',
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.blue[700],

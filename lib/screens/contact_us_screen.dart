@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Contact Us screen that provides multiple ways to contact support
 class ContactUsScreen extends StatelessWidget {
@@ -8,7 +9,7 @@ class ContactUsScreen extends StatelessWidget {
   // Contact information constants
   static const String _supportEmail = 'support@syria-market.com';
   static const String _phoneNumber = '905510300730';
-  static const String _websiteUrl = 'https://www.syria-market.com';
+  static const String _websiteUrl = 'https://syria-market-web.onrender.com';
 
   /// Launch email client
   Future<void> _launchEmail() async {
@@ -98,9 +99,9 @@ class ContactUsScreen extends StatelessWidget {
   /// Build the app bar
   AppBar _buildAppBar(BuildContext context) {
     return AppBar(
-      title: const Text(
+      title: Text(
         'اتصل بنا',
-        style: TextStyle(fontWeight: FontWeight.bold),
+        style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
       backgroundColor: Colors.blue[700],
@@ -154,7 +155,7 @@ class ContactUsScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'هل لديك أي استفسار أو اقتراح؟ تواصل معنا عبر:',
-                style: TextStyle(
+                style: GoogleFonts.cairo(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -210,7 +211,7 @@ class ContactUsScreen extends StatelessWidget {
       const SizedBox(height: 12),
       _buildContactCard(
         icon: Icons.language,
-        title: 'www.sahbo.com',
+        title: 'www.syria-market-web.com',
         subtitle: 'الموقع الإلكتروني',
         onTap: _launchWebsite,
       ),
@@ -262,7 +263,7 @@ class ContactUsScreen extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: GoogleFonts.cairo(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: Colors.black87,
@@ -271,7 +272,7 @@ class ContactUsScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
+                    style: GoogleFonts.cairo(
                       fontSize: 13,
                       color: Colors.grey[600],
                       fontWeight: FontWeight.w500,

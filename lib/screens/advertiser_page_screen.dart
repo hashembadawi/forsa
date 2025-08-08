@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:google_fonts/google_fonts.dart';
 
 import 'ad_details_screen.dart';
 
@@ -166,9 +167,9 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
   /// Build app bar
   AppBar _buildAppBar() {
     return AppBar(
-      title: const Text(
+      title: Text(
         'صفحة المعلن',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           fontSize: 24,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -242,9 +243,9 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
               children: [
                 Icon(Icons.person, size: 24, color: Colors.blue[600]),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'معلومات المعلن',
-                  style: TextStyle(
+                  style: GoogleFonts.cairo(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -347,15 +348,15 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
         Expanded(
           child: RichText(
             text: TextSpan(
-              style: const TextStyle(fontSize: 14, color: Colors.black87),
+              style: GoogleFonts.cairo(fontSize: 14, color: Colors.black87),
               children: [
                 TextSpan(
                   text: '$label: ',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
                 ),
                 TextSpan(
                   text: value,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
+                  style: GoogleFonts.cairo(fontWeight: FontWeight.w500),
                 ),
               ],
             ),
@@ -384,7 +385,7 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.blue[50],
+              color: Colors.blue[600],
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -392,14 +393,14 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.ad_units, size: 24, color: Colors.blue[600]),
+                Icon(Icons.ad_units, size: 24, color: Colors.white),
                 const SizedBox(width: 8),
                 Text(
                   'إعلانات المعلن ($_totalAds)',
-                  style: TextStyle(
+                  style: GoogleFonts.cairo(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue[700],
+                    color: Colors.white,
                   ),
                 ),
               ],
@@ -438,9 +439,9 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
             color: Colors.orange[600],
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'حدث خطأ في تحميل الإعلانات',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -457,9 +458,9 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
+            child: Text(
               'إعادة المحاولة',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -479,9 +480,9 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
             color: Colors.grey[400],
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'لا توجد إعلانات لهذا المعلن',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.grey,
@@ -612,7 +613,7 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
             const SizedBox(height: 4),
             Text(
               'لا توجد صورة',
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 color: Colors.blue[700],
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
@@ -640,7 +641,7 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
         Flexible(
           child: Text(
             '${ad['adTitle'] ?? ''}',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: titleFontSize,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -663,7 +664,7 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
           ),
           child: Text(
             '${ad['price'] ?? '0'} ${ad['currencyName'] ?? ''}',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: priceFontSize,
               fontWeight: FontWeight.bold,
               color: Colors.blue[700],
@@ -683,7 +684,7 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
               Expanded(
                 child: Text(
                   '${ad['cityName'] ?? ''} - ${_formatDate(ad['createDate'] ?? '')}',
-                  style: TextStyle(
+                  style: GoogleFonts.cairo(
                     color: Colors.black87,
                     fontSize: locationFontSize,
                     fontWeight: FontWeight.w500,
@@ -721,9 +722,9 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
             valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[600]!),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'جارٍ تحميل معلومات المعلن...',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 16,
               color: Colors.grey,
             ),
@@ -745,9 +746,9 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
             color: Colors.orange[600],
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'حدث خطأ في تحميل معلومات المعلن',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -764,9 +765,9 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
+            child: Text(
               'إعادة المحاولة',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
         ],

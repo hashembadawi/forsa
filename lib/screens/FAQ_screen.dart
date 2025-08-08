@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Data model for FAQ items
 class FAQItem {
@@ -57,9 +58,9 @@ class FAQScreen extends StatelessWidget {
   /// Build the app bar
   AppBar _buildAppBar(BuildContext context) {
     return AppBar(
-      title: const Text(
+      title: Text(
         'الأسئلة الشائعة',
-        style: TextStyle(fontWeight: FontWeight.bold),
+        style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
       backgroundColor: Colors.blue[700],
@@ -113,7 +114,7 @@ class FAQScreen extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'إجابات على أكثر الأسئلة التي يطرحها المستخدمون',
-                style: TextStyle(
+                style: GoogleFonts.cairo(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -202,7 +203,7 @@ class FAQScreen extends StatelessWidget {
               Expanded(
                 child: Text(
                   faqItem.question,
-                  style: const TextStyle(
+                  style: GoogleFonts.cairo(
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
                     fontSize: 15,
@@ -249,7 +250,7 @@ class FAQScreen extends StatelessWidget {
           Expanded(
             child: Text(
               answer,
-              style: const TextStyle(
+              style: GoogleFonts.cairo(
                 fontSize: 14,
                 color: Colors.white,
                 height: 1.5,

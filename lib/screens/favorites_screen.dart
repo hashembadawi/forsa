@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syria_market/screens/home_screen.dart';
 import 'package:syria_market/screens/ad_details_screen.dart';
 import 'package:syria_market/utils/dialog_utils.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Screen displaying user's favorite advertisements
 class FavoritesScreen extends StatefulWidget {
@@ -290,9 +291,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   /// Build main app bar
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text(
+      title: Text(
         'المفضلة',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           fontSize: 24,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -342,18 +343,18 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             color: Colors.grey[400],
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'لا توجد إعلانات مفضلة بعد',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 18,
               color: Colors.black87,
               fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'ابدأ بإضافة الإعلانات التي تعجبك إلى المفضلة',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 14,
               color: Colors.grey,
             ),
@@ -371,9 +372,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               ),
               elevation: 2,
             ),
-            child: const Text(
+            child: Text(
               'تصفح الإعلانات',
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -539,7 +540,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             const SizedBox(height: 8),
             Text(
               showNoImageText ? 'لا توجد صورة' : 'صورة',
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 color: Colors.black87,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -576,7 +577,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ad['adTitle'] ?? 'بدون عنوان',
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
-      style: const TextStyle(
+      style: GoogleFonts.cairo(
         fontSize: 16,
         fontWeight: FontWeight.bold,
         color: Colors.black87,
@@ -598,7 +599,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
       child: Text(
         '$price $currency',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           fontSize: 16,
           fontWeight: FontWeight.bold,
           color: Colors.blue[700],
@@ -620,7 +621,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         Expanded(
           child: Text(
             location.isNotEmpty ? location : 'موقع غير محدد',
-            style: const TextStyle(
+            style: GoogleFonts.cairo(
               color: Colors.black87,
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -642,7 +643,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         const SizedBox(width: 4),
         Text(
           formattedDate,
-          style: const TextStyle(
+          style: GoogleFonts.cairo(
             color: Colors.black87,
             fontSize: 13,
             fontWeight: FontWeight.w500,
