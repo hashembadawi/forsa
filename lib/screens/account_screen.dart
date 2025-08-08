@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // Screen imports
 import 'FAQ_screen.dart';
@@ -278,10 +279,10 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Expanded(
+                        Expanded(
                           child: Text(
                             'تعديل الملف الشخصي',
-                            style: TextStyle(
+                            style: GoogleFonts.cairo(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -352,14 +353,14 @@ class _AccountScreenState extends State<AccountScreen> {
                                               ),
                                           ],
                                         )
-                                      : const Column(
+                                      : Column(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
-                                            Icon(Icons.add_a_photo, size: 30, color: Colors.blue),
-                                            SizedBox(height: 4),
+                                            const Icon(Icons.add_a_photo, size: 30, color: Colors.blue),
+                                            const SizedBox(height: 4),
                                             Text(
                                               'اضغط لاختيار صورة',
-                                              style: TextStyle(fontSize: 10, color: Colors.blue),
+                                              style: GoogleFonts.cairo(fontSize: 10, color: Colors.blue),
                                               textAlign: TextAlign.center,
                                             ),
                                           ],
@@ -372,20 +373,22 @@ class _AccountScreenState extends State<AccountScreen> {
                             // Simple name fields
                             TextFormField(
                               controller: _firstNameController,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'الاسم الأول',
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                labelStyle: GoogleFonts.cairo(),
+                                border: const OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                               ),
                               validator: (v) => v?.isEmpty == true ? 'مطلوب' : null,
                             ),
                             const SizedBox(height: 16),
                             TextFormField(
                               controller: _lastNameController,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'الاسم الأخير',
-                                border: OutlineInputBorder(),
-                                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                labelStyle: GoogleFonts.cairo(),
+                                border: const OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                               ),
                               validator: (v) => v?.isEmpty == true ? 'مطلوب' : null,
                             ),
@@ -411,7 +414,7 @@ class _AccountScreenState extends State<AccountScreen> {
                         Expanded(
                           child: TextButton(
                             onPressed: () => Navigator.pop(context),
-                            child: const Text('إلغاء'),
+                            child: Text('إلغاء', style: GoogleFonts.cairo()),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -422,7 +425,7 @@ class _AccountScreenState extends State<AccountScreen> {
                               backgroundColor: Colors.blue,
                               foregroundColor: Colors.white,
                             ),
-                            child: const Text('حفظ'),
+                            child: Text('حفظ', style: GoogleFonts.cairo()),
                           ),
                         ),
                       ],
@@ -460,7 +463,7 @@ class _AccountScreenState extends State<AccountScreen> {
             children: [
               const Icon(Icons.wifi_off, size: 64, color: Colors.grey),
               const SizedBox(height: 16),
-              const Text('لا يوجد اتصال بالإنترنت'),
+              Text('لا يوجد اتصال بالإنترنت', style: GoogleFonts.cairo()),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
@@ -469,7 +472,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     onRetry: _checkConnectivity,
                   );
                 },
-                child: const Text('إعادة المحاولة'),
+                child: Text('إعادة المحاولة', style: GoogleFonts.cairo()),
               ),
             ],
           ),
@@ -482,7 +485,7 @@ class _AccountScreenState extends State<AccountScreen> {
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
-          title: const Text('حسابي'),
+          title: Text('حسابي', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
           backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
           actions: [
@@ -571,7 +574,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                           // Username
                                           Text(
                                             widget.userName,
-                                            style: TextStyle(
+                                            style: GoogleFonts.cairo(
                                               fontSize: MediaQuery.of(context).size.width * 0.045, // Responsive font size
                                               fontWeight: FontWeight.bold,
                                               color: Colors.black87,
@@ -585,7 +588,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                           // Phone number
                                           Text(
                                             widget.phoneNumber,
-                                            style: TextStyle(
+                                            style: GoogleFonts.cairo(
                                               fontSize: MediaQuery.of(context).size.width * 0.035, // Responsive font size
                                               color: Colors.black.withOpacity(0.7),
                                               fontWeight: FontWeight.w500,
@@ -598,7 +601,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                             const SizedBox(height: 6),
                                             Text(
                                               widget.userAccountNumber!,
-                                              style: TextStyle(
+                                              style: GoogleFonts.cairo(
                                                 fontSize: MediaQuery.of(context).size.width * 0.032, // Responsive font size
                                                 color: Colors.black.withOpacity(0.6),
                                                 fontWeight: FontWeight.w400,
@@ -642,9 +645,9 @@ class _AccountScreenState extends State<AccountScreen> {
                                         color: Colors.grey.withOpacity(0.1),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
-                                      child: const Text(
+                                      child: Text(
                                         'مرحباً بك!',
-                                        style: TextStyle(
+                                        style: GoogleFonts.cairo(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.grey,
@@ -654,7 +657,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                     const SizedBox(height: 8),
                                     Text(
                                       'سجل الدخول للوصول لجميع الميزات',
-                                      style: TextStyle(
+                                      style: GoogleFonts.cairo(
                                         fontSize: 14,
                                         color: Colors.grey[600],
                                       ),
@@ -686,7 +689,7 @@ class _AccountScreenState extends State<AccountScreen> {
                           ),
                           onPressed: _showEditDialog,
                           icon: const Icon(Icons.edit),
-                          label: const Text('تعديل الملف الشخصي'),
+                          label: Text('تعديل الملف الشخصي', style: GoogleFonts.cairo()),
                         ),
                       ),
                     ),
@@ -705,7 +708,7 @@ class _AccountScreenState extends State<AccountScreen> {
                           ),
                           onPressed: _showDeleteDialog,
                           icon: const Icon(Icons.delete_outline),
-                          label: const Text('حذف الحساب'),
+                          label: Text('حذف الحساب', style: GoogleFonts.cairo()),
                         ),
                       ),
                     ),
@@ -720,7 +723,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   children: [
                     ListTile(
                       leading: const Icon(Icons.article, color: Colors.blue),
-                      title: const Text('شروط الإعلان'),
+                      title: Text('شروط الإعلان', style: GoogleFonts.cairo()),
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () => Navigator.push(
                         context,
@@ -730,7 +733,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     const Divider(height: 1),
                     ListTile(
                       leading: const Icon(Icons.help, color: Colors.blue),
-                      title: const Text('الأسئلة الشائعة'),
+                      title: Text('الأسئلة الشائعة', style: GoogleFonts.cairo()),
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () => Navigator.push(
                         context,
@@ -740,7 +743,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     const Divider(height: 1),
                     ListTile(
                       leading: const Icon(Icons.call, color: Colors.blue),
-                      title: const Text('اتصل بنا'),
+                      title: Text('اتصل بنا', style: GoogleFonts.cairo()),
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () => Navigator.push(
                         context,
@@ -775,7 +778,10 @@ class _AccountScreenState extends State<AccountScreen> {
                           context,
                           MaterialPageRoute(builder: (_) => const LoginScreen()),
                         ),
-                  child: Text(widget.isLoggedIn ? 'تسجيل الخروج' : 'تسجيل الدخول'),
+                  child: Text(
+                    widget.isLoggedIn ? 'تسجيل الخروج' : 'تسجيل الدخول',
+                    style: GoogleFonts.cairo(),
+                  ),
                 ),
               ),
             ],

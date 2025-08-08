@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'image_preview_screen.dart';
 import 'advertiser_page_screen.dart';
@@ -168,9 +169,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   // App Bar Builder
   AppBar _buildAppBar() {
     return AppBar(
-      title: const Text(
+      title: Text(
         'تفاصيل الإعلان',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           fontSize: 24,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -293,7 +294,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   Widget _buildAdTitle() {
     return Text(
       _adModel.adTitle ?? 'غير متوفر',
-      style: const TextStyle(
+      style: GoogleFonts.cairo(
         fontSize: 22,
         fontWeight: FontWeight.bold,
         color: Colors.black87,
@@ -315,9 +316,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          Text(
             'السعر:',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -325,7 +326,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
           ),
           Text(
             '${_adModel.price ?? 'غير محدد'} ${_adModel.currencyName ?? ''}',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.blue[700],
@@ -383,10 +384,10 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
           child: Text(
             title,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               color: isSelected ? Colors.white : Colors.blue[700],
               fontWeight: FontWeight.bold,
-              fontSize: 13,
+              fontSize: 11,
             ),
           ),
         ),
@@ -488,13 +489,13 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
           Container(
             height: _imageHeight,
             color: Colors.grey[200],
-            child: const Center(
+            child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.image_not_supported, size: 60, color: Colors.grey),
                   SizedBox(height: 8),
-                  Text('لا توجد صور متاحة', style: TextStyle(color: Colors.grey)),
+                  Text('لا توجد صور متاحة', style: GoogleFonts.cairo(color: Colors.grey)),
                 ],
               ),
             ),
@@ -566,9 +567,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'معلومات المعلن',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontWeight: FontWeight.bold,
               fontSize: 16,
               color: Colors.black87,
@@ -592,9 +593,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
             width: double.infinity,
             child: ElevatedButton.icon(
               icon: const Icon(Icons.store, color: Colors.white),
-              label: const Text(
+              label: Text(
                 'صفحة المعلن',
-                style: TextStyle(
+                style: GoogleFonts.cairo(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -639,11 +640,11 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   Widget _buildInfoText(IconData icon, String label, String value) {
     return RichText(
       text: TextSpan(
-        style: const TextStyle(fontSize: 14, color: Colors.black87),
+        style: GoogleFonts.cairo(fontSize: 14, color: Colors.black87),
         children: [
           TextSpan(
             text: '$label: ',
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
           ),
           // Special handling for phone numbers
           if (icon == Icons.phone)
@@ -651,7 +652,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
           else
             TextSpan(
               text: value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
+              style: GoogleFonts.cairo(fontWeight: FontWeight.w500),
             ),
         ],
       ),
@@ -665,7 +666,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
       textDirection: TextDirection.ltr,
       child: Text(
         formattedPhone,
-        style: const TextStyle(
+        style: GoogleFonts.cairo(
           fontWeight: FontWeight.w500,
           fontSize: 14,
           color: Colors.black87,
@@ -680,14 +681,14 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
     if (description.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(20),
-        child: const Center(
+        child: Center(
           child: Column(
             children: [
               Icon(Icons.description_outlined, size: 48, color: Colors.grey),
               SizedBox(height: 8),
               Text(
                 'لا يوجد وصف متاح لهذا الإعلان',
-                style: TextStyle(
+                style: GoogleFonts.cairo(
                   color: Colors.grey,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -705,7 +706,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
       padding: const EdgeInsets.all(16),
       child: Text(
         description,
-        style: const TextStyle(
+        style: GoogleFonts.cairo(
           fontSize: 14,
           color: Colors.black87,
           height: 1.5,
@@ -728,14 +729,14 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   Widget _buildNoLocationAvailable() {
     return Container(
       padding: const EdgeInsets.all(20),
-      child: const Center(
+      child: Center(
         child: Column(
           children: [
             Icon(Icons.location_off_outlined, size: 48, color: Colors.grey),
             SizedBox(height: 8),
             Text(
               'لا يوجد موقع محدد لهذا الإعلان',
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 color: Colors.grey,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -795,14 +796,14 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
               ),
               child: GestureDetector(
                 onTap: () => _openGoogleMapsDirections(latitude, longitude),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.directions, color: Colors.white),
                     SizedBox(width: 8),
                     Text(
                       'الحصول على الاتجاهات في خرائط جوجل',
-                      style: TextStyle(
+                      style: GoogleFonts.cairo(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 10,
@@ -843,10 +844,10 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.orange[200]!),
       ),
-      child: const Center(
+      child: Center(
         child: Text(
           'معلومات الاتصال غير متوفرة',
-          style: TextStyle(
+          style: GoogleFonts.cairo(
             color: Colors.orange,
             fontWeight: FontWeight.bold,
           ),
@@ -858,9 +859,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   Widget _buildWhatsAppButton(String phone) {
     return ElevatedButton.icon(
       icon: const Icon(Icons.chat, color: Colors.white),
-      label: const Text(
+      label: Text(
         'دردشة واتساب',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
@@ -873,9 +874,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   Widget _buildCallButton(String phone) {
     return ElevatedButton.icon(
       icon: const Icon(Icons.call, color: Colors.white),
-      label: const Text(
+      label: Text(
         'اتصل الآن',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
@@ -995,7 +996,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
                 const SizedBox(height: 6),
                 Text(
                   label,
-                  style: TextStyle(
+                  style: GoogleFonts.cairo(
                     color: color,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -1056,9 +1057,9 @@ https://syria-market-web.onrender.com/$adId
                 color: Colors.blue,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-              child: const Text(
+              child: Text(
                 'مشاركة الإعلان',
-                style: TextStyle(
+                style: GoogleFonts.cairo(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -1136,7 +1137,7 @@ https://syria-market-web.onrender.com/$adId
   Widget _buildShareOption(IconData icon, String title, Color color, VoidCallback onTap) {
     return ListTile(
       leading: Icon(icon, color: color),
-      title: Text(title),
+      title: Text(title, style: GoogleFonts.cairo()),
       onTap: () {
         Navigator.pop(context);
         onTap();
@@ -1279,9 +1280,9 @@ https://syria-market-web.onrender.com/$adId
                 color: Colors.red,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-              child: const Text(
+              child: Text(
                 'الإبلاغ عن الإعلان',
-                style: TextStyle(
+                style: GoogleFonts.cairo(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -1318,7 +1319,7 @@ https://syria-market-web.onrender.com/$adId
   Widget _buildReportOption(String reason, IconData icon) {
     return ListTile(
       leading: Icon(icon, color: Colors.red[600]),
-      title: Text(reason),
+      title: Text(reason, style: GoogleFonts.cairo()),
       onTap: () async {
         Navigator.pop(context);
         await _submitReport(reason);
@@ -1492,9 +1493,9 @@ https://syria-market-web.onrender.com/$adId
                 color: Colors.blue,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-              child: const Text(
+              child: Text(
                 'اختر طريقة الاتصال',
-                style: TextStyle(
+                style: GoogleFonts.cairo(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -1550,8 +1551,8 @@ https://syria-market-web.onrender.com/$adId
   ) {
     return ListTile(
       leading: Icon(icon, color: color),
-      title: Text(title),
-      subtitle: Text(subtitle),
+      title: Text(title, style: GoogleFonts.cairo()),
+      subtitle: Text(subtitle, style: GoogleFonts.cairo()),
       onTap: () {
         Navigator.pop(context);
         onTap();
@@ -1963,9 +1964,9 @@ https://syria-market-web.onrender.com/$adId
                   topRight: Radius.circular(16),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'إعلانات مشابهة',
-                style: TextStyle(
+                style: GoogleFonts.cairo(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -2007,7 +2008,7 @@ https://syria-market-web.onrender.com/$adId
     return Container(
       height: 120,
       padding: const EdgeInsets.all(20),
-      child: const Center(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -2019,7 +2020,7 @@ https://syria-market-web.onrender.com/$adId
             SizedBox(height: 12),
             Text(
               'جاري تحميل الإعلانات المشابهة...',
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 color: Colors.grey,
                 fontSize: 13,
               ),
@@ -2044,9 +2045,9 @@ https://syria-market-web.onrender.com/$adId
             color: Colors.orange,
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'فشل في تحميل الإعلانات المشابهة',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Colors.grey,
@@ -2079,7 +2080,7 @@ https://syria-market-web.onrender.com/$adId
   Widget _buildNoSimilarAds() {
     return Container(
       padding: const EdgeInsets.all(16),
-      child: const Column(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
@@ -2090,7 +2091,7 @@ https://syria-market-web.onrender.com/$adId
           SizedBox(height: 12),
           Text(
             'لا توجد إعلانات مشابهة في الوقت الحالي',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Colors.grey,
@@ -2240,7 +2241,7 @@ https://syria-market-web.onrender.com/$adId
             const SizedBox(height: 2),
             Text(
               'لا توجد صورة',
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 color: Colors.blue[700],
                 fontSize: 9,
                 fontWeight: FontWeight.w500,
@@ -2268,7 +2269,7 @@ https://syria-market-web.onrender.com/$adId
         Flexible(
           child: Text(
             ad.adTitle ?? '',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: titleFontSize,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
@@ -2291,7 +2292,7 @@ https://syria-market-web.onrender.com/$adId
           ),
           child: Text(
             '${ad.price ?? '0'} ${ad.currencyName ?? ''}',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: priceFontSize,
               fontWeight: FontWeight.bold,
               color: Colors.blue[700],
@@ -2311,7 +2312,7 @@ https://syria-market-web.onrender.com/$adId
               Expanded(
                 child: Text(
                   '${ad.cityName ?? ''} - ${_formatDate(ad.createDate)}',
-                  style: TextStyle(
+                  style: GoogleFonts.cairo(
                     color: Colors.black87,
                     fontSize: locationFontSize,
                     fontWeight: FontWeight.w500,
