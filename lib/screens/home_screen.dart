@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../utils/dialog_utils.dart';
 import 'account_screen.dart';
 import 'ad_details_screen.dart';
@@ -757,9 +758,9 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                         topRight: Radius.circular(20),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'بحث حسب الموقع',
-                      style: TextStyle(
+                      style: GoogleFonts.cairo(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
@@ -782,11 +783,11 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                           dropdownColor: Colors.white,
                           style: _buildDropdownTextStyle(),
                           items: [
-                            const DropdownMenuItem<Map<String, dynamic>>(
+                            DropdownMenuItem<Map<String, dynamic>>(
                               value: null,
                               child: Text(
                                 'كل المحافظات',
-                                style: TextStyle(
+                                style: GoogleFonts.cairo(
                                   color: Colors.black,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
@@ -797,7 +798,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                               value: province,
                               child: Text(
                                 province['name'],
-                                style: const TextStyle(
+                                style: GoogleFonts.cairo(
                                   color: Colors.black,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
@@ -827,11 +828,11 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                           dropdownColor: Colors.white,
                           style: _buildDropdownTextStyle(),
                           items: [
-                            const DropdownMenuItem<Map<String, dynamic>>(
+                            DropdownMenuItem<Map<String, dynamic>>(
                               value: null,
                               child: Text(
                                 'كل المناطق',
-                                style: TextStyle(
+                                style: GoogleFonts.cairo(
                                   color: Colors.black,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
@@ -842,7 +843,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                               value: area,
                               child: Text(
                                 area['name'],
-                                style: const TextStyle(
+                                style: GoogleFonts.cairo(
                                   color: Colors.black,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
@@ -868,9 +869,9 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                                   foregroundColor: Colors.grey[600],
                                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'إلغاء',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                  style: GoogleFonts.cairo(fontWeight: FontWeight.w600),
                                 ),
                               ),
                             ),
@@ -905,9 +906,9 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                                   ),
                                   elevation: 0,
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'تطبيق',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ),
@@ -929,7 +930,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   InputDecoration _buildDropdownDecoration(String labelText, double borderRadius) {
     return InputDecoration(
       labelText: labelText,
-      labelStyle: TextStyle(color: Colors.blue[600]),
+      labelStyle: GoogleFonts.cairo(color: Colors.blue[600]),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(borderRadius),
         borderSide: BorderSide(color: Colors.blue[400]!, width: 1.5),
@@ -950,7 +951,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
 
   /// Build dropdown text style
   TextStyle _buildDropdownTextStyle() {
-    return const TextStyle(
+    return GoogleFonts.cairo(
       color: Colors.blue,
       fontSize: 15,
       fontWeight: FontWeight.w500,
@@ -1073,7 +1074,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
             const SizedBox(height: 4),
             Text(
               'لا توجد صورة',
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 color: Colors.blue[700],
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
@@ -1093,7 +1094,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       children: [
         Text(
           ad.adTitle ?? '',
-          style: const TextStyle(
+          style: GoogleFonts.cairo(
             fontSize: 13,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
@@ -1110,7 +1111,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
           ),
           child: Text(
             '${ad.price ?? '0'} ${ad.currencyName ?? ''}',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 12,
               fontWeight: FontWeight.bold,
               color: Colors.blue[700],
@@ -1127,7 +1128,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
             Expanded(
               child: Text(
                 '${ad.cityName ?? ''} - ${_formatDate(ad.createDate ?? '')}',
-                style: const TextStyle(
+                style: GoogleFonts.cairo(
                   color: Colors.black87,
                   fontSize: 9,
                   fontWeight: FontWeight.w500,
@@ -1201,9 +1202,9 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                 children: [
                   Icon(Icons.location_on, size: 22, color: Colors.blue[600]),
                   const SizedBox(width: 8),
-                  const Text(
+                  Text(
                     'بحث بالموقع',
-                    style: TextStyle(
+                    style: GoogleFonts.cairo(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF1E4A47),
@@ -1216,7 +1217,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                 _selectedCity == _defaultCity
                     ? _defaultCity
                     : '$_selectedCity - $_selectedDistrict',
-                style: TextStyle(fontSize: 15, color: Colors.grey[700]),
+                style: GoogleFonts.cairo(fontSize: 15, color: Colors.grey[700]),
               ),
             ],
           ),
@@ -1256,7 +1257,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                   _searchController.text.isNotEmpty 
                       ? _searchController.text
                       : 'ابحث عن منتج أو خدمة...',
-                  style: TextStyle(
+                  style: GoogleFonts.cairo(
                     color: _searchController.text.isNotEmpty 
                         ? Colors.black87 
                         : Colors.grey[600],
@@ -1355,7 +1356,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                 const SizedBox(width: 4),
                 Text(
                   '2025 سوق سوريا',
-                  style: TextStyle(
+                  style: GoogleFonts.cairo(
                     color: Colors.grey[600],
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -1411,7 +1412,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
             // Welcome text without border
             Text(
               _username != null ? 'مرحباً، $_username 👋' : 'مرحبا بك 👋',
-              style: const TextStyle(
+              style: GoogleFonts.cairo(
                 fontSize: 18,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -1468,7 +1469,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                 Expanded(
                   child: Text(
                     title,
-                    style: TextStyle(
+                    style: GoogleFonts.cairo(
                       color: Colors.grey[800],
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
@@ -1541,9 +1542,9 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
             children: [
               const Icon(Icons.wifi_off, size: 100, color: Colors.grey),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 'لا يوجد اتصال بالإنترنت',
-                style: TextStyle(
+                style: GoogleFonts.cairo(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey,
@@ -1551,15 +1552,15 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+                style: GoogleFonts.cairo(fontSize: 16, color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),
               ElevatedButton(
                 onPressed: _checkInitialConnectivity,
-                child: const Text('إعادة المحاولة', style: TextStyle(fontSize: 16)),
+                child: Text('إعادة المحاولة', style: GoogleFonts.cairo(fontSize: 16)),
               ),
             ],
           ),
@@ -1649,9 +1650,9 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                 snap: false,
                 elevation: 0,
                 backgroundColor: Colors.blue[700],
-                title: const Text(
+                title: Text(
                   'سوق سوريا',
-                  style: TextStyle(
+                  style: GoogleFonts.cairo(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -1674,7 +1675,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                   delegate: SliverChildListDelegate([
                     Text(
                       'جميع الإعلانات',
-                      style: TextStyle(
+                      style: GoogleFonts.cairo(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF1E4A47),
@@ -1691,18 +1692,18 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                     ),
                     const SizedBox(height: 12),
                     if (_isRefreshing)
-                      const Center(
+                      Center(
                         child: Padding(
-                          padding: EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(24),
                           child: Column(
                             children: [
-                              CircularProgressIndicator(
+                              const CircularProgressIndicator(
                                 valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
                               ),
-                              SizedBox(height: 12),
+                              const SizedBox(height: 12),
                               Text(
                                 'جاري تحديث الإعلانات...',
-                                style: TextStyle(
+                                style: GoogleFonts.cairo(
                                   color: Colors.grey,
                                   fontSize: 14,
                                 ),
@@ -1731,7 +1732,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                               const SizedBox(height: 16),
                               Text(
                                 'لا يوجد نتائج',
-                                style: TextStyle(
+                                style: GoogleFonts.cairo(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.grey[600],
@@ -1740,7 +1741,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                               const SizedBox(height: 8),
                               Text(
                                 'لم يتم العثور على أي إعلانات',
-                                style: TextStyle(
+                                style: GoogleFonts.cairo(
                                   fontSize: 14,
                                   color: Colors.grey[500],
                                 ),
