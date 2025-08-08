@@ -1020,7 +1020,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
 ${_adModel.adTitle ?? 'إعلان مميز'}
 
 شاهد هذا الاعلان على موقع سوق سوريا
-https://syria-market.onrender.com/$adId
+https://syria-market-web.onrender.com/$adId
       '''.trim();
 
       // Show share dialog with app options
