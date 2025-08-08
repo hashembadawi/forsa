@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syria_market/screens/update_ad_screen.dart';
 import 'package:syria_market/screens/add_ad_screen.dart';
 import 'package:syria_market/utils/dialog_utils.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Screen displaying user's personal advertisements with edit and delete functionality
 class MyAdsScreen extends StatefulWidget {
@@ -298,9 +299,9 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
   /// Build main app bar
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text(
+      title: Text(
         'إعلاناتي',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           fontSize: 24,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -350,9 +351,9 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
             color: Colors.grey[400],
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'لا توجد إعلانات بعد',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 18,
               color: Colors.black87,
               fontWeight: FontWeight.w500,
@@ -371,9 +372,9 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
               ),
               elevation: 2,
             ),
-            child: const Text(
+            child: Text(
               'أضف إعلان',
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -497,7 +498,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
             const SizedBox(height: 8),
             Text(
               showNoImageText ? 'لا توجد صورة' : 'صورة',
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 color: Colors.black87,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -540,7 +541,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
       ad['adTitle'] ?? 'بدون عنوان',
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
-      style: const TextStyle(
+      style: GoogleFonts.cairo(
         fontSize: 16,
         fontWeight: FontWeight.bold,
         color: Colors.black87,
@@ -562,7 +563,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
       ),
       child: Text(
         '$price $currency',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           fontSize: 16,
           fontWeight: FontWeight.bold,
           color: Colors.blue[700],
@@ -577,7 +578,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
       ad['description'] ?? 'بدون وصف',
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
-      style: const TextStyle(
+      style: GoogleFonts.cairo(
         fontSize: 14,
         color: Colors.black87,
         fontWeight: FontWeight.w500,
@@ -598,7 +599,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
         Expanded(
           child: Text(
             location.isNotEmpty ? location : 'موقع غير محدد',
-            style: const TextStyle(
+            style: GoogleFonts.cairo(
               color: Colors.black87,
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -620,7 +621,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
         const SizedBox(width: 4),
         Text(
           formattedDate,
-          style: const TextStyle(
+          style: GoogleFonts.cairo(
             color: Colors.black87,
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -653,7 +654,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
             const SizedBox(width: 6),
             Text(
               'قيد المراجعة',
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 color: Colors.orange,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -700,9 +701,12 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
     return ElevatedButton.icon(
       onPressed: () => _navigateToEditAd(ad),
       icon: const Icon(Icons.edit, size: 18, color: Colors.white),
-      label: const Text(
+      label: Text(
         'تعديل',
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        style: GoogleFonts.cairo(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.blue[700],
@@ -718,9 +722,12 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
     return ElevatedButton.icon(
       onPressed: () => _showDeleteConfirmation(ad['_id'], ad['adTitle'] ?? 'الإعلان'),
       icon: const Icon(Icons.delete, size: 18, color: Colors.white),
-      label: const Text(
+      label: Text(
         'حذف',
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        style: GoogleFonts.cairo(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFFE74C3C),
