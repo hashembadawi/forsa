@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'login_screen.dart';
 import 'package:syria_market/utils/dialog_utils.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class VerificationScreen extends StatefulWidget {
   final String phoneNumber;
@@ -101,9 +102,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
   /// Build main app bar
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text(
+      title: Text(
         'تأكيد رقم الهاتف',
-        style: TextStyle(fontWeight: FontWeight.bold),
+        style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
       backgroundColor: Colors.blue[700],
@@ -160,7 +161,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
               const SizedBox(height: 8),
               Text(
                 'أدخل رمز التحقق المرسل إلى واتساب',
-                style: TextStyle(
+                style: GoogleFonts.cairo(
                   color: Colors.white.withOpacity(0.9),
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -217,7 +218,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Text(
           'رقم الهاتف: ${widget.phoneNumber}',
-          style: const TextStyle(
+          style: GoogleFonts.cairo(
             fontWeight: FontWeight.w600,
             color: Colors.black87,
             fontSize: 15,
@@ -236,9 +237,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'رمز التحقق',
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
                 fontSize: 15,
@@ -253,7 +254,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
               onSubmitted: (_) => verifyCode(),
               decoration: InputDecoration(
                 hintText: 'أدخل رمز التحقق (4 أرقام)',
-                hintStyle: TextStyle(
+                hintStyle: GoogleFonts.cairo(
                   color: Colors.grey[500],
                   fontSize: 14,
                 ),
@@ -277,7 +278,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 ),
                 counterText: '', // Hide the character counter
               ),
-              style: const TextStyle(
+              style: GoogleFonts.cairo(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 2,
@@ -329,9 +330,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
               size: 20,
             ),
             const SizedBox(width: 8),
-            const Text(
+            Text(
               'تأكيد رمز التحقق',
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,

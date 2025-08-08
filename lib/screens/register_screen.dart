@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:syria_market/screens/verification_screen.dart';
 import 'package:syria_market/utils/dialog_utils.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// User registration screen with form validation and country selection
 class RegisterScreen extends StatefulWidget {
@@ -299,7 +300,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// Build the app bar
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text('إنشاء حساب جديد'),
+      title: Text(
+        'إنشاء حساب جديد',
+        style: GoogleFonts.cairo(
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       centerTitle: true,
       backgroundColor: Colors.blue[700],
       foregroundColor: Colors.white,
@@ -379,12 +385,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               Text(
                 country['name']!,
-                style: const TextStyle(fontSize: 14, color: Colors.black87),
+                style: GoogleFonts.cairo(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
               ),
               const SizedBox(width: 8),
               Text(
                 country['code']!,
-                style: const TextStyle(
+                style: GoogleFonts.cairo(
                   fontSize: 14,
                   color: Colors.black87,
                   fontWeight: FontWeight.bold,
@@ -408,7 +417,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       controller: _phoneController,
       keyboardType: TextInputType.phone,
       validator: _validatePhoneNumber,
-      style: const TextStyle(color: Colors.black87),
+      style: GoogleFonts.cairo(color: Colors.black87),
       decoration: _buildInputDecoration(
         labelText: 'رقم الهاتف',
         prefixIcon: Icons.phone,
@@ -483,9 +492,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         elevation: 2,
       ),
-      child: const Text(
+      child: Text(
         'إنشاء حساب',
-        style: TextStyle(fontSize: 18, color: Colors.white),
+        style: GoogleFonts.cairo(
+          fontSize: 18,
+          color: Colors.white,
+        ),
       ),
     );
   }
@@ -496,9 +508,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildProfileImageSection() {
     return Column(
       children: [
-        const Text(
+        Text(
           'صورة الملف الشخصي',
-          style: TextStyle(
+          style: GoogleFonts.cairo(
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: Colors.black87,
@@ -560,7 +572,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 8),
                       Text(
                         'إضافة صورة',
-                        style: TextStyle(
+                        style: GoogleFonts.cairo(
                           color: Colors.blue[600],
                           fontWeight: FontWeight.bold,
                         ),
@@ -572,7 +584,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         const SizedBox(height: 8),
         Text(
           'اختيارية',
-          style: TextStyle(
+          style: GoogleFonts.cairo(
             color: Colors.grey[600],
             fontSize: 12,
           ),
@@ -596,7 +608,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       keyboardType: keyboardType,
       obscureText: obscureText,
       validator: validator,
-      style: const TextStyle(color: Colors.black87),
+      style: GoogleFonts.cairo(color: Colors.black87),
       decoration: _buildInputDecoration(
         labelText: label,
         prefixIcon: icon,
@@ -614,13 +626,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }) {
     return InputDecoration(
       labelText: labelText,
-      labelStyle: const TextStyle(color: Colors.black87),
+      labelStyle: GoogleFonts.cairo(color: Colors.black87),
       filled: true,
       fillColor: Colors.white,
       prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: Colors.blue[600]) : null,
       suffixIcon: suffixIcon,
       helperText: helperText,
-      helperStyle: TextStyle(
+      helperStyle: GoogleFonts.cairo(
         color: Colors.blue[600],
         fontWeight: FontWeight.bold,
       ),

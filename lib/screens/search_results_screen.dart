@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:syria_market/screens/ad_details_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Screen displaying search results for advertisements
 class SearchResultsScreen extends StatefulWidget {
@@ -220,7 +221,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
             const SizedBox(height: 4),
             Text(
               isError ? 'صورة' : 'لا توجد صورة',
-              style: TextStyle(
+              style: GoogleFonts.cairo(
                 color: Colors.blue[700],
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
@@ -259,7 +260,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   Widget _buildAdTitle(dynamic ad) {
     return Text(
       ad['adTitle']?.toString() ?? '',
-      style: const TextStyle(
+      style: GoogleFonts.cairo(
         fontSize: 13,
         fontWeight: FontWeight.bold,
         color: Colors.black87,
@@ -286,7 +287,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       ),
       child: Text(
         '$price $currency',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           fontSize: 12,
           fontWeight: FontWeight.bold,
           color: Colors.blue[700],
@@ -301,7 +302,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   Widget _buildAdDescription(dynamic ad) {
     return Text(
       ad['description']?.toString() ?? '',
-      style: const TextStyle(
+      style: GoogleFonts.cairo(
         fontSize: 10,
         color: Colors.black87,
         fontWeight: FontWeight.w500,
@@ -325,7 +326,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         Expanded(
           child: Text(
             ad['cityName']?.toString() ?? '',
-            style: const TextStyle(
+            style: GoogleFonts.cairo(
               color: Colors.black87,
               fontSize: 9,
               fontWeight: FontWeight.w500,
@@ -382,9 +383,9 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Navigator.pop(context),
       ),
-      title: const Text(
+      title: Text(
         'نتائج البحث',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           fontSize: 24,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -434,7 +435,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
           const SizedBox(height: 16),
           Text(
             _errorMessage!,
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 16,
               color: Colors.red[600],
               fontWeight: FontWeight.w500,
@@ -448,7 +449,10 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
               backgroundColor: Colors.blue[700],
               foregroundColor: Colors.white,
             ),
-            child: const Text('إعادة المحاولة'),
+            child: Text(
+              'إعادة المحاولة',
+              style: GoogleFonts.cairo(),
+            ),
           ),
         ],
       ),
@@ -469,7 +473,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
           const SizedBox(height: 16),
           Text(
             'لا توجد نتائج للبحث عن "${widget.searchText}"',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 16,
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
@@ -479,7 +483,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
           const SizedBox(height: 8),
           Text(
             'جرب البحث بكلمات مختلفة',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 14,
               color: Colors.grey[500],
             ),

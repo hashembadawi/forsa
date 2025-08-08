@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:syria_market/utils/dialog_utils.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Screen for editing existing advertisements
 class EditAdScreen extends StatefulWidget {
@@ -307,9 +308,9 @@ class _EditAdScreenState extends State<EditAdScreen> {
   /// Build the app bar
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text(
+      title: Text(
         'تعديل الإعلان',
-        style: TextStyle(
+        style: GoogleFonts.cairo(
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -348,7 +349,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
   Widget _buildTitleField() {
     return TextFormField(
       controller: _titleController,
-      style: const TextStyle(color: Colors.black87),
+      style: GoogleFonts.cairo(color: Colors.black87),
       decoration: _buildInputDecoration('عنوان الإعلان'),
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -364,7 +365,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
     return TextFormField(
       controller: _priceController,
       keyboardType: TextInputType.number,
-      style: const TextStyle(color: Colors.black87),
+      style: GoogleFonts.cairo(color: Colors.black87),
       decoration: _buildInputDecoration('السعر'),
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -402,7 +403,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
           value: currency,
           child: Text(
             currency['name'] ?? '',
-            style: const TextStyle(color: Colors.black87),
+            style: GoogleFonts.cairo(color: Colors.black87),
           ),
         );
       }).toList(),
@@ -411,7 +412,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
       },
       hint: Text(
         'اختر العملة',
-        style: TextStyle(color: Colors.grey[600]),
+        style: GoogleFonts.cairo(color: Colors.grey[600]),
       ),
     );
   }
@@ -428,7 +429,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
         children: [
           Text(
             'العملة: ${widget.initialCurrency}',
-            style: const TextStyle(color: Colors.black87),
+            style: GoogleFonts.cairo(color: Colors.black87),
           ),
           const Spacer(),
           SizedBox(
@@ -449,7 +450,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
     return TextFormField(
       controller: _descriptionController,
       maxLines: 5,
-      style: const TextStyle(color: Colors.black87),
+      style: GoogleFonts.cairo(color: Colors.black87),
       decoration: _buildInputDecoration('الوصف', alignLabelWithHint: true),
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -475,9 +476,9 @@ class _EditAdScreenState extends State<EditAdScreen> {
           ),
           elevation: 2,
         ),
-        child: const Text(
+        child: Text(
           'حفظ التغييرات',
-          style: TextStyle(
+          style: GoogleFonts.cairo(
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -495,7 +496,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
   }) {
     return InputDecoration(
       labelText: labelText,
-      labelStyle: const TextStyle(color: Colors.black87),
+      labelStyle: GoogleFonts.cairo(color: Colors.black87),
       alignLabelWithHint: alignLabelWithHint,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'search_results_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Screen for displaying search suggestions with real-time search
 class SuggestionsListScreen extends StatefulWidget {
@@ -159,7 +160,7 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
         focusNode: _searchFocusNode,
         decoration: InputDecoration(
           hintText: 'ابحث عن منتج أو خدمة...',
-          hintStyle: TextStyle(color: Colors.grey[600]),
+          hintStyle: GoogleFonts.cairo(color: Colors.grey[600]),
           prefixIcon: Icon(Icons.search, color: Colors.blue[600]),
           suffixIcon: _buildSearchSuffixIcon(),
           filled: true,
@@ -225,7 +226,7 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
               const SizedBox(height: 16),
               Text(
                 'ابدأ بالكتابة للبحث',
-                style: TextStyle(
+                style: GoogleFonts.cairo(
                   fontSize: 18,
                   color: Colors.grey[600],
                   fontWeight: FontWeight.w500,
@@ -234,7 +235,7 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
               const SizedBox(height: 8),
               Text(
                 'اكتب ما تبحث عنه وسنقترح عليك نتائج مناسبة',
-                style: TextStyle(
+                style: GoogleFonts.cairo(
                   fontSize: 14,
                   color: Colors.grey[500],
                 ),
@@ -273,7 +274,7 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
                         Expanded(
                           child: Text(
                             suggestion,
-                            style: TextStyle(
+                            style: GoogleFonts.cairo(
                               fontSize: 16,
                               color: Colors.grey[800],
                               fontWeight: FontWeight.w500,
@@ -314,9 +315,9 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
         appBar: AppBar(
           backgroundColor: Colors.blue[700],
           elevation: 0,
-          title: const Text(
+          title: Text(
             'البحث',
-            style: TextStyle(
+            style: GoogleFonts.cairo(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.white,
