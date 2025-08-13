@@ -50,6 +50,8 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
   Map<String, dynamic>? _selectedSubCategory;
   Map<String, dynamic>? _selectedProvince;
   Map<String, dynamic>? _selectedMajorArea;
+  bool _forSale = true; // للبيع=true, للإيجار=false
+  bool _deliveryService = false; 
 
   // State flags
   bool _isLoadingOptions = true;
@@ -260,7 +262,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildStepIndicator(0, 'إضافة الصور'),
-              _buildStepIndicator(1, 'اختيار التصنيف'),
+              _buildStepIndicator(1, 'خيارات الإعلان'),
               _buildStepIndicator(2, 'معلومات الإعلان'),
             ],
           ),
@@ -325,6 +327,8 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
           subCategories: _subCategories,
           selectedCategory: _selectedCategory,
           selectedSubCategory: _selectedSubCategory,
+          forSale: _forSale,
+          onForSaleChanged: (value) => setState(() => _forSale = value),
           onCategorySelected: (cat, subCat) {
             setState(() {
               _selectedCategory = cat;
@@ -465,6 +469,8 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       'description': _description,
       'images': base64Images,
       'isSpecial': userIsSpecial,
+      'forSale': _forSale,
+      'deliveryService': _deliveryService,
     };
 
     // Add location data if available
@@ -736,6 +742,8 @@ class CategorySelectionStep extends StatefulWidget {
   final List<Map<String, dynamic>> subCategories;
   final Map<String, dynamic>? selectedCategory;
   final Map<String, dynamic>? selectedSubCategory;
+  final bool forSale;
+  final ValueChanged<bool> onForSaleChanged;
   final Function(Map<String, dynamic>, Map<String, dynamic>) onCategorySelected;
   final VoidCallback onBack;
 
@@ -745,6 +753,8 @@ class CategorySelectionStep extends StatefulWidget {
     required this.subCategories,
     required this.selectedCategory,
     required this.selectedSubCategory,
+    required this.forSale,
+    required this.onForSaleChanged,
     required this.onCategorySelected,
     required this.onBack,
   });
@@ -792,22 +802,18 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'اختر تصنيف المنتج',
+                  'حدد خيارات الإعلان',
                   style: GoogleFonts.cairo(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  'اختر التصنيف المناسب لمنتجك',
-                  style: GoogleFonts.cairo(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
+                _buildForSaleToggle(),
+                const SizedBox(height: 20),
+                _buildDeliveryServiceDropdown(),
+                const SizedBox(height: 20),
                 _buildCategoryDropdown(),
                 const SizedBox(height: 20),
                 _buildSubCategoryDropdown(),
@@ -820,62 +826,149 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
     );
   }
 
-  Widget _buildCategoryDropdown() {
-    return DropdownButtonFormField<Map<String, dynamic>>(
-      value: _selectedCategory,
-      isExpanded: true,
-      decoration: InputDecoration(
-        labelText: 'التصنيف الرئيسي',
-        labelStyle: GoogleFonts.cairo(),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+  Widget _buildForSaleToggle() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: RadioListTile<bool>(
+                value: true,
+                groupValue: widget.forSale,
+                onChanged: (value) {
+                  if (value != null) widget.onForSaleChanged(value);
+                },
+                title: Text('للبيع', style: GoogleFonts.cairo()),
+              ),
+            ),
+            Expanded(
+              child: RadioListTile<bool>(
+                value: false,
+                groupValue: widget.forSale,
+                onChanged: (value) {
+                  if (value != null) widget.onForSaleChanged(value);
+                },
+                title: Text('للإيجار', style: GoogleFonts.cairo()),
+              ),
+            ),
+          ],
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
+      ],
+    );
+  }
+
+  Widget _buildDeliveryServiceDropdown() {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: DropdownButtonFormField<bool>(
+        value: context.findAncestorStateOfType<_MultiStepAddAdScreenState>()?._deliveryService ?? false,
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: 'خدمة التوصيل',
+          labelStyle: GoogleFonts.cairo(),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
         ),
+        items: [
+          DropdownMenuItem(
+            value: true,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text('يوجد', style: GoogleFonts.cairo()),
+            ),
+          ),
+          DropdownMenuItem(
+            value: false,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text('لا يوجد', style: GoogleFonts.cairo()),
+            ),
+          ),
+        ],
+        onChanged: (value) {
+          if (value != null) {
+            context.findAncestorStateOfType<_MultiStepAddAdScreenState>()?.setState(() {
+              context.findAncestorStateOfType<_MultiStepAddAdScreenState>()?._deliveryService = value;
+            });
+          }
+        },
       ),
-      items: widget.categories
-          .map((cat) => DropdownMenuItem(
-                value: cat,
-                child: Text(cat['name'] ?? '', style: GoogleFonts.cairo()),
-              ))
-          .toList(),
-      onChanged: (cat) {
-        setState(() {
-          _selectedCategory = cat;
-          _filterSubCategories();
-        });
-      },
+    );
+  }
+
+  Widget _buildCategoryDropdown() {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: DropdownButtonFormField<Map<String, dynamic>>(
+        value: _selectedCategory,
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: 'التصنيف الرئيسي',
+          labelStyle: GoogleFonts.cairo(),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+        ),
+        items: widget.categories
+            .map((cat) => DropdownMenuItem(
+                  value: cat,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(cat['name'] ?? '', style: GoogleFonts.cairo()),
+                  ),
+                ))
+            .toList(),
+        onChanged: (cat) {
+          setState(() {
+            _selectedCategory = cat;
+            _filterSubCategories();
+          });
+        },
+      ),
     );
   }
 
   Widget _buildSubCategoryDropdown() {
-    return DropdownButtonFormField<Map<String, dynamic>>(
-      value: _selectedSubCategory,
-      isExpanded: true,
-      decoration: InputDecoration(
-        labelText: 'التصنيف الفرعي',
-        labelStyle: GoogleFonts.cairo(),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: DropdownButtonFormField<Map<String, dynamic>>(
+        value: _selectedSubCategory,
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: 'التصنيف الفرعي',
+          labelStyle: GoogleFonts.cairo(),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
+        items: _filteredSubCategories
+            .map((subCat) => DropdownMenuItem(
+                  value: subCat,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(subCat['name'] ?? '', style: GoogleFonts.cairo()),
+                  ),
+                ))
+            .toList(),
+        onChanged: (subCat) {
+          setState(() {
+            _selectedSubCategory = subCat;
+          });
+        },
       ),
-      items: _filteredSubCategories
-          .map((subCat) => DropdownMenuItem(
-                value: subCat,
-                child: Text(subCat['name'] ?? '', style: GoogleFonts.cairo()),
-              ))
-          .toList(),
-      onChanged: (subCat) {
-        setState(() {
-          _selectedSubCategory = subCat;
-        });
-      },
     );
   }
 
