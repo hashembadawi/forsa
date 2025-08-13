@@ -425,7 +425,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         image!.path,
         minWidth: 250,    // Maximum width of 250px
         minHeight: 250,   // Maximum height of 250px
-        quality: 30,       // Very low quality (1-100, lower = smaller file)
+        quality: 60,       // Very low quality (1-100, lower = smaller file)
         format: CompressFormat.jpeg,
         rotate: 0,
       );
