@@ -214,6 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
       prefs.setString('userProfileImage', userData['userProfileImage'] ?? ''),
       prefs.setString('userAccountNumber', userData['userAccountNumber'] ?? ''),
       prefs.setBool('userIsVerified', userData['userIsVerified'] ?? false),
+      prefs.setBool('userIsSpecial', userData['userIsSpecial'] ?? false),
     ]);
   }
 

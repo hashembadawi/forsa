@@ -383,6 +383,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       final userId = prefs.getString('userId') ?? '';
       final userPhone = prefs.getString('userPhone') ?? '';
       final username = prefs.getString('userName') ?? '';
+      final userIsSpecial = prefs.getBool('userIsSpecial') ?? false;
 
       final base64Images = await _processImages();
       final requestData = _buildRequestData(
@@ -390,6 +391,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
         userPhone: userPhone,
         username: username,
         base64Images: base64Images,
+        userIsSpecial: userIsSpecial,
       );
 
       final response = await http.post(
@@ -442,6 +444,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
     required String userPhone,
     required String username,
     required List<String> base64Images,
+    required bool userIsSpecial,
   }) {
     final Map<String, dynamic> requestData = {
       'userId': userId,
@@ -461,6 +464,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       'regionName': _selectedMajorArea?['name'],
       'description': _description,
       'images': base64Images,
+      'isSpecial': userIsSpecial,
     };
 
     // Add location data if available

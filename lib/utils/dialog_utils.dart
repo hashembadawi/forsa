@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Utility class for showing common dialogs throughout the app
 class DialogUtils {
@@ -52,7 +53,7 @@ class DialogUtils {
                     Expanded(
                       child: Text(
                         title,
-                        style: const TextStyle(
+                            style: GoogleFonts.cairo(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
@@ -71,7 +72,7 @@ class DialogUtils {
                   children: [
                     Text(
                       message,
-                      style: const TextStyle(
+                          style: GoogleFonts.cairo(
                         fontSize: 16,
                         color: Colors.black87,
                       ),
@@ -156,7 +157,7 @@ class DialogUtils {
                     Expanded(
                       child: Text(
                         title,
-                        style: const TextStyle(
+                            style: GoogleFonts.cairo(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
@@ -175,7 +176,7 @@ class DialogUtils {
                   children: [
                     Text(
                       message,
-                      style: const TextStyle(
+                          style: GoogleFonts.cairo(
                         fontSize: 16,
                         color: Colors.black87,
                       ),
@@ -251,7 +252,7 @@ class DialogUtils {
                 ),
                 child: Text(
                   title,
-                  style: const TextStyle(
+          style: GoogleFonts.cairo(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
@@ -271,7 +272,7 @@ class DialogUtils {
                       const SizedBox(height: 20),
                       Text(
                         message,
-                        style: TextStyle(
+            style: GoogleFonts.cairo(
                           color: Colors.grey[600],
                           fontSize: 16,
                         ),
@@ -337,7 +338,7 @@ class DialogUtils {
                 ),
                 child: Text(
                   title,
-                  style: const TextStyle(
+            style: GoogleFonts.cairo(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
@@ -354,7 +355,7 @@ class DialogUtils {
                   children: [
                     Text(
                       message,
-                      style: const TextStyle(
+              style: GoogleFonts.cairo(
                         fontSize: 16,
                         color: Colors.black87,
                       ),
@@ -456,7 +457,7 @@ class DialogUtils {
                     Expanded(
                       child: Text(
                         title,
-                        style: const TextStyle(
+                            style: GoogleFonts.cairo(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
@@ -475,7 +476,7 @@ class DialogUtils {
                   children: [
                     Text(
                       message,
-                      style: const TextStyle(
+                          style: GoogleFonts.cairo(
                         fontSize: 16,
                         color: Colors.black87,
                       ),

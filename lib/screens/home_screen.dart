@@ -34,6 +34,7 @@ class AdModel {
   final String? createDate;
   final List<String>? images;
   final Map<String, dynamic>? location;
+  final bool? isSpecial;
 
   AdModel({
     this.id,
@@ -53,6 +54,7 @@ class AdModel {
     this.createDate,
     this.images,
     this.location,
+    this.isSpecial,
   });
 
   factory AdModel.fromJson(Map<String, dynamic> json) {
@@ -74,6 +76,7 @@ class AdModel {
       createDate: json['createDate'],
       images: json['images'] is List ? List<String>.from(json['images']) : null,
       location: json['location'] is Map<String, dynamic> ? json['location'] : null,
+      isSpecial: json['isSpecial'] ?? false, // Default to false if not present
     );
   }
 
@@ -965,6 +968,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
     final images = ad.images ?? [];
     final firstImageBase64 = images.isNotEmpty ? images[0] : null;
     final String adId = ad.id ?? '';
+    final bool isSpecial = ad.isSpecial ?? false;
 
     return Container(
       margin: const EdgeInsets.all(4),
@@ -1010,7 +1014,45 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
                       child: SizedBox(
                         width: double.infinity,
-                        child: _buildAdImage(firstImageBase64),
+                        child: Stack(
+                          children: [
+                            _buildAdImage(firstImageBase64),
+                            if (isSpecial)
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.amber[700]?.withOpacity(0.95),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.amber.withOpacity(0.2),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.star, color: Colors.white, size: 16),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        'إعلان مميز',
+                                        style: GoogleFonts.cairo(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
