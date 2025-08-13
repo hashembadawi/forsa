@@ -32,6 +32,8 @@ class AdModel {
   final String? createDate;
   final List<String>? images;
   final LocationModel? location;
+  final bool? forSale;
+  final bool? deliveryService;
 
   AdModel({
     this.id,
@@ -51,6 +53,8 @@ class AdModel {
     this.createDate,
     this.images,
     this.location,
+    this.forSale,
+    this.deliveryService,
   });
 
   factory AdModel.fromJson(Map<String, dynamic> json) {
@@ -72,6 +76,8 @@ class AdModel {
       createDate: json['createDate'],
       images: json['images'] is List ? List<String>.from(json['images']) : null,
       location: json['location'] != null ? LocationModel.fromJson(json['location']) : null,
+      forSale: json['forSale'],
+      deliveryService: json['deliveryService'],
     );
   }
 }
@@ -530,6 +536,18 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
         _buildAdvertiserInfo(),
         const Divider(height: 32, thickness: 1, color: Colors.grey),
         _buildCategoryInfo(),
+        const SizedBox(height: 8),
+        _buildInfoRow(
+          Icons.sell,
+          'نوع الإعلان',
+          _adModel.forSale == true ? 'للبيع' : 'للإيجار',
+        ),
+        const SizedBox(height: 8),
+        _buildInfoRow(
+          Icons.delivery_dining,
+          'خدمة التوصيل',
+          (_adModel.deliveryService == true) ? 'يوجد' : 'لا يوجد',
+        ),
       ],
     );
   }

@@ -36,6 +36,7 @@ class AdModel {
   final Map<String, dynamic>? location;
   final bool? isSpecial;
   final bool? forSale;
+  final bool? deliveryService;
 
   AdModel({
     this.id,
@@ -57,6 +58,7 @@ class AdModel {
     this.location,
     this.isSpecial,
     this.forSale,
+    this.deliveryService,
   });
 
   factory AdModel.fromJson(Map<String, dynamic> json) {
@@ -80,6 +82,7 @@ class AdModel {
       location: json['location'] is Map<String, dynamic> ? json['location'] : null,
       isSpecial: json['isSpecial'] ?? false, // Default to false if not present
       forSale: json['forSale'] ?? false, // Default to false if not present
+      deliveryService: json['deliveryService'] ?? false, // Default to false if not present
     );
   }
 
@@ -102,6 +105,9 @@ class AdModel {
       'createDate': createDate,
       'images': images,
       'location': location,
+      'isSpecial': isSpecial,
+      'forSale': forSale,
+      'deliveryService': deliveryService,
     };
   }
 }
