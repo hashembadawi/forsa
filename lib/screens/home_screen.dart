@@ -35,6 +35,7 @@ class AdModel {
   final List<String>? images;
   final Map<String, dynamic>? location;
   final bool? isSpecial;
+  final bool? forSale;
 
   AdModel({
     this.id,
@@ -55,6 +56,7 @@ class AdModel {
     this.images,
     this.location,
     this.isSpecial,
+    this.forSale,
   });
 
   factory AdModel.fromJson(Map<String, dynamic> json) {
@@ -77,6 +79,7 @@ class AdModel {
       images: json['images'] is List ? List<String>.from(json['images']) : null,
       location: json['location'] is Map<String, dynamic> ? json['location'] : null,
       isSpecial: json['isSpecial'] ?? false, // Default to false if not present
+      forSale: json['forSale'] ?? false, // Default to false if not present
     );
   }
 
@@ -1144,23 +1147,49 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(
-            color: Colors.blue[50],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.blue[300]!, width: 1),
-          ),
-          child: Text(
-            '${ad.price ?? '0'} ${ad.currencyName ?? ''}',
-            style: GoogleFonts.cairo(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[700],
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue[300]!, width: 1),
+                ),
+                child: Text(
+                  '${ad.price ?? '0'} ${ad.currencyName ?? ''}',
+                  style: GoogleFonts.cairo(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[700],
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
             ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
+            const SizedBox(width: 8),
+            
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange[300]!, width: 1),
+              ),
+              child: Text(
+                ad.forSale == true ? 'للبيع' : 'للإيجار',
+                style: GoogleFonts.cairo(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange[700],
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+          ],
         ),
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -1184,7 +1213,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       ],
     );
   }
-
   /// Build favorite heart icon for ad card
   Widget _buildFavoriteHeartIcon(String adId) {
     // For logged-in users: check if ad is in favorites
