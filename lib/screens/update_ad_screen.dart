@@ -1,10 +1,13 @@
-import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:syria_market/utils/dialog_utils.dart';
-import 'package:google_fonts/google_fonts.dart';
+
+  import 'dart:convert';
+  import 'package:flutter/material.dart';
+  import 'package:http/http.dart' as http;
+  import 'package:shared_preferences/shared_preferences.dart';
+  import 'package:connectivity_plus/connectivity_plus.dart';
+  import 'package:syria_market/utils/dialog_utils.dart';
+  import 'package:google_fonts/google_fonts.dart';
+
+
 
 /// Screen for editing existing advertisements
 class EditAdScreen extends StatefulWidget {
@@ -13,6 +16,8 @@ class EditAdScreen extends StatefulWidget {
   final String initialPrice;
   final String initialCurrency;
   final String initialDescription;
+  final bool initialForSale;
+  final bool initialDeliveryService;
 
   const EditAdScreen({
     super.key,
@@ -21,6 +26,8 @@ class EditAdScreen extends StatefulWidget {
     required this.initialPrice,
     required this.initialCurrency,
     required this.initialDescription,
+    this.initialForSale = false,
+    this.initialDeliveryService = false,
   });
 
   @override
@@ -40,6 +47,8 @@ class _EditAdScreenState extends State<EditAdScreen> {
 
   // ========== State Variables ==========
   bool _isLoadingCurrencies = true;
+    late bool _forSale;
+    late bool _deliveryService;
   
   // ========== Currency Data ==========
   List<Map<String, dynamic>> _currencies = [];
@@ -50,6 +59,8 @@ class _EditAdScreenState extends State<EditAdScreen> {
     super.initState();
     _initializeControllers();
     _fetchCurrencies();
+    _forSale = widget.initialForSale;
+    _deliveryService = widget.initialDeliveryService;
   }
 
   @override
@@ -247,6 +258,8 @@ class _EditAdScreenState extends State<EditAdScreen> {
       'currencyId': _selectedCurrency?['id'],
       'currencyName': _selectedCurrency?['name'],
       'description': _descriptionController.text.trim(),
+    'forSale': _forSale,
+    'deliveryService': _deliveryService,
     };
   }
 
@@ -336,6 +349,10 @@ class _EditAdScreenState extends State<EditAdScreen> {
           _buildPriceField(),
           const SizedBox(height: 16),
           _buildCurrencyField(),
+           const SizedBox(height: 16),
+           _buildForSaleField(),
+           const SizedBox(height: 16),
+           _buildDeliveryServiceField(),
           const SizedBox(height: 16),
           _buildDescriptionField(),
           const SizedBox(height: 24),
@@ -460,6 +477,74 @@ class _EditAdScreenState extends State<EditAdScreen> {
       },
     );
   }
+
+    /// Build forSale field (للبيع/للإيجار)
+    Widget _buildForSaleField() {
+      return DropdownButtonFormField<bool>(
+        value: _forSale,
+        decoration: _buildInputDecoration('نوع الإعلان'),
+        items: [
+          DropdownMenuItem(
+            value: true,
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Text('للبيع', style: GoogleFonts.cairo(color: Colors.black87)),
+            ),
+          ),
+          DropdownMenuItem(
+            value: false,
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Text('للإيجار', style: GoogleFonts.cairo(color: Colors.black87)),
+            ),
+          ),
+        ],
+        onChanged: (value) {
+          setState(() => _forSale = value ?? true);
+        },
+        hint: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Text(
+            'اختر نوع الإعلان',
+            style: GoogleFonts.cairo(color: Colors.grey[600]),
+          ),
+        ),
+      );
+    }
+
+    /// Build deliveryService field (يوجد/لايوجد)
+    Widget _buildDeliveryServiceField() {
+      return DropdownButtonFormField<bool>(
+        value: _deliveryService,
+        decoration: _buildInputDecoration('خدمة التوصيل'),
+        items: [
+          DropdownMenuItem(
+            value: true,
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Text('يوجد', style: GoogleFonts.cairo(color: Colors.black87)),
+            ),
+          ),
+          DropdownMenuItem(
+            value: false,
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Text('لايوجد', style: GoogleFonts.cairo(color: Colors.black87)),
+            ),
+          ),
+        ],
+        onChanged: (value) {
+          setState(() => _deliveryService = value ?? false);
+        },
+        hint: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Text(
+            'اختر حالة التوصيل',
+            style: GoogleFonts.cairo(color: Colors.grey[600]),
+          ),
+        ),
+      );
+    }
 
   /// Build update button
   Widget _buildUpdateButton() {
