@@ -427,8 +427,8 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
     for (final image in _selectedImages.where((img) => img != null)) {
       final compressedBytes = await FlutterImageCompress.compressWithFile(
         image!.path,
-        minWidth: 250,    // Maximum width of 250px
-        minHeight: 250,   // Maximum height of 250px
+        minWidth: 800,    // Maximum width of 800px
+        minHeight: 800,   // Maximum height of 800px
         quality: 60,       // Very low quality (1-100, lower = smaller file)
         format: CompressFormat.jpeg,
         rotate: 0,
@@ -656,10 +656,11 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          'إضافة صورة',
+                          index == 0 ? 'الصورة الرئيسية' : 'إضافة صورة',
                           style: GoogleFonts.cairo(
-                            color: Colors.grey[600],
+                            color: index == 0 ? Colors.blue : Colors.grey[600],
                             fontSize: 12,
+                            fontWeight: index == 0 ? FontWeight.bold : FontWeight.normal,
                           ),
                         ),
                       ],
@@ -719,7 +720,7 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
-        onPressed: _images.any((image) => image != null) ? widget.onNext : null,
+        onPressed: _images[0] != null ? widget.onNext : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue[600],
           foregroundColor: Colors.white,
