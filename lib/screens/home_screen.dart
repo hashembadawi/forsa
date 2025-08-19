@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:syria_market/screens/search_advance_screen.dart';
 import '../utils/dialog_utils.dart';
 import 'account_screen.dart';
 import 'ad_details_screen.dart';
@@ -139,6 +140,44 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMixin {
+  /// Build advanced search field
+  Widget _buildAdvancedSearchField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SearchAdvanceScreen()),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: Colors.blue[300]!, width: 1.5),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.tune, color: Colors.blue[600]),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'بحث متقدم',
+                  style: GoogleFonts.cairo(
+                    color: Colors.black87,
+                    fontSize: 16,
+                    
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
   // ========== Constants ==========
   static const String _baseUrl = 'https://sahbo-app-api.onrender.com';
   static const int _limitAds = 10;
@@ -1744,6 +1783,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
               ),
               const SliverToBoxAdapter(child: ImageSlider()),
               SliverToBoxAdapter(child: _buildLocationButton()),
+              SliverToBoxAdapter(child: _buildAdvancedSearchField()),
               SliverToBoxAdapter(child: _buildSearchField()),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
