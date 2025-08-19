@@ -94,7 +94,7 @@ class DialogUtils {
                         ),
                         child: Text(
                           buttonText,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
@@ -198,7 +198,7 @@ class DialogUtils {
                         ),
                         child: Text(
                           buttonText,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
@@ -375,7 +375,7 @@ class DialogUtils {
                             ),
                             child: Text(
                               cancelText,
-                              style: TextStyle(color: cancelColor, fontWeight: FontWeight.w600),
+                              style: GoogleFonts.cairo(color: cancelColor, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -397,7 +397,7 @@ class DialogUtils {
                             ),
                             child: Text(
                               confirmText,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -494,9 +494,9 @@ class DialogUtils {
                               foregroundColor: Colors.grey[600],
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                             ),
-                            child: const Text(
+                            child: Text(
                               'إغلاق',
-                              style: TextStyle(fontWeight: FontWeight.w600),
+                              style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -517,9 +517,9 @@ class DialogUtils {
                                 ),
                                 elevation: 0,
                               ),
-                              child: const Text(
+                              child: Text(
                                 'إعادة المحاولة',
-                                style: TextStyle(fontWeight: FontWeight.bold),
+                                style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
                               ),
                             ),
                           ),

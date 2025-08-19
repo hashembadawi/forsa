@@ -729,7 +729,7 @@ class _ImagesSelectionStepState extends State<ImagesSelectionStep> {
         ),
         child: Text(
           'متابعة',
-          style: GoogleFonts.cairo(fontSize: 18),
+          style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -1008,7 +1008,7 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
             ),
             child: Text(
               'متابعة',
-              style: GoogleFonts.cairo(fontSize: 18),
+              style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -1126,8 +1126,10 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
   }
 
   bool _canSubmit() {
-    return _titleController.text.isNotEmpty &&
-        _priceController.text.isNotEmpty &&
+    // All fields required: title, price, description, currency, province, major area
+    return _titleController.text.trim().isNotEmpty &&
+        _priceController.text.trim().isNotEmpty &&
+        _descriptionController.text.trim().isNotEmpty &&
         _selectedCurrency != null &&
         _selectedProvince != null &&
         _selectedMajorArea != null;
@@ -1276,7 +1278,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
     return TextField(
       controller: _titleController,
       decoration: InputDecoration(
-        labelText: 'عنوان الإعلان',
+        labelText: 'عنوان الإعلان *',
         labelStyle: GoogleFonts.cairo(),
         hintText: 'أدخل عنوان جذاب للمنتج',
         hintStyle: GoogleFonts.cairo(),
@@ -1288,7 +1290,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
           vertical: 12,
         ),
       ),
-      onChanged: (_) => _updateData(),
+      onChanged: (_) => setState(_updateData),
     );
   }
 
@@ -1301,7 +1303,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
             controller: _priceController,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
-              labelText: 'السعر',
+              labelText: 'السعر *',
               labelStyle: GoogleFonts.cairo(),
               hintText: '0',
               hintStyle: GoogleFonts.cairo(),
@@ -1313,7 +1315,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
                 vertical: 12,
               ),
             ),
-            onChanged: (_) => _updateData(),
+            onChanged: (_) => setState(_updateData),
           ),
         ),
         const SizedBox(width: 10),
@@ -1322,7 +1324,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
             value: _selectedCurrency,
             isExpanded: true,
             decoration: InputDecoration(
-              labelText: 'العملة',
+              labelText: 'العملة *',
               labelStyle: GoogleFonts.cairo(),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -1355,7 +1357,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
       value: _selectedProvince,
       isExpanded: true,
       decoration: InputDecoration(
-        labelText: 'المحافظة',
+        labelText: 'المحافظة *',
         labelStyle: GoogleFonts.cairo(),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
@@ -1392,7 +1394,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
       value: _selectedMajorArea,
       isExpanded: true,
       decoration: InputDecoration(
-        labelText: 'المنطقة',
+        labelText: 'المنطقة *',
         labelStyle: GoogleFonts.cairo(),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
@@ -1422,7 +1424,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
       controller: _descriptionController,
       maxLines: 4,
       decoration: InputDecoration(
-        labelText: 'وصف المنتج',
+        labelText: 'وصف المنتج *',
         labelStyle: GoogleFonts.cairo(),
         hintText: 'أدخل وصفاً تفصيلياً للمنتج...',
         hintStyle: GoogleFonts.cairo(),
@@ -1435,7 +1437,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
         ),
         alignLabelWithHint: true,
       ),
-      onChanged: (_) => _updateData(),
+      onChanged: (_) => setState(_updateData),
     );
   }
 
@@ -1555,7 +1557,7 @@ class _AdDetailsStepState extends State<AdDetailsStep> {
             ),
             child: Text(
               'نشر الإعلان',
-              style: GoogleFonts.cairo(fontSize: 16),
+              style: GoogleFonts.cairo(fontSize: 16,fontWeight: FontWeight.bold),
             ),
           ),
         ),

@@ -1460,7 +1460,8 @@ https://syria-market-web.onrender.com/$adId
   // Action Methods
   Future<void> _openWhatsApp(String phone) async {
     final formattedPhone = _cleanPhoneNumber(phone);
-    const message = "السلام عليكم، أنا مهتم بالإعلان الخاص بك.";
+    final adTitle = _adModel.adTitle ?? '';
+    final message = "السلام عليكم، أنا مهتم بالإعلان الخاص بك: $adTitle";
     final encodedMessage = Uri.encodeComponent(message);
 
     final uriDirect = Uri.parse("whatsapp://send?phone=$formattedPhone&text=$encodedMessage");
