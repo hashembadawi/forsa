@@ -455,7 +455,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       'userPhone': userPhone,
       'userName': username,
       'adTitle': _adTitle,
-      'price': _price,
+      'price': double.tryParse(_price) ?? 0.0,
       'currencyId': _selectedCurrency?['id'],
       'currencyName': _selectedCurrency?['name'],
       'categoryId': _selectedCategory?['id'],

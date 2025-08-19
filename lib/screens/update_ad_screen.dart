@@ -254,12 +254,12 @@ class _EditAdScreenState extends State<EditAdScreen> {
   Map<String, dynamic> _buildUpdateRequestBody() {
     return {
       'adTitle': _titleController.text.trim(),
-      'price': _priceController.text.trim(),
+      'price': double.tryParse(_priceController.text.trim()) ?? 0.0,
       'currencyId': _selectedCurrency?['id'],
       'currencyName': _selectedCurrency?['name'],
       'description': _descriptionController.text.trim(),
-    'forSale': _forSale,
-    'deliveryService': _deliveryService,
+      'forSale': _forSale,
+      'deliveryService': _deliveryService,
     };
   }
 
