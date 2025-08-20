@@ -8,6 +8,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:syria_market/screens/search_advance_screen.dart';
 import '../utils/dialog_utils.dart';
+import '../utils/ad_card_widget.dart';
 import 'account_screen.dart';
 import 'ad_details_screen.dart';
 import 'add_ad_screen.dart';
@@ -1011,120 +1012,15 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
 
   // ========== Widget Building Methods ==========
 
-  /// Build advertisement card (optimized)
+  // Use AdCardWidget from utils/ad_card_widget.dart instead of local _buildAdCard
   Widget _buildAdCard(AdModel ad) {
-    final images = ad.images ?? [];
-    final firstImageBase64 = images.isNotEmpty ? images[0] : null;
-    final String adId = ad.id ?? '';
-    final bool isSpecial = ad.isSpecial ?? false;
-
-    return Container(
-      margin: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            Color(0xFFF8FBFF),
-            Color(0xFFF0F8FF),
-          ],
-        ),
-        border: Border.all(color: Colors.blue[300]!, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue[100]!.withOpacity(0.3),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          splashColor: Colors.blue[300]!.withOpacity(0.2),
-          highlightColor: Colors.blue[100]!.withOpacity(0.1),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => AdDetailsScreen(ad: ad.toJson())),
-          ),
-          child: Stack(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: Stack(
-                          children: [
-                            _buildAdImage(firstImageBase64),
-                            if (isSpecial)
-                              Positioned(
-                                top: 8,
-                                right: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.amber[700]?.withOpacity(0.95),
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.amber.withOpacity(0.2),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.star, color: Colors.white, size: 16),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'إعلان مميز',
-                                        style: GoogleFonts.cairo(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Container(
-                      constraints: const BoxConstraints(minHeight: 80),
-                      child: Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: _buildAdDetails(ad),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              // Favorite Heart Icon - Show for all users
-              Positioned(
-                top: 8,
-                left: 8,
-                child: _buildFavoriteHeartIcon(adId),
-              ),
-            ],
-          ),
-        ),
+    return AdCardWidget(
+      ad: ad,
+      adDetailsBuilder: (ad) => _buildAdDetails(ad),
+      favoriteIconBuilder: (adId) => _buildFavoriteHeartIcon(adId),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => AdDetailsScreen(ad: ad.toJson())),
       ),
     );
   }
