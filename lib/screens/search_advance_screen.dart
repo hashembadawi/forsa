@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:syria_market/screens/advanced_search_results_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -24,9 +24,7 @@ class _SearchAdvanceScreenState extends State<SearchAdvanceScreen> {
   int _limit = 20;
 
   // Results
-  List<dynamic> _results = [];
-  bool _isLoading = false;
-  String? _error;
+  // Removed unused _results, _isLoading, _error fields
 
   // Example: You may want to fetch these from your API
   List<Map<String, dynamic>> _categories = [];
@@ -77,49 +75,24 @@ class _SearchAdvanceScreenState extends State<SearchAdvanceScreen> {
     }
   }
 
-  Future<void> _search() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-      _results = [];
-    });
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token') ?? '';
-      final params = <String, String>{
-        if (_categoryId != null) 'categoryId': _categoryId.toString(),
-        if (_subCategoryId != null) 'subCategoryId': _subCategoryId.toString(),
-        if (_currencyId != null) 'currencyId': _currencyId.toString(),
-        if (_forSale != null) 'forSale': _forSale.toString(),
-        if (_deliveryService != null) 'deliveryService': _deliveryService.toString(),
-        if (_priceMin != null) 'priceMin': _priceMin.toString(),
-        if (_priceMax != null) 'priceMax': _priceMax.toString(),
-        'page': _page.toString(),
-        'limit': _limit.toString(),
-      };
-      final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search-advance', params);
-      final response = await http.get(uri, headers: {
-        'Authorization': 'Bearer $token',
-      });
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          _results = data['ads'] ?? [];
-        });
-      } else {
-        setState(() {
-          _error = 'فشل البحث';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _error = 'حدث خطأ أثناء البحث';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+  void _search() {
+    final params = <String, String>{
+      if (_categoryId != null) 'categoryId': _categoryId.toString(),
+      if (_subCategoryId != null) 'subCategoryId': _subCategoryId.toString(),
+      if (_currencyId != null) 'currencyId': _currencyId.toString(),
+      if (_forSale != null) 'forSale': _forSale.toString(),
+      if (_deliveryService != null) 'deliveryService': _deliveryService.toString(),
+      if (_priceMin != null) 'priceMin': _priceMin.toString(),
+      if (_priceMax != null) 'priceMax': _priceMax.toString(),
+      'page': _page.toString(),
+      'limit': _limit.toString(),
+    };
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AdvancedSearchResultsScreen(searchParams: params),
+      ),
+    );
   }
 
   @override
@@ -258,30 +231,17 @@ class _SearchAdvanceScreenState extends State<SearchAdvanceScreen> {
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _isLoading ? null : _search,
+                onPressed: _search,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue[700],
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   textStyle: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-                child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : Text('بحث', style: GoogleFonts.cairo()),
+                child: Text('بحث', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
               ),
-              if (_error != null) ...[
-                const SizedBox(height: 16),
-                Text(_error!, style: GoogleFonts.cairo(color: Colors.red)),
-              ],
-              if (_results.isNotEmpty) ...[
-                const SizedBox(height: 24),
-                Text('النتائج:', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                ..._results.map((ad) => Card(
-                  child: ListTile(
-                    title: Text(ad['adTitle'] ?? '', style: GoogleFonts.cairo()),
-                    subtitle: Text('السعر: ${ad['price'] ?? ''}', style: GoogleFonts.cairo()),
-                  ),
-                )),
-              ],
+              // Error display removed: errors are now handled in AdvancedSearchResultsScreen
+              // Results are now shown in AdvancedSearchResultsScreen
             ],
           ),
         ),
