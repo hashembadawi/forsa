@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:syria_market/screens/home_screen.dart';
+import 'package:syria_market/screens/home_screen.dart' as home;
+import 'package:syria_market/utils/ad_card_widget.dart';
 import 'package:syria_market/screens/ad_details_screen.dart';
 import 'package:syria_market/utils/dialog_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,7 +21,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   static const String _baseUrl = 'https://sahbo-app-api.onrender.com/api/favorites/my-favorites';
   static const int _adsPerPage = 10;
   static const double _scrollThreshold = 200.0;
-  static const double _imageHeight = 200.0;
 
   // ========== State Variables ==========
   final List<dynamic> _favoriteAds = [];
@@ -189,7 +189,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   /// Navigate back to home screen
   void _navigateToHome() {
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      MaterialPageRoute(builder: (context) => const home.HomeScreen()),
       (Route<dynamic> route) => false,
     );
   }
@@ -264,21 +264,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   // ========== Utility Methods ==========
 
-  /// Format date for display
-  String _formatDate(String isoDate) {
-    try {
-      final date = DateTime.parse(isoDate);
-      final now = DateTime.now();
-      final difference = now.difference(date);
-
-      if (difference.inDays >= 1) return 'منذ ${difference.inDays} يوم';
-      if (difference.inHours >= 1) return 'منذ ${difference.inHours} ساعة';
-      if (difference.inMinutes >= 1) return 'منذ ${difference.inMinutes} دقيقة';
-      return 'الآن';
-    } catch (e) {
-      return 'غير محدد';
-    }
-  }
 
   /// Check if favorites list is empty
   bool get _isFavoritesListEmpty => _favoriteAds.isEmpty;
@@ -423,235 +408,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   /// Build advertisement card
   Widget _buildAdCard(Map<String, dynamic> ad) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: _buildCardDecoration(),
-      child: Material(
-        color: Colors.transparent,
-        child: Stack(
-          children: [
-            InkWell(
-              borderRadius: BorderRadius.circular(18),
-              onTap: () => _navigateToAdDetails(ad),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildAdImage(ad),
-                  _buildAdContent(ad),
-                ],
-              ),
-            ),
-            // Remove from favorites icon
-            Positioned(
-              top: 8,
-              left: 8,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.red[600],
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: IconButton(
-                  icon: const Icon(
-                    Icons.favorite,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                  onPressed: () => _showRemoveFromFavoritesDialog(ad),
-                  padding: const EdgeInsets.all(8),
-                  constraints: const BoxConstraints(
-                    minWidth: 36,
-                    minHeight: 36,
-                  ),
-                ),
-              ),
-            ),
-          ],
+    return AdCardWidget(
+      ad: home.AdModel.fromJson(ad),
+      onTap: () => _navigateToAdDetails(ad),
+      favoriteIconBuilder: (adId) => GestureDetector(
+        onTap: () => _showRemoveFromFavoritesDialog(ad),
+        child: Icon(
+          Icons.favorite,
+          color: Colors.red,
+          size: 24,
         ),
       ),
     );
   }
 
-  /// Build card decoration
-  BoxDecoration _buildCardDecoration() {
-    return BoxDecoration(
-      borderRadius: BorderRadius.circular(18),
-      color: Colors.white,
-      border: Border.all(color: Colors.blue[300]!, width: 1.5),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.blue[100]!.withOpacity(0.3),
-          blurRadius: 8,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    );
-  }
-
-  /// Build ad image section
-  Widget _buildAdImage(Map<String, dynamic> ad) {
-    final List<dynamic> images = ad['images'] is List ? ad['images'] : [];
-    final firstImageBase64 = images.isNotEmpty ? images[0] : null;
-
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-      child: SizedBox(
-        height: _imageHeight,
-        width: double.infinity,
-        child: _buildImageWidget(firstImageBase64),
-      ),
-    );
-  }
-
-  /// Build image widget with error handling
-  Widget _buildImageWidget(String? imageBase64) {
-    if (imageBase64 != null) {
-      return Image.memory(
-        base64Decode(imageBase64),
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
-      );
-    } else {
-      return _buildImagePlaceholder(showNoImageText: true);
-    }
-  }
-
-  /// Build image placeholder
-  Widget _buildImagePlaceholder({bool showNoImageText = false}) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.blue[50]!, Colors.blue[100]!],
-        ),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.image, size: 60, color: Colors.blue[600]),
-            const SizedBox(height: 8),
-            Text(
-              showNoImageText ? 'لا توجد صورة' : 'صورة',
-              style: GoogleFonts.cairo(
-                color: Colors.black87,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Build ad content section
-  Widget _buildAdContent(Map<String, dynamic> ad) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildAdTitle(ad),
-          const SizedBox(height: 12),
-          _buildAdPrice(ad),
-          const SizedBox(height: 12),
-          _buildAdLocation(ad),
-          const SizedBox(height: 8),
-          _buildAdDate(ad),
-        ],
-      ),
-    );
-  }
-
-  /// Build ad title
-  Widget _buildAdTitle(Map<String, dynamic> ad) {
-    return Text(
-      ad['adTitle'] ?? 'بدون عنوان',
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.cairo(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
-      ),
-    );
-  }
-
-  /// Build ad price
-  Widget _buildAdPrice(Map<String, dynamic> ad) {
-    final price = ad['price'] ?? '0';
-    final currency = ad['currencyName'] ?? ad['currency'] ?? '';
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue[300]!, width: 1),
-      ),
-      child: Text(
-        '$price $currency',
-        style: GoogleFonts.cairo(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Colors.blue[700],
-        ),
-      ),
-    );
-  }
-
-  /// Build ad location
-  Widget _buildAdLocation(Map<String, dynamic> ad) {
-    final cityName = ad['cityName'] ?? '';
-    final regionName = ad['regionName'] ?? '';
-    final location = '$cityName - $regionName'.replaceAll(RegExp(r'^-\s*|-\s*$'), '');
-    
-    return Row(
-      children: [
-        Icon(Icons.location_on, size: 16, color: Colors.blue[600]),
-        const SizedBox(width: 4),
-        Expanded(
-          child: Text(
-            location.isNotEmpty ? location : 'موقع غير محدد',
-            style: GoogleFonts.cairo(
-              color: Colors.black87,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Build ad date
-  Widget _buildAdDate(Map<String, dynamic> ad) {
-    final createDate = ad['createDate'];
-    final formattedDate = createDate != null ? _formatDate(createDate) : 'غير محدد';
-    
-    return Row(
-      children: [
-        Icon(Icons.access_time, size: 16, color: Colors.blue[600]),
-        const SizedBox(width: 4),
-        Text(
-          formattedDate,
-          style: GoogleFonts.cairo(
-            color: Colors.black87,
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
 
   // ========== Main Build Method ==========
 
