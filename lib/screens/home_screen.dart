@@ -1,3 +1,4 @@
+import 'advertiser_page_screen.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -139,6 +140,134 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMixin {
+  // ========== Most Active Users State ==========
+  List<Map<String, dynamic>> _mostActiveUsers = [];
+  bool _isLoadingActiveUsers = false;
+  bool _hasErrorActiveUsers = false;
+
+  /// Fetch most active users
+  Future<void> _fetchMostActiveUsers() async {
+    setState(() {
+      _isLoadingActiveUsers = true;
+      _hasErrorActiveUsers = false;
+    });
+    try {
+      final url = Uri.parse('https://sahbo-app-api.onrender.com/api/user/most-active?limit=10');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final List<dynamic> users = jsonDecode(response.body);
+        setState(() {
+          _mostActiveUsers = users.cast<Map<String, dynamic>>();
+          _isLoadingActiveUsers = false;
+        });
+      } else {
+        setState(() {
+          _isLoadingActiveUsers = false;
+          _hasErrorActiveUsers = true;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoadingActiveUsers = false;
+        _hasErrorActiveUsers = true;
+      });
+    }
+  }
+
+  /// Build Most Active Users section
+  Widget _buildMostActiveUsersSection() {
+    if (_isLoadingActiveUsers) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Center(child: SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2))),
+      );
+    }
+    if (_hasErrorActiveUsers) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Center(child: Text('تعذر تحميل المستخدمين الأكثر حركة', style: GoogleFonts.cairo(fontSize: 14, color: Colors.red))),
+      );
+    }
+    if (_mostActiveUsers.isEmpty) {
+      return SizedBox.shrink();
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            'المستخدمين الأكثر حركة',
+            style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue[700]),
+          ),
+        ),
+        SizedBox(
+          height: 120,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            itemCount: _mostActiveUsers.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            itemBuilder: (context, index) {
+              final user = _mostActiveUsers[index];
+              final String? base64Image = user['profileImage'];
+              final String userName = ((user['firstName'] ?? '') + ' ' + (user['lastName'] ?? '')).trim();
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AdvertiserPageScreen(
+                        userId: user['userId'] ?? '',
+                        initialUserName: userName,
+                        initialUserPhone: user['phoneNumber'] ?? '',
+                      ),
+                    ),
+                  );
+                },
+                child: Column(
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.blue[300]!, width: 2),
+                        color: Colors.white,
+                        // Removed boxShadow
+                      ),
+                      child: base64Image != null && base64Image.isNotEmpty
+                          ? ClipOval(
+                              child: Image.memory(
+                                base64Decode(base64Image),
+                                fit: BoxFit.cover,
+                                width: 80,
+                                height: 80,
+                                errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 48, color: Colors.blue[400]),
+                              ),
+                            )
+                          : Icon(Icons.person, size: 48, color: Colors.blue[400]),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: 80,
+                      child: Text(
+                        userName,
+                        style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
   /// Build advanced search field
   Widget _buildAdvancedSearchField() {
     return Padding(
@@ -230,6 +359,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   void initState() {
     super.initState();
     _initializeScreen();
+  _fetchMostActiveUsers();
   }
 
   @override
@@ -1438,179 +1568,182 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       textDirection: TextDirection.rtl,
       child: GestureDetector(
         onTap: () {
-          // Unfocus any text fields
           FocusScope.of(context).unfocus();
         },
         child: Scaffold(
           drawer: _buildDrawer(context),
           body: Container(
-          decoration: const BoxDecoration(color: Colors.white),
-          child: RefreshIndicator(
-            onRefresh: _handleRefresh,
-            color: Colors.blue[600],
-            backgroundColor: Colors.white,
-            strokeWidth: 2.5,
-            child: CustomScrollView(
-              controller: _adsScrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-              SliverAppBar(
-                floating: true,
-                pinned: true,
-                snap: false,
-                elevation: 0,
-                backgroundColor: Colors.blue[700],
-                title: Text(
-                  'سوق سوريا',
-                  style: GoogleFonts.cairo(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                centerTitle: true,
-                leading: Builder(
-                  builder: (context) => IconButton(
-                    icon: const Icon(Icons.menu, size: 28, color: Colors.white),
-                    onPressed: () => Scaffold.of(context).openDrawer(),
-                  ),
-                ),
-              ),
-              const SliverToBoxAdapter(child: ImageSlider()),
-              SliverToBoxAdapter(child: _buildLocationButton()),
-              SliverToBoxAdapter(child: _buildAdvancedSearchField()),
-              SliverToBoxAdapter(child: _buildSearchField()),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    Text(
-                      'جميع الإعلانات',
+            decoration: const BoxDecoration(color: Colors.white),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await _handleRefresh();
+                await _fetchMostActiveUsers();
+              },
+              color: Colors.blue[600],
+              backgroundColor: Colors.white,
+              strokeWidth: 2.5,
+              child: CustomScrollView(
+                controller: _adsScrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverAppBar(
+                    floating: true,
+                    pinned: true,
+                    snap: false,
+                    elevation: 0,
+                    backgroundColor: Colors.blue[700],
+                    title: Text(
+                      'سوق سوريا',
                       style: GoogleFonts.cairo(
-                        fontSize: 20,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E4A47),
+                        color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Container(
-                      height: 3,
-                      width: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.blue[600],
-                        borderRadius: BorderRadius.circular(2),
+                    centerTitle: true,
+                    leading: Builder(
+                      builder: (context) => IconButton(
+                        icon: const Icon(Icons.menu, size: 28, color: Colors.white),
+                        onPressed: () => Scaffold.of(context).openDrawer(),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    if (_isRefreshing)
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            children: [
-                              const CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'جاري تحديث الإعلانات...',
-                                style: GoogleFonts.cairo(
-                                  color: Colors.grey,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
+                  ),
+                  const SliverToBoxAdapter(child: ImageSlider()),
+                  SliverToBoxAdapter(child: _buildLocationButton()),
+                  SliverToBoxAdapter(child: _buildAdvancedSearchField()),
+                  SliverToBoxAdapter(child: _buildSearchField()),
+                  SliverToBoxAdapter(child: _buildMostActiveUsersSection()),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        Text(
+                          'جميع الإعلانات',
+                          style: GoogleFonts.cairo(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E4A47),
                           ),
                         ),
-                      )
-                    else if (_allAds.isEmpty && _isLoadingAds)
-                      const Center(
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                        ),
-                      )
-                    else if (_allAds.isEmpty && !_isLoadingAds)
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.search_off,
-                                size: 64,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'لا يوجد نتائج',
-                                style: GoogleFonts.cairo(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'لم يتم العثور على أي إعلانات',
-                                style: GoogleFonts.cairo(
-                                  fontSize: 14,
-                                  color: Colors.grey[500],
-                                ),
-                              ),
-                            ],
+                        const SizedBox(height: 8),
+                        Container(
+                          height: 3,
+                          width: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.blue[600],
+                            borderRadius: BorderRadius.circular(2),
                           ),
                         ),
-                      ),
-                  ]),
-                ),
-              ),
-              if (_allAds.isNotEmpty || _isRefreshing)
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2), // Slight padding from screen edge
-                  sliver: SliverGrid(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
-                      childAspectRatio: 0.82,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        if (index == _allAds.length && _hasMoreAds) {
-                          return const Center(
+                        const SizedBox(height: 12),
+                        if (_isRefreshing)
+                          Center(
                             child: Padding(
-                              padding: EdgeInsets.all(5),
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                children: [
+                                  const CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'جاري تحديث الإعلانات...',
+                                    style: GoogleFonts.cairo(
+                                      color: Colors.grey,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          );
-                        }
-                        return AdCardWidget(
-                          ad: _allAds[index],
-                          favoriteIconBuilder: _favoriteHeartIconBuilder,
-                        );
-                      },
-                      childCount: _allAds.length + (_hasMoreAds ? 1 : 0),
+                          )
+                        else if (_allAds.isEmpty && _isLoadingAds)
+                          const Center(
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                            ),
+                          )
+                        else if (_allAds.isEmpty && !_isLoadingAds)
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(32),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.search_off,
+                                    size: 64,
+                                    color: Colors.grey[400],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'لا يوجد نتائج',
+                                    style: GoogleFonts.cairo(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'لم يتم العثور على أي إعلانات',
+                                    style: GoogleFonts.cairo(
+                                      fontSize: 14,
+                                      color: Colors.grey[500],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ]),
                     ),
                   ),
-                ),
-              if (!_hasMoreAds && _allAds.isNotEmpty)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    child: Center(
-                      child: Text(
-                        'لا يوجد المزيد من الإعلانات',
-                        style: GoogleFonts.cairo(
-                          color: Colors.grey,
+                  if (_allAds.isNotEmpty || _isRefreshing)
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      sliver: SliverGrid(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+                          childAspectRatio: 0.82,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            if (index == _allAds.length && _hasMoreAds) {
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(5),
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                                  ),
+                                ),
+                              );
+                            }
+                            return AdCardWidget(
+                              ad: _allAds[index],
+                              favoriteIconBuilder: _favoriteHeartIconBuilder,
+                            );
+                          },
+                          childCount: _allAds.length + (_hasMoreAds ? 1 : 0),
                         ),
                       ),
                     ),
-                  ),
-                ),
-            ],
+                  if (!_hasMoreAds && _allAds.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        child: Center(
+                          child: Text(
+                            'لا يوجد المزيد من الإعلانات',
+                            style: GoogleFonts.cairo(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
-        ),
         ),
       ),
     );
