@@ -1566,35 +1566,33 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
               ),
               if (_allAds.isNotEmpty || _isRefreshing)
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 6), // Slight padding from screen edge
                   sliver: SliverGrid(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 0.65,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index == _allAds.length && _hasMoreAds) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+                      childAspectRatio: 0.82,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        if (index == _allAds.length && _hasMoreAds) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(5),
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                              ),
                             ),
-                          ),
+                          );
+                        }
+                        return AdCardWidget(
+                          ad: _allAds[index],
+                          favoriteIconBuilder: _favoriteHeartIconBuilder,
                         );
-                      }
-                      return AdCardWidget(
-                        ad: _allAds[index],
-                        favoriteIconBuilder: _favoriteHeartIconBuilder,
-                      );
-                    },
-                    childCount: _allAds.length + (_hasMoreAds ? 1 : 0),
+                      },
+                      childCount: _allAds.length + (_hasMoreAds ? 1 : 0),
+                    ),
                   ),
                 ),
-              ),
               if (!_hasMoreAds && _allAds.isNotEmpty)
                 const SliverToBoxAdapter(
                   child: Padding(

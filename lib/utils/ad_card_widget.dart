@@ -122,7 +122,7 @@ class AdCardWidget extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -192,7 +192,7 @@ class AdCardWidget extends StatelessWidget {
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                 child: adDetailsBuilder != null
                     ? adDetailsBuilder!(ad)
                     : _DefaultAdDetails(ad: ad),
@@ -247,14 +247,14 @@ class _DefaultAdDetails extends StatelessWidget {
                 softWrap: true,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 4),
             // Divider
             Container(
               height: 1,
               color: Colors.blue.withOpacity(0.10),
-              margin: const EdgeInsets.symmetric(vertical: 2),
+              margin: const EdgeInsets.symmetric(vertical: 1),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 2),
             // Price and Type
             Row(
               children: [
@@ -271,7 +271,7 @@ class _DefaultAdDetails extends StatelessWidget {
                     maxLines: 1,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 4),
                 Flexible(
                   flex: 1,
                   child: Text(
@@ -287,20 +287,20 @@ class _DefaultAdDetails extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 4),
             // Divider
             Container(
               height: 1,
               color: Colors.blue.withOpacity(0.10),
-              margin: const EdgeInsets.symmetric(vertical: 2),
+              margin: const EdgeInsets.symmetric(vertical: 1),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 2),
             // Location and Date
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.location_on, size: 14, color: Colors.blue[600]),
-                const SizedBox(width: 3),
+                const SizedBox(width: 2),
                 Flexible(
                   child: Text(
                     '${ad.cityName ?? ''} - ${_formatDate(ad.createDate)}',
