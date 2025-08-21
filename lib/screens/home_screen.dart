@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -222,28 +221,11 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   bool _isCheckingConnectivity = true;
 
   // ========== Image Cache ==========
-  final Map<String, Uint8List> _imageCache = {};
 
   @override
   bool get wantKeepAlive => true;
 
   // Optimized image decoding with caching
-  Uint8List? _getDecodedImage(String? base64String) {
-    if (base64String == null || base64String.isEmpty) return null;
-    
-    if (_imageCache.containsKey(base64String)) {
-      return _imageCache[base64String];
-    }
-    
-    try {
-      final decoded = base64Decode(base64String);
-      _imageCache[base64String] = decoded;
-      return decoded;
-    } catch (e) {
-      debugPrint('Error decoding image: $e');
-      return null;
-    }
-  }
 
   @override
   void initState() {
@@ -1025,52 +1007,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
     );
   }
 
-  /// Build ad image (optimized with caching)
-  Widget _buildAdImage(String? firstImageBase64) {
-    if (firstImageBase64 != null) {
-      final decodedImage = _getDecodedImage(firstImageBase64);
-      if (decodedImage != null) {
-        return Image.memory(
-          decodedImage,
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: double.infinity,
-          errorBuilder: (context, error, stackTrace) => _buildNoImagePlaceholder(),
-        );
-      }
-    }
-    return _buildNoImagePlaceholder();
-  }
 
-  /// Build no image placeholder
-  Widget _buildNoImagePlaceholder() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFF0F8FF), Color(0xFFE6F3FF)],
-        ),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.image, size: 40, color: Colors.blue[400]),
-            const SizedBox(height: 4),
-            Text(
-              'لا توجد صورة',
-              style: GoogleFonts.cairo(
-                color: Colors.blue[700],
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   /// Build ad details section (optimized)
   Widget _buildAdDetails(AdModel ad) {
