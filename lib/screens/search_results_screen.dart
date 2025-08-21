@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:syria_market/screens/ad_details_screen.dart';
+import '../utils/ad_card_widget.dart';
+import 'home_screen.dart' as home;
 import 'package:google_fonts/google_fonts.dart';
 
 /// Screen displaying search results for advertisements
@@ -23,7 +25,6 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   static const String _searchEndpoint = '/api/ads/search-by-title';
   static const int _defaultPage = 1;
   static const int _defaultLimit = 20;
-  static const double _cardBorderRadius = 18.0;
   static const double _gridSpacing = 12.0;
   static const double _cardAspectRatio = 0.65;
   static const int _tabletCrossAxisCount = 3;
@@ -36,8 +37,6 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   String? _errorMessage;
 
   // ========== Color Scheme ==========
-  static const Color _aliceBlue = Color(0xFFF0F8FF);
-  static const Color _lightBlue = Color(0xFFE6F3FF);
 
   @override
   void initState() {
@@ -115,227 +114,11 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
 
   /// Build individual advertisement card
   Widget _buildAdCard(dynamic ad) {
-    return Container(
-      margin: const EdgeInsets.all(4),
-      decoration: _buildCardDecoration(),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(_cardBorderRadius),
-          splashColor: Colors.blue[300]!.withOpacity(0.2),
-          highlightColor: Colors.blue[100]!.withOpacity(0.1),
-          onTap: () => _navigateToAdDetails(ad),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildAdImage(ad),
-              _buildAdContent(ad),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Build card decoration with gradient and border
-  BoxDecoration _buildCardDecoration() {
-    return BoxDecoration(
-      borderRadius: BorderRadius.circular(_cardBorderRadius),
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [_aliceBlue, _lightBlue],
-      ),
-      border: Border.all(
-        color: Colors.blue[300]!,
-        width: 1.5,
-      ),
-    );
-  }
-
-  /// Build advertisement image section
-  Widget _buildAdImage(dynamic ad) {
-    return Expanded(
-      flex: 3,
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(_cardBorderRadius),
-        ),
-        child: SizedBox(
-          width: double.infinity,
-          child: _buildImageWidget(ad),
-        ),
-      ),
-    );
-  }
-
-  /// Build image widget with error handling
-  Widget _buildImageWidget(dynamic ad) {
-    final images = _extractImages(ad);
-    final firstImageBase64 = images.isNotEmpty ? images.first : null;
-
-    if (firstImageBase64 != null) {
-      return _buildDecodedImage(firstImageBase64);
-    } else {
-      return _buildPlaceholderImage(false);
-    }
-  }
-
-  /// Extract images from ad data
-  List<dynamic> _extractImages(dynamic ad) {
-    final images = ad['images'];
-    return images is List ? images : [];
-  }
-
-  /// Build decoded base64 image with error handling
-  Widget _buildDecodedImage(String base64String) {
-    return Image.memory(
-      base64Decode(base64String),
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) {
-        debugPrint('Image decode error: $error');
-        return _buildPlaceholderImage(true);
-      },
-    );
-  }
-
-  /// Build placeholder image when no image is available or error occurs
-  Widget _buildPlaceholderImage(bool isError) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [_aliceBlue, _lightBlue],
-        ),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.image,
-              size: 40,
-              color: Colors.blue[400],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              isError ? 'صورة' : 'لا توجد صورة',
-              style: GoogleFonts.cairo(
-                color: Colors.blue[700],
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Build advertisement content section
-  Widget _buildAdContent(dynamic ad) {
-    return Expanded(
-      flex: 2,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 80),
-        child: Padding(
-          padding: const EdgeInsets.all(6),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildAdTitle(ad),
-              _buildAdPrice(ad),
-              _buildAdDescription(ad),
-              _buildAdLocation(ad),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Build advertisement title
-  Widget _buildAdTitle(dynamic ad) {
-    return Text(
-      ad['adTitle']?.toString() ?? '',
-      style: GoogleFonts.cairo(
-        fontSize: 13,
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
-      ),
-      overflow: TextOverflow.ellipsis,
-      maxLines: 1,
-    );
-  }
-
-  /// Build advertisement price with styling
-  Widget _buildAdPrice(dynamic ad) {
-    final price = ad['price']?.toString() ?? '0';
-    final currency = ad['currencyName']?.toString() ?? '';
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.blue[200]!,
-          width: 1,
-        ),
-      ),
-      child: Text(
-        '$price $currency',
-        style: GoogleFonts.cairo(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.blue[700],
-        ),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-      ),
-    );
-  }
-
-  /// Build advertisement description
-  Widget _buildAdDescription(dynamic ad) {
-    return Text(
-      ad['description']?.toString() ?? '',
-      style: GoogleFonts.cairo(
-        fontSize: 10,
-        color: Colors.black87,
-        fontWeight: FontWeight.w500,
-      ),
-      overflow: TextOverflow.ellipsis,
-      maxLines: 1,
-    );
-  }
-
-  /// Build advertisement location
-  Widget _buildAdLocation(dynamic ad) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.location_on,
-          size: 12,
-          color: Colors.blue[600],
-        ),
-        const SizedBox(width: 2),
-        Expanded(
-          child: Text(
-            ad['cityName']?.toString() ?? '',
-            style: GoogleFonts.cairo(
-              color: Colors.black87,
-              fontSize: 9,
-              fontWeight: FontWeight.w500,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
-        ),
-      ],
+    // Convert the ad map to AdModel (from home_screen.dart)
+    final adModel = home.AdModel.fromJson(ad);
+    return AdCardWidget(
+      ad: adModel,
+      onTap: () => _navigateToAdDetails(ad),
     );
   }
 

@@ -57,6 +57,7 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
   /// Fetch search suggestions based on user input
   Future<void> _fetchSearchSuggestions(String query) async {
     if (query.isEmpty) {
+      if (!mounted) return;
       setState(() {
         _searchSuggestions.clear();
         _isLoadingSuggestions = false;
@@ -64,6 +65,7 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
       return;
     }
 
+    if (!mounted) return;
     setState(() => _isLoadingSuggestions = true);
 
     try {
@@ -77,6 +79,7 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
       final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search-by-title', params);
       final response = await http.get(uri);
 
+      if (!mounted) return;
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         final List<dynamic> ads = decoded['ads'] ?? [];
@@ -89,12 +92,13 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
             uniqueTitles.add(title);
           }
         }
-        
+        if (!mounted) return;
         setState(() {
           _searchSuggestions = uniqueTitles.take(10).toList();
           _isLoadingSuggestions = false;
         });
       } else {
+        if (!mounted) return;
         setState(() {
           _searchSuggestions.clear();
           _isLoadingSuggestions = false;
@@ -102,6 +106,7 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
       }
     } catch (e) {
       debugPrint('Error fetching search suggestions: $e');
+      if (!mounted) return;
       setState(() {
         _searchSuggestions.clear();
         _isLoadingSuggestions = false;
@@ -112,17 +117,19 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
   /// Handle search input change with debounce
   void _onSearchChanged(String value) {
     _searchDebounceTimer?.cancel();
-    
+
     // Only fetch suggestions if user typed at least 1 character
     if (value.trim().isEmpty) {
+      if (!mounted) return;
       setState(() {
         _searchSuggestions.clear();
         _isLoadingSuggestions = false;
       });
       return;
     }
-    
+
     _searchDebounceTimer = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
       _fetchSearchSuggestions(value.trim());
     });
   }
