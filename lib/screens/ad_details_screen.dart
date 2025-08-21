@@ -168,7 +168,8 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   final Map<String, Uint8List> _imageCache = {};
   
   // Controllers
-  PageController? _pageController;
+  PageController? _imagePageController;
+  PageController? _similarAdsPageController;
 
   @override
   bool get wantKeepAlive => true;
@@ -177,11 +178,12 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   void initState() {
     super.initState();
     _adModel = AdModel.fromJson(widget.ad);
-    _pageController = PageController();
+    _imagePageController = PageController();
+    _similarAdsPageController = PageController();
     _initializeData();
-    _pageController?.addListener(() {
-      if (_pageController == null) return;
-      final int newPage = _pageController!.page?.round() ?? 0;
+    _similarAdsPageController?.addListener(() {
+      if (_similarAdsPageController == null) return;
+      final int newPage = _similarAdsPageController!.page?.round() ?? 0;
       if (newPage != _currentSimilarAdPage) {
         setState(() {
           _currentSimilarAdPage = newPage;
@@ -192,7 +194,8 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
 
   @override
   void dispose() {
-  _pageController?.dispose();
+    _imagePageController?.dispose();
+    _similarAdsPageController?.dispose();
     super.dispose();
   }
 
@@ -472,7 +475,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
         children: [
           // Optimized Image PageView
           PageView.builder(
-            controller: _pageController,
+            controller: _imagePageController,
             itemCount: images.length,
             itemBuilder: (context, index) => _buildImageItem(images, index),
           ),
@@ -2012,12 +2015,12 @@ https://syria-market-web.onrender.com/$adId
             // Section Header
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.blue[600],
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
+                  topLeft: Radius.circular(10),
+                  topRight: Radius.circular(10),
                 ),
               ),
               child: Text(
@@ -2132,7 +2135,7 @@ https://syria-market-web.onrender.com/$adId
   /// Build no similar ads widget
   Widget _buildNoSimilarAds() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(10),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -2161,7 +2164,7 @@ https://syria-market-web.onrender.com/$adId
     return LayoutBuilder(
       builder: (context, constraints) {
         final double cardWidth = constraints.maxWidth * 0.92;
-        final double cardHeight = 320.0;
+        final double cardHeight = 290.0;
         if (_similarAds.length <= 1) {
           // Show single card (no sliding)
           return Center(
@@ -2206,7 +2209,7 @@ https://syria-market-web.onrender.com/$adId
                 SizedBox(
                   height: cardHeight,
                   child: PageView.builder(
-                    controller: _pageController,
+                    controller: _similarAdsPageController,
                     itemCount: _similarAds.length,
                     itemBuilder: (context, index) {
                       final ad = _similarAds[index];
