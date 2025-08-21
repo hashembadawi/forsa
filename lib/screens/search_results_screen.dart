@@ -118,6 +118,12 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     final adModel = home.AdModel.fromJson(ad);
     return AdCardWidget(
       ad: adModel,
+      favoriteIconBuilder: (adId) => defaultFavoriteHeartIcon(
+        adId,
+        isFavorite: false, // TODO: Replace with real logic if available
+        isLoggedIn: false, // TODO: Replace with real logic if available
+        isLoading: false,
+      ),
       onTap: () => _navigateToAdDetails(ad),
     );
   }

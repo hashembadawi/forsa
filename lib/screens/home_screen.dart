@@ -980,42 +980,15 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   //   ad: ad,
   //   favoriteIconBuilder: (adId) => _buildFavoriteHeartIcon(adId),
   // )
-  /// Build favorite heart icon for ad card
-  Widget _buildFavoriteHeartIcon(String adId) {
-    // For logged-in users: check if ad is in favorites
-    // For non-logged-in users: always show empty heart
-    final bool isFavorite = (_authToken != null && _userId != null) ? _isAdInFavorites(adId) : false;
+  // Favorite heart icon builder for AdCardWidget
+  Widget _favoriteHeartIconBuilder(String adId) {
     final bool isLoggedIn = _authToken != null && _userId != null;
-    
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: (isLoggedIn && _isLoadingFavorites)
-          ? const SizedBox(
-              width: 12,
-              height: 12,
-              child: CircularProgressIndicator(
-                strokeWidth: 1.5,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-              ),
-            )
-          : Icon(
-              isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: isFavorite ? Colors.red : Colors.grey[600],
-              size: 20,
-            ),
+    final bool isFavorite = isLoggedIn ? _isAdInFavorites(adId) : false;
+    return defaultFavoriteHeartIcon(
+      adId,
+      isFavorite: isFavorite,
+      isLoggedIn: isLoggedIn,
+      isLoading: isLoggedIn && _isLoadingFavorites,
     );
   }
 
@@ -1615,7 +1588,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                       }
                       return AdCardWidget(
                         ad: _allAds[index],
-                        favoriteIconBuilder: (adId) => _buildFavoriteHeartIcon(adId),
+                        favoriteIconBuilder: _favoriteHeartIconBuilder,
                       );
                     },
                     childCount: _allAds.length + (_hasMoreAds ? 1 : 0),

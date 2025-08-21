@@ -1,8 +1,50 @@
+
+
+// All imports must be at the very top
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import '../screens/ad_details_screen.dart';
 import '../screens/home_screen.dart' as home;
+
+typedef FavoriteIconBuilder = Widget Function(String adId, {
+  required bool isFavorite,
+  required bool isLoggedIn,
+  required bool isLoading,
+});
+
+/// Default favorite heart icon builder
+Widget defaultFavoriteHeartIcon(
+  String adId, {
+  required bool isFavorite,
+  required bool isLoggedIn,
+  required bool isLoading,
+}) {
+  return Container(
+    width: 32,
+    height: 32,
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.9),
+      shape: BoxShape.circle,
+      // No shadow
+    ),
+    child: (isLoggedIn && isLoading)
+        ? const SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(
+              strokeWidth: 1.5,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+            ),
+          )
+        : Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: isFavorite ? Colors.red : Colors.grey[600],
+            size: 20,
+          ),
+  );
+}
+
 
 class AdCardWidget extends StatelessWidget {
   final home.AdModel ad;
@@ -87,14 +129,7 @@ class AdCardWidget extends StatelessWidget {
           ],
         ),
         border: Border.all(color: Colors.blue[300]!, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue[100]!.withOpacity(0.3),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        // No shadow
       ),
       child: Material(
         color: Colors.transparent,
@@ -129,13 +164,7 @@ class AdCardWidget extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     color: Colors.amber[700]?.withOpacity(0.95),
                                     borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.amber.withOpacity(0.2),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
+                                    // No shadow
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
