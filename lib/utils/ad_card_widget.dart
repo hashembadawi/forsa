@@ -24,14 +24,20 @@ Widget defaultFavoriteHeartIcon(
     width: 32,
     height: 32,
     decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.9),
+      color: Colors.white,
       shape: BoxShape.circle,
-      // No shadow
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.08),
+          blurRadius: 6,
+          offset: const Offset(0, 2),
+        ),
+      ],
     ),
     child: (isLoggedIn && isLoading)
         ? const SizedBox(
-            width: 12,
-            height: 12,
+            width: 14,
+            height: 14,
             child: CircularProgressIndicator(
               strokeWidth: 1.5,
               valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
@@ -39,7 +45,7 @@ Widget defaultFavoriteHeartIcon(
           )
         : Icon(
             isFavorite ? Icons.favorite : Icons.favorite_border,
-            color: isFavorite ? Colors.red : Colors.grey[600],
+            color: isFavorite ? Colors.red : Colors.grey[400],
             size: 20,
           ),
   );
@@ -116,98 +122,80 @@ class AdCardWidget extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.all(4),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            Color(0xFFF8FBFF),
-            Color(0xFFF0F8FF),
-          ],
-        ),
-        border: Border.all(color: Colors.blue[300]!, width: 1.5),
-        // No shadow
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blue, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(18),
-          splashColor: Colors.blue[300]!.withOpacity(0.2),
-          highlightColor: Colors.blue[100]!.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
           onTap: onTap ?? () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => AdDetailsScreen(ad: ad.toJson())),
           ),
-          child: Stack(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Stack(
                 children: [
-                  Expanded(
-                    flex: 3,
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: Stack(
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    child: AspectRatio(
+                      aspectRatio: 1.6,
+                      child: _buildAdImage(firstImageBase64),
+                    ),
+                  ),
+                  if (favoriteIconBuilder != null)
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: favoriteIconBuilder!(adId),
+                    ),
+                  if (isSpecial)
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.amber[700],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            _buildAdImage(firstImageBase64),
-                            if (isSpecial)
-                              Positioned(
-                                top: 8,
-                                right: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.amber[700]?.withOpacity(0.95),
-                                    borderRadius: BorderRadius.circular(12),
-                                    // No shadow
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.star, color: Colors.white, size: 16),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'إعلان مميز',
-                                        style: GoogleFonts.cairo(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                            Icon(Icons.star, color: Colors.white, size: 14),
+                            const SizedBox(width: 3),
+                            Text(
+                              'مميز',
+                              style: GoogleFonts.cairo(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
                               ),
+                            ),
                           ],
                         ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Container(
-                      constraints: const BoxConstraints(minHeight: 80),
-                      child: Padding(
-                        padding: const EdgeInsets.all(6),
-            child: adDetailsBuilder != null
-              ? adDetailsBuilder!(ad)
-              : _DefaultAdDetails(ad: ad),
-                      ),
-                    ),
-                  ),
                 ],
               ),
-              if (favoriteIconBuilder != null)
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: favoriteIconBuilder!(adId),
-                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: adDetailsBuilder != null
+                    ? adDetailsBuilder!(ad)
+                    : _DefaultAdDetails(ad: ad),
+              ),
             ],
           ),
         ),
@@ -238,83 +226,97 @@ class _DefaultAdDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Text(
-          ad.adTitle ?? '',
-          style: GoogleFonts.cairo(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
-        Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue[300]!, width: 1),
-                ),
-                child: Text(
-                  '${ad.price ?? '0'} ${ad.currencyName ?? ''}',
-                  style: GoogleFonts.cairo(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue[700],
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.orange[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.orange[300]!, width: 1),
-              ),
+            // Title
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: constraints.maxWidth),
               child: Text(
-                ad.forSale == true ? 'للبيع' : 'للإيجار',
+                ad.adTitle ?? '',
                 style: GoogleFonts.cairo(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: Colors.orange[700],
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-          ],
-        ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.location_on, size: 12, color: Colors.blue[600]),
-            const SizedBox(width: 2),
-            Expanded(
-              child: Text(
-                '${ad.cityName ?? ''} - ${_formatDate(ad.createDate)}',
-                style: GoogleFonts.cairo(
                   color: Colors.black87,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w500,
                 ),
                 overflow: TextOverflow.ellipsis,
-                maxLines: 1,
+                maxLines: 2,
+                softWrap: true,
               ),
             ),
+            const SizedBox(height: 10),
+            // Divider
+            Container(
+              height: 1,
+              color: Colors.blue.withOpacity(0.10),
+              margin: const EdgeInsets.symmetric(vertical: 2),
+            ),
+            const SizedBox(height: 6),
+            // Price and Type
+            Row(
+              children: [
+                Flexible(
+                  flex: 2,
+                  child: Text(
+                    '${ad.price ?? '0'} ${ad.currencyName ?? ''}',
+                    style: GoogleFonts.cairo(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue[800],
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Flexible(
+                  flex: 1,
+                  child: Text(
+                    ad.forSale == true ? 'للبيع' : 'للإيجار',
+                    style: GoogleFonts.cairo(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.orange[700],
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            // Divider
+            Container(
+              height: 1,
+              color: Colors.blue.withOpacity(0.10),
+              margin: const EdgeInsets.symmetric(vertical: 2),
+            ),
+            const SizedBox(height: 6),
+            // Location and Date
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.location_on, size: 14, color: Colors.blue[600]),
+                const SizedBox(width: 3),
+                Flexible(
+                  child: Text(
+                    '${ad.cityName ?? ''} - ${_formatDate(ad.createDate)}',
+                    style: GoogleFonts.cairo(
+                      color: Colors.grey[700],
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 }
