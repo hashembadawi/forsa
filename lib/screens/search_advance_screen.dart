@@ -105,6 +105,7 @@ class _SearchAdvanceScreenState extends State<SearchAdvanceScreen> {
           backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
         ),
+        backgroundColor: Colors.white,
         body: Padding(
           padding: const EdgeInsets.all(16),
           child: ListView(
