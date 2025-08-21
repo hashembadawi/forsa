@@ -74,7 +74,7 @@ class AdCardWidget extends StatelessWidget {
     final bool isSpecial = ad.isSpecial ?? false;
 
 
-    Widget _buildNoImagePlaceholder() {
+    Widget buildNoImagePlaceholder() {
       return Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -103,7 +103,7 @@ class AdCardWidget extends StatelessWidget {
       );
     }
 
-    Widget _buildAdImage(String? firstImageBase64) {
+    Widget buildAdImage(String? firstImageBase64) {
       if (firstImageBase64 != null) {
         try {
           final decodedImage = base64Decode(firstImageBase64);
@@ -112,13 +112,13 @@ class AdCardWidget extends StatelessWidget {
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,
-            errorBuilder: (context, error, stackTrace) => _buildNoImagePlaceholder(),
+            errorBuilder: (context, error, stackTrace) => buildNoImagePlaceholder(),
           );
         } catch (_) {
-          return _buildNoImagePlaceholder();
+          return buildNoImagePlaceholder();
         }
       }
-      return _buildNoImagePlaceholder();
+      return buildNoImagePlaceholder();
     }
 
     return Container(
@@ -129,6 +129,7 @@ class AdCardWidget extends StatelessWidget {
         border: Border.all(color: Colors.blue, width: 1.5),
         boxShadow: [
           BoxShadow(
+            // ignore: deprecated_member_use
             color: Colors.black.withOpacity(0.07),
             blurRadius: 12,
             offset: const Offset(0, 4),
@@ -152,7 +153,7 @@ class AdCardWidget extends StatelessWidget {
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                     child: AspectRatio(
                       aspectRatio: 1.6,
-                      child: _buildAdImage(firstImageBase64),
+                      child: buildAdImage(firstImageBase64),
                     ),
                   ),
                   if (favoriteIconBuilder != null)

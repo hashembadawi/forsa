@@ -7,6 +7,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../utils/ad_card_widget.dart';
+import 'home_screen.dart' as home;
 
 import 'image_preview_screen.dart';
 import 'advertiser_page_screen.dart';
@@ -110,6 +112,38 @@ class AdDetailsScreen extends StatefulWidget {
 }
 
 class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAliveClientMixin {
+  int _currentSimilarAdPage = 0;
+  /// Navigate to ad details
+  void _navigateToAdDetails(AdModel ad) {
+    // Convert back to dynamic for navigation (maintaining compatibility)
+    final Map<String, dynamic> adData = {
+      '_id': ad.id,
+      'adTitle': ad.adTitle,
+      'description': ad.description,
+      'price': ad.price,
+      'currencyName': ad.currencyName,
+      'categoryName': ad.categoryName,
+      'subCategoryName': ad.subCategoryName,
+      'cityName': ad.cityName,
+      'regionName': ad.regionName,
+      'userName': ad.userName,
+      'userPhone': ad.userPhone,
+      'userId': ad.userId,
+      'categoryId': ad.categoryId,
+      'subCategoryId': ad.subCategoryId,
+      'createDate': ad.createDate,
+      'images': ad.images,
+      'location': ad.location != null ? {
+        'coordinates': ad.location!.coordinates,
+      } : null,
+    };
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AdDetailsScreen(ad: adData),
+      ),
+    );
+  }
   // Constants
   static const double _imageHeight = 200.0;
   static const int _limitSimilarAds = 6;
@@ -145,11 +179,20 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
     _adModel = AdModel.fromJson(widget.ad);
     _pageController = PageController();
     _initializeData();
+    _pageController?.addListener(() {
+      if (_pageController == null) return;
+      final int newPage = _pageController!.page?.round() ?? 0;
+      if (newPage != _currentSimilarAdPage) {
+        setState(() {
+          _currentSimilarAdPage = newPage;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
-    _pageController?.dispose();
+  _pageController?.dispose();
     super.dispose();
   }
 
@@ -2004,15 +2047,12 @@ https://syria-market-web.onrender.com/$adId
     if (_isLoadingSimilarAds) {
       return _buildSimilarAdsLoading();
     }
-    
     if (_hasErrorSimilarAds) {
       return _buildSimilarAdsError();
     }
-    
     if (_similarAds.isEmpty) {
       return _buildNoSimilarAds();
     }
-    
     return _buildSimilarAdsList();
   }
 
@@ -2120,257 +2160,110 @@ https://syria-market-web.onrender.com/$adId
   Widget _buildSimilarAdsList() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate responsive grid
-        int crossAxisCount = 2;
-        double childAspectRatio = 0.75;
-        
-        if (constraints.maxWidth > 600) {
-          crossAxisCount = 3;
-          childAspectRatio = 0.8;
-        } else if (constraints.maxWidth < 350) {
-          crossAxisCount = 1;
-          childAspectRatio = 1.2;
-        }
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              childAspectRatio: childAspectRatio,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
+        final double cardWidth = constraints.maxWidth * 0.92;
+        final double cardHeight = 320.0;
+        if (_similarAds.length <= 1) {
+          // Show single card (no sliding)
+          return Center(
+            child: SizedBox(
+              width: cardWidth,
+              height: cardHeight,
+              child: _similarAds.isNotEmpty
+                  ? AdCardWidget(
+                      ad: home.AdModel(
+                        id: _similarAds[0].id,
+                        adTitle: _similarAds[0].adTitle,
+                        description: _similarAds[0].description,
+                        price: _similarAds[0].price,
+                        currencyName: _similarAds[0].currencyName,
+                        categoryName: _similarAds[0].categoryName,
+                        subCategoryName: _similarAds[0].subCategoryName,
+                        cityName: _similarAds[0].cityName,
+                        regionName: _similarAds[0].regionName,
+                        userName: _similarAds[0].userName,
+                        userPhone: _similarAds[0].userPhone,
+                        userId: _similarAds[0].userId,
+                        categoryId: _similarAds[0].categoryId,
+                        subCategoryId: _similarAds[0].subCategoryId,
+                        createDate: _similarAds[0].createDate,
+                        images: _similarAds[0].images,
+                        location: _similarAds[0].location != null ? {'coordinates': _similarAds[0].location!.coordinates} : null,
+                        forSale: _similarAds[0].forSale,
+                        deliveryService: _similarAds[0].deliveryService,
+                      ),
+                      onTap: () => _navigateToAdDetails(_similarAds[0]),
+                    )
+                  : const SizedBox.shrink(),
             ),
-            itemCount: _similarAds.length,
-            itemBuilder: (context, index) => _buildSimilarAdCard(_similarAds[index]),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Build similar ad card (optimized with model)
-  Widget _buildSimilarAdCard(AdModel ad) {
-    final images = ad.images ?? [];
-    final firstImageBase64 = images.isNotEmpty ? images[0] : null;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                Color(0xFFF8FBFF),
-                Color(0xFFF0F8FF),
+          );
+        } else {
+          // Show PageView for sliding with dots below
+          return SizedBox(
+            height: cardHeight + 32,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  height: cardHeight,
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: _similarAds.length,
+                    itemBuilder: (context, index) {
+                      final ad = _similarAds[index];
+                      final homeAd = home.AdModel(
+                        id: ad.id,
+                        adTitle: ad.adTitle,
+                        description: ad.description,
+                        price: ad.price,
+                        currencyName: ad.currencyName,
+                        categoryName: ad.categoryName,
+                        subCategoryName: ad.subCategoryName,
+                        cityName: ad.cityName,
+                        regionName: ad.regionName,
+                        userName: ad.userName,
+                        userPhone: ad.userPhone,
+                        userId: ad.userId,
+                        categoryId: ad.categoryId,
+                        subCategoryId: ad.subCategoryId,
+                        createDate: ad.createDate,
+                        images: ad.images,
+                        location: ad.location != null ? {'coordinates': ad.location!.coordinates} : null,
+                        forSale: ad.forSale,
+                        deliveryService: ad.deliveryService,
+                      );
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: AdCardWidget(
+                          ad: homeAd,
+                          onTap: () => _navigateToAdDetails(ad),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(_similarAds.length, (index) {
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      width: _currentSimilarAdPage == index ? 16 : 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: _currentSimilarAdPage == index ? Colors.blue : Colors.grey[400],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    );
+                  }),
+                ),
               ],
             ),
-            border: Border.all(color: Colors.blue[300]!, width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.blue[100]!.withOpacity(0.3),
-                spreadRadius: 1,
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              splashColor: Colors.blue[300]!.withOpacity(0.2),
-              highlightColor: Colors.blue[100]!.withOpacity(0.1),
-              onTap: () => _navigateToAdDetails(ad),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Image section - responsive height
-                  Expanded(
-                    flex: constraints.maxHeight > 200 ? 3 : 2,
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: _buildSimilarAdImage(firstImageBase64),
-                      ),
-                    ),
-                  ),
-                  // Details section - flexible height
-                  Expanded(
-                    flex: constraints.maxHeight > 200 ? 2 : 3,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(8),
-                      child: _buildSimilarAdDetails(ad, constraints),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
+          );
+        }
       },
     );
   }
-
-  /// Build similar ad image (optimized with caching)
-  Widget _buildSimilarAdImage(String? firstImageBase64) {
-    if (firstImageBase64 != null) {
-      final decodedImage = _getDecodedImage(firstImageBase64);
-      if (decodedImage != null) {
-        return Image.memory(
-          decodedImage,
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: double.infinity,
-          errorBuilder: (context, error, stackTrace) => _buildSimilarAdImagePlaceholder(),
-        );
-      }
-    }
-    return _buildSimilarAdImagePlaceholder();
-  }
-
-  /// Build similar ad image placeholder (same style as home screen)
-  Widget _buildSimilarAdImagePlaceholder() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFF0F8FF), Color(0xFFE6F3FF)],
-        ),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.image, size: 32, color: Colors.blue[400]),
-            const SizedBox(height: 2),
-            Text(
-              'لا توجد صورة',
-              style: GoogleFonts.cairo(
-                color: Colors.blue[700],
-                fontSize: 9,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Build similar ad details (optimized with model)
-  Widget _buildSimilarAdDetails(AdModel ad, BoxConstraints constraints) {
-    // Calculate responsive font sizes based on available space
-    final double titleFontSize = constraints.maxWidth > 150 ? 12 : 10;
-    final double priceFontSize = constraints.maxWidth > 150 ? 11 : 9;
-    final double locationFontSize = constraints.maxWidth > 150 ? 9 : 7;
-    final double iconSize = constraints.maxWidth > 150 ? 12 : 10;
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        // Ad Title
-        Flexible(
-          child: Text(
-            ad.adTitle ?? '',
-            style: GoogleFonts.cairo(
-              fontSize: titleFontSize,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: constraints.maxHeight > 150 ? 2 : 1,
-          ),
-        ),
-        
-        // Price Container
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: constraints.maxWidth > 150 ? 8 : 6,
-            vertical: constraints.maxWidth > 150 ? 3 : 2,
-          ),
-          decoration: BoxDecoration(
-            color: Colors.blue[50],
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.blue[300]!, width: 1),
-          ),
-          child: Text(
-            '${ad.price ?? '0'} ${ad.currencyName ?? ''}',
-            style: GoogleFonts.cairo(
-              fontSize: priceFontSize,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[700],
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
-        ),
-        
-        // Location and Date
-        Flexible(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Icon(Icons.location_on, size: iconSize, color: Colors.blue[600]),
-              const SizedBox(width: 2),
-              Expanded(
-                child: Text(
-                  '${ad.cityName ?? ''} - ${_formatDate(ad.createDate)}',
-                  style: GoogleFonts.cairo(
-                    color: Colors.black87,
-                    fontSize: locationFontSize,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Navigate to ad details
-  void _navigateToAdDetails(AdModel ad) {
-    // Convert back to dynamic for navigation (maintaining compatibility)
-    final Map<String, dynamic> adData = {
-      '_id': ad.id,
-      'adTitle': ad.adTitle,
-      'description': ad.description,
-      'price': ad.price,
-      'currencyName': ad.currencyName,
-      'categoryName': ad.categoryName,
-      'subCategoryName': ad.subCategoryName,
-      'cityName': ad.cityName,
-      'regionName': ad.regionName,
-      'userName': ad.userName,
-      'userPhone': ad.userPhone,
-      'userId': ad.userId,
-      'categoryId': ad.categoryId,
-      'subCategoryId': ad.subCategoryId,
-      'createDate': ad.createDate,
-      'images': ad.images,
-      'location': ad.location != null ? {
-        'coordinates': ad.location!.coordinates,
-      } : null,
-    };
-    
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AdDetailsScreen(ad: adData),
-      ),
-    );
-  }
+  /// Build similar ad card (optimized with model)
+  // _buildSimilarAdCard is no longer needed and has been removed.
 }
