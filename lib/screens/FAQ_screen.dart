@@ -30,10 +30,7 @@ class FAQScreen extends StatelessWidget {
       question: 'هل يمكنني تعديل إعلان بعد نشره؟',
       answer: 'نعم، يمكنك تعديل الإعلان من صفحة "إعلاناتي" عن طريق الضغط على الإعلان ثم اختيار "تعديل".',
     ),
-    FAQItem(
-      question: 'ما هي سياسة الإلغاء والاسترجاع؟',
-      answer: 'يمكنك حذف إعلانك في أي وقت، ولكن لا يمكن استرجاع المبلغ المدفوع في حالة الإعلانات المميزة.',
-    ),
+    
     FAQItem(
       question: 'كيف أتواصل مع البائع؟',
       answer: 'يتم التواصل مع البائع عبر رقم الهاتف الموجود في صفحة الإعلان أو عبر زر "تواصل" إذا كان متاحاً.',
@@ -60,7 +57,7 @@ class FAQScreen extends StatelessWidget {
     return AppBar(
       title: Text(
         'الأسئلة الشائعة',
-        style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+        style: GoogleFonts.cairo(fontWeight: FontWeight.bold , fontSize: 22, color: Colors.white),
       ),
       centerTitle: true,
       backgroundColor: Colors.blue[700],

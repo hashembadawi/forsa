@@ -103,7 +103,7 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
         style: GoogleFonts.cairo(
           color: Colors.white,
           fontWeight: FontWeight.bold,
-          fontSize: 18,
+          fontSize: 22,
         ),
       ),
       centerTitle: true,

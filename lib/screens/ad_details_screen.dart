@@ -225,7 +225,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
       title: Text(
         'تفاصيل الإعلان',
         style: GoogleFonts.cairo(
-          fontSize: 24,
+          fontSize: 22,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),

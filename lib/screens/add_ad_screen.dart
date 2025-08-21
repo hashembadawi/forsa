@@ -217,7 +217,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
     return AppBar(
       title: Text(
         'نشر إعلان جديد',
-        style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+        style: GoogleFonts.cairo(fontWeight: FontWeight.bold , fontSize: 22, color: Colors.white),
       ),
       centerTitle: true,
       backgroundColor: Colors.blue[700],

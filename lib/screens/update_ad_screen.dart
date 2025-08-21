@@ -325,6 +325,7 @@ class _EditAdScreenState extends State<EditAdScreen> {
         'تعديل الإعلان',
         style: GoogleFonts.cairo(
           fontWeight: FontWeight.bold,
+          fontSize: 22,
         ),
       ),
       centerTitle: true,

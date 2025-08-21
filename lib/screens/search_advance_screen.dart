@@ -101,7 +101,7 @@ class _SearchAdvanceScreenState extends State<SearchAdvanceScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('بحث متقدم', style: GoogleFonts.cairo( fontWeight: FontWeight.bold)),
+          title: Text('بحث متقدم', style: GoogleFonts.cairo( fontWeight: FontWeight.bold , fontSize: 22, color: Colors.white)),
           backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
         ),

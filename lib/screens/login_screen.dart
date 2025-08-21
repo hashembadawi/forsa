@@ -273,6 +273,7 @@ class _LoginScreenState extends State<LoginScreen> {
         'تسجيل الدخول',
         style: GoogleFonts.cairo(
           fontWeight: FontWeight.bold,
+          fontSize: 22,
         ),
       ),
       centerTitle: true,

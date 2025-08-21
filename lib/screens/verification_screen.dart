@@ -53,7 +53,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
     );
 
     try {
-      print ('Verifying code for phone: ${widget.phoneNumber}');
       final response = await http.post(
         Uri.parse('https://sahbo-app-api.onrender.com/api/user/verify-phone'),
         headers: {'Content-Type': 'application/json'},
@@ -104,7 +103,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
     return AppBar(
       title: Text(
         'تأكيد رقم الهاتف',
-        style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+        style: GoogleFonts.cairo(fontWeight: FontWeight.bold , fontSize: 22, color: Colors.white),
       ),
       centerTitle: true,
       backgroundColor: Colors.blue[700],

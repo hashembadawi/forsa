@@ -35,7 +35,7 @@ class AdTermsScreen extends StatelessWidget {
     return AppBar(
       title: Text(
         'شروط الإعلان',
-        style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+        style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white),
       ),
       centerTitle: true,
       backgroundColor: Colors.blue[700],

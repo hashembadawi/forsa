@@ -279,7 +279,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       title: Text(
         'المفضلة',
         style: GoogleFonts.cairo(
-          fontSize: 24,
+          fontSize: 22,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),

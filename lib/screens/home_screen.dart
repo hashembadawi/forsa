@@ -142,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   /// Build advanced search field
   Widget _buildAdvancedSearchField() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       child: GestureDetector(
         onTap: () {
           Navigator.push(
@@ -995,7 +995,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   /// Build location filter button
   Widget _buildLocationButton() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       child: GestureDetector(
         onTap: _showLocationFilterDialog,
         child: Container(
@@ -1039,7 +1039,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   /// Build search field with autocomplete suggestions
   Widget _buildSearchField() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       child: GestureDetector(
         onTap: () {
           Navigator.push(
@@ -1481,7 +1481,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
               SliverToBoxAdapter(child: _buildAdvancedSearchField()),
               SliverToBoxAdapter(child: _buildSearchField()),
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     Text(
@@ -1566,7 +1566,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
               ),
               if (_allAds.isNotEmpty || _isRefreshing)
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6), // Slight padding from screen edge
+                  padding: const EdgeInsets.symmetric(horizontal: 2), // Slight padding from screen edge
                   sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
@@ -1668,9 +1668,9 @@ class _ImageSliderState extends State<ImageSlider> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 220,
+      height: 200,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         child: Stack(
           children: [
             PageView.builder(

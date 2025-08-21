@@ -325,7 +325,7 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
           title: Text(
             'البحث',
             style: GoogleFonts.cairo(
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),

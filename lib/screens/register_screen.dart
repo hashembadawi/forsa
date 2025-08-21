@@ -304,6 +304,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'إنشاء حساب جديد',
         style: GoogleFonts.cairo(
           fontWeight: FontWeight.bold,
+          fontSize: 22,
         ),
       ),
       centerTitle: true,

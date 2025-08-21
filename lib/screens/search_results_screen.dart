@@ -175,7 +175,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       title: Text(
         'نتائج البحث',
         style: GoogleFonts.cairo(
-          fontSize: 24,
+          fontSize: 22,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),

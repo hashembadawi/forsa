@@ -170,7 +170,7 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
       title: Text(
         'صفحة المعلن',
         style: GoogleFonts.cairo(
-          fontSize: 24,
+          fontSize: 22,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),

@@ -485,7 +485,7 @@ class _AccountScreenState extends State<AccountScreen> {
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
-          title: Text('حسابي', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+          title: Text('حسابي', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 22)),
           backgroundColor: Colors.blue[700],
           foregroundColor: Colors.white,
           actions: [

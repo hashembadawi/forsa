@@ -101,7 +101,7 @@ class ContactUsScreen extends StatelessWidget {
     return AppBar(
       title: Text(
         'اتصل بنا',
-        style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+        style: GoogleFonts.cairo(fontWeight: FontWeight.bold , fontSize: 22, color: Colors.white),
       ),
       centerTitle: true,
       backgroundColor: Colors.blue[700],

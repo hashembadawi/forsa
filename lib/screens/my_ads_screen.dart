@@ -306,7 +306,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
       title: Text(
         'إعلاناتي',
         style: GoogleFonts.cairo(
-          fontSize: 24,
+          fontSize: 22,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
