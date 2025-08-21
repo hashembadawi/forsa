@@ -1281,7 +1281,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                     title,
                     style: GoogleFonts.cairo(
                       color: Colors.grey[800],
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
                   ),
