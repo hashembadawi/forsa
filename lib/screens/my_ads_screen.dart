@@ -22,7 +22,6 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
   static const String _baseUrl = 'https://sahbo-app-api.onrender.com/api/ads/userAds';
   static const int _adsPerPage = 5;
   static const double _scrollThreshold = 200.0;
-  static const double _imageHeight = 200.0;
 
   // ========== State Variables ==========
   final List<dynamic> _myAds = [];
@@ -274,23 +273,6 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
     );
   }
 
-  // ========== Utility Methods ==========
-
-  /// Format date for display
-  String _formatDate(String isoDate) {
-    try {
-      final date = DateTime.parse(isoDate);
-      final now = DateTime.now();
-      final difference = now.difference(date);
-
-      if (difference.inDays >= 1) return 'منذ ${difference.inDays} يوم';
-      if (difference.inHours >= 1) return 'منذ ${difference.inHours} ساعة';
-      if (difference.inMinutes >= 1) return 'منذ ${difference.inMinutes} دقيقة';
-      return 'الآن';
-    } catch (e) {
-      return 'غير محدد';
-    }
-  }
 
   /// Check if ads list is empty
   bool get _isAdsListEmpty => _myAds.isEmpty;
@@ -493,168 +475,13 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
     );
   }
 
-  /// Build card decoration
 
-  /// Build ad title
-  Widget _buildAdTitle(Map<String, dynamic> ad) {
-    return Text(
-      ad['adTitle'] ?? 'بدون عنوان',
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.cairo(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
-      ),
-    );
-  }
 
-  /// Build ad price
-  Widget _buildAdPrice(Map<String, dynamic> ad) {
-    final price = ad['price'] ?? '0';
-    final currency = ad['currencyName'] ?? ad['currency'] ?? '';
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue[300]!, width: 1),
-      ),
-      child: Text(
-        '$price $currency',
-        style: GoogleFonts.cairo(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Colors.blue[700],
-        ),
-      ),
-    );
-  }
 
-  /// Build ad description
-  Widget _buildAdDescription(Map<String, dynamic> ad) {
-    return Text(
-      ad['description'] ?? 'بدون وصف',
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-      style: GoogleFonts.cairo(
-        fontSize: 14,
-        color: Colors.black87,
-        fontWeight: FontWeight.w500,
-      ),
-    );
-  }
 
-  /// Build ad location
-  Widget _buildAdLocation(Map<String, dynamic> ad) {
-    final cityName = ad['cityName'] ?? '';
-    final regionName = ad['regionName'] ?? '';
-    final location = '$cityName - $regionName'.replaceAll(RegExp(r'^-\s*|-\s*$'), '');
-    
-    return Row(
-      children: [
-        Icon(Icons.location_on, size: 16, color: Colors.blue[600]),
-        const SizedBox(width: 4),
-        Expanded(
-          child: Text(
-            location.isNotEmpty ? location : 'موقع غير محدد',
-            style: GoogleFonts.cairo(
-              color: Colors.black87,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
-  /// Build ad date
-  Widget _buildAdDate(Map<String, dynamic> ad) {
-    final createDate = ad['createDate'];
-    final formattedDate = createDate != null ? _formatDate(createDate) : 'غير محدد';
-    
-    return Row(
-      children: [
-        Icon(Icons.access_time, size: 16, color: Colors.blue[600]),
-        const SizedBox(width: 4),
-        Text(
-          formattedDate,
-          style: GoogleFonts.cairo(
-            color: Colors.black87,
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
 
-  /// Build ad status
-  Widget _buildAdStatus(Map<String, dynamic> ad) {
-    final isApproved = ad['isApproved'] ?? false;
-    
-    if (!isApproved) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: Colors.orange.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.orange, width: 1),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.pending,
-              size: 16,
-              color: Colors.orange,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              'قيد المراجعة',
-              style: GoogleFonts.cairo(
-                color: Colors.orange,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    
-    // Return empty container if approved (no status shown)
-    return const SizedBox.shrink();
-  }
 
-  /// Build content divider
-  Widget _buildDivider() {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 16),
-      height: 1,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blue[300]!, Colors.blue[400]!],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-      ),
-    );
-  }
-
-  /// Build action buttons
-  Widget _buildActionButtons(Map<String, dynamic> ad) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        _buildEditButton(ad),
-        const SizedBox(width: 12),
-        _buildDeleteButton(ad),
-      ],
-    );
-  }
 
   /// Build edit button
   Widget _buildEditButton(Map<String, dynamic> ad) {
