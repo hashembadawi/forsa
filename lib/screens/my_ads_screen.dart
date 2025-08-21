@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syria_market/screens/update_ad_screen.dart';
 import 'package:syria_market/screens/add_ad_screen.dart';
 import 'package:syria_market/utils/dialog_utils.dart';
+import 'package:syria_market/utils/ad_card_widget.dart';
+import 'package:syria_market/screens/home_screen.dart' as home;
 import 'package:google_fonts/google_fonts.dart';
 
 /// Screen displaying user's personal advertisements with edit and delete functionality
@@ -425,117 +427,73 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
 
   /// Build advertisement card
   Widget _buildAdCard(Map<String, dynamic> ad) {
+    final isApproved = ad['isApproved'] ?? false;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      decoration: _buildCardDecoration(),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.blue[300]!, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue[100]!.withOpacity(0.15),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildAdImage(ad),
-          _buildAdContent(ad),
+          AdCardWidget(
+            ad: home.AdModel.fromJson(ad),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(
+              children: [
+                if (!isApproved)
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.orange, width: 1),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.pending, size: 16, color: Colors.orange),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              'قيد المراجعة',
+                              style: GoogleFonts.cairo(
+                                color: Colors.orange,
+                                fontSize: 8,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                const SizedBox(width: 8),
+                _buildEditButton(ad),
+                const SizedBox(width: 12),
+                _buildDeleteButton(ad),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
   /// Build card decoration
-  BoxDecoration _buildCardDecoration() {
-    return BoxDecoration(
-      borderRadius: BorderRadius.circular(18),
-      color: Colors.white,
-      border: Border.all(color: Colors.blue[300]!, width: 1.5),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.blue[100]!.withOpacity(0.3),
-          blurRadius: 8,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    );
-  }
-
-  /// Build ad image section
-  Widget _buildAdImage(Map<String, dynamic> ad) {
-    final List<dynamic> images = ad['images'] is List ? ad['images'] : [];
-    final firstImageBase64 = images.isNotEmpty ? images[0] : null;
-
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-      child: SizedBox(
-        height: _imageHeight,
-        width: double.infinity,
-        child: _buildImageWidget(firstImageBase64),
-      ),
-    );
-  }
-
-  /// Build image widget with error handling
-  Widget _buildImageWidget(String? imageBase64) {
-    if (imageBase64 != null) {
-      return Image.memory(
-        base64Decode(imageBase64),
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
-      );
-    } else {
-      return _buildImagePlaceholder(showNoImageText: true);
-    }
-  }
-
-  /// Build image placeholder
-  Widget _buildImagePlaceholder({bool showNoImageText = false}) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.blue[50]!, Colors.blue[100]!],
-        ),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.image, size: 60, color: Colors.blue[600]),
-            const SizedBox(height: 8),
-            Text(
-              showNoImageText ? 'لا توجد صورة' : 'صورة',
-              style: GoogleFonts.cairo(
-                color: Colors.black87,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Build ad content section
-  Widget _buildAdContent(Map<String, dynamic> ad) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildAdTitle(ad),
-          const SizedBox(height: 12),
-          _buildAdPrice(ad),
-          const SizedBox(height: 12),
-          _buildAdDescription(ad),
-          const SizedBox(height: 12),
-          _buildAdLocation(ad),
-          const SizedBox(height: 8),
-          _buildAdDate(ad),
-          const SizedBox(height: 12),
-          _buildAdStatus(ad),
-          _buildDivider(),
-          _buildActionButtons(ad),
-        ],
-      ),
-    );
-  }
 
   /// Build ad title
   Widget _buildAdTitle(Map<String, dynamic> ad) {

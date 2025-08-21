@@ -165,7 +165,7 @@ class AdCardWidget extends StatelessWidget {
                   if (isSpecial)
                     Positioned(
                       top: 10,
-                      left: 10,
+                      right: 10,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
@@ -178,7 +178,7 @@ class AdCardWidget extends StatelessWidget {
                             Icon(Icons.star, color: Colors.white, size: 14),
                             const SizedBox(width: 3),
                             Text(
-                              'مميز',
+                              'إعلان مميز',
                               style: GoogleFonts.cairo(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
