@@ -9,7 +9,6 @@ import 'package:syria_market/screens/search_advance_screen.dart';
 import '../utils/dialog_utils.dart';
 import '../utils/ad_card_widget.dart';
 import 'account_screen.dart';
-import 'ad_details_screen.dart';
 import 'add_ad_screen.dart';
 import 'favorites_screen.dart';
 import 'login_screen.dart';
@@ -661,24 +660,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
     _isLoadingAds = false;
   }
 
-  // ========== UI Helper Methods ==========
-
-  /// Format date for display
-  String _formatDate(String isoDate) {
-    try {
-      final date = DateTime.parse(isoDate);
-      final now = DateTime.now();
-      final difference = now.difference(date);
-
-      if (difference.inDays >= 1) return 'منذ ${difference.inDays} يوم';
-      if (difference.inHours >= 1) return 'منذ ${difference.inHours} ساعة';
-      if (difference.inMinutes >= 1) return 'منذ ${difference.inMinutes} دقيقة';
-      return 'الآن';
-    } catch (e) {
-      return 'غير محدد';
-    }
-  }
-
   /// Handle protected navigation (requires login)
   void _handleProtectedNavigation(BuildContext context, String routeKey) async {
     final prefs = await SharedPreferences.getInstance();
@@ -994,103 +975,11 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
 
   // ========== Widget Building Methods ==========
 
-  // Use AdCardWidget from utils/ad_card_widget.dart instead of local _buildAdCard
-  Widget _buildAdCard(AdModel ad) {
-    return AdCardWidget(
-      ad: ad,
-      adDetailsBuilder: (ad) => _buildAdDetails(ad),
-      favoriteIconBuilder: (adId) => _buildFavoriteHeartIcon(adId),
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => AdDetailsScreen(ad: ad.toJson())),
-      ),
-    );
-  }
-
-
-
-  /// Build ad details section (optimized)
-  Widget _buildAdDetails(AdModel ad) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Text(
-          ad.adTitle ?? '',
-          style: GoogleFonts.cairo(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue[300]!, width: 1),
-                ),
-                child: Text(
-                  '${ad.price ?? '0'} ${ad.currencyName ?? ''}',
-                  style: GoogleFonts.cairo(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue[700],
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.orange[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.orange[300]!, width: 1),
-              ),
-              child: Text(
-                ad.forSale == true ? 'للبيع' : 'للإيجار',
-                style: GoogleFonts.cairo(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.orange[700],
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-          ],
-        ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.location_on, size: 12, color: Colors.blue[600]),
-            const SizedBox(width: 2),
-            Expanded(
-              child: Text(
-                '${ad.cityName ?? ''} - ${_formatDate(ad.createDate ?? '')}',
-                style: GoogleFonts.cairo(
-                  color: Colors.black87,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w500,
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+  // Use AdCardWidget directly in your list/grid views:
+  // AdCardWidget(
+  //   ad: ad,
+  //   favoriteIconBuilder: (adId) => _buildFavoriteHeartIcon(adId),
+  // )
   /// Build favorite heart icon for ad card
   Widget _buildFavoriteHeartIcon(String adId) {
     // For logged-in users: check if ad is in favorites
@@ -1724,7 +1613,10 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                           ),
                         );
                       }
-                      return _buildAdCard(_allAds[index]);
+                      return AdCardWidget(
+                        ad: _allAds[index],
+                        favoriteIconBuilder: (adId) => _buildFavoriteHeartIcon(adId),
+                      );
                     },
                     childCount: _allAds.length + (_hasMoreAds ? 1 : 0),
                   ),

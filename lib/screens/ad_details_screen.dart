@@ -158,6 +158,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
       _checkAuthenticationAndFavorites(),
       _fetchSimilarAds(),
     ]);
+    if (!mounted) return;
   }
 
   @override
@@ -1658,27 +1659,25 @@ https://syria-market-web.onrender.com/$adId
       final prefs = await SharedPreferences.getInstance();
       _authToken = prefs.getString('token');
       _userId = prefs.getString('userId');
-      
       // If user is logged in, check if current ad is in favorites
       if (_authToken != null && _authToken!.isNotEmpty && _userId != null && _userId!.isNotEmpty) {
         await _checkIfAdIsFavorite();
+        if (!mounted) return;
       } else {
         // For non-logged-in users, set stable states to prevent flashing
-        if (mounted) {
-          setState(() {
-            _isFavorite = false;
-            _isLoadingFavorite = false;
-          });
-        }
-      }
-    } catch (e) {
-      // Ensure stable state even on error
-      if (mounted) {
+        if (!mounted) return;
         setState(() {
           _isFavorite = false;
           _isLoadingFavorite = false;
         });
       }
+    } catch (e) {
+      // Ensure stable state even on error
+      if (!mounted) return;
+      setState(() {
+        _isFavorite = false;
+        _isLoadingFavorite = false;
+      });
       debugPrint('Error checking authentication: $e');
     }
   }
@@ -1688,6 +1687,7 @@ https://syria-market-web.onrender.com/$adId
     if (_authToken == null || _userId == null) return;
 
     try {
+      if (!mounted) return;
       setState(() {
         _isLoadingFavorite = true;
       });
@@ -1699,37 +1699,31 @@ https://syria-market-web.onrender.com/$adId
         },
       );
 
+      if (!mounted) return;
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         final List<dynamic> favorites = decoded['favorites'] ?? [];
-        
         // Check if current ad is in favorites list
         final currentAdId = _adModel.id;
         final isCurrentAdFavorite = favorites.any((favorite) {
           final ad = favorite['ad'];
           return ad != null && ad['_id'] == currentAdId;
         });
-
-        if (mounted) {
-          setState(() {
-            _isFavorite = isCurrentAdFavorite;
-            _isLoadingFavorite = false;
-          });
-        }
+        setState(() {
+          _isFavorite = isCurrentAdFavorite;
+          _isLoadingFavorite = false;
+        });
       } else {
-        if (mounted) {
-          setState(() {
-            _isLoadingFavorite = false;
-          });
-        }
-        debugPrint('Failed to fetch favorites: ${response.statusCode}');
-      }
-    } catch (e) {
-      if (mounted) {
         setState(() {
           _isLoadingFavorite = false;
         });
+        debugPrint('Failed to fetch favorites: ${response.statusCode}');
       }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingFavorite = false;
+      });
       debugPrint('Error checking if ad is favorite: $e');
     }
   }
@@ -1908,9 +1902,9 @@ https://syria-market-web.onrender.com/$adId
     final categoryId = _adModel.categoryId;
     final subCategoryId = _adModel.subCategoryId;
     final currentAdId = _adModel.id;
-    
     if (categoryId == null) return;
 
+    if (!mounted) return;
     setState(() {
       _isLoadingSimilarAds = true;
       _hasErrorSimilarAds = false;
@@ -1922,19 +1916,18 @@ https://syria-market-web.onrender.com/$adId
         'limit': '$_limitSimilarAds',
         'categoryId': categoryId,
       };
-      
       if (subCategoryId != null) {
         params['subCategoryId'] = subCategoryId;
       }
       final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search-by-category', params);
       final response = await http.get(uri);
 
+      if (!mounted) return;
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         final List<dynamic> fetchedAds = decoded['ads'] ?? [];
         // Filter out the current ad from similar ads
         final filteredAds = fetchedAds.where((ad) => ad['_id'] != currentAdId).toList();
-        
         setState(() {
           _similarAds = filteredAds.map((ad) => AdModel.fromJson(ad)).take(_limitSimilarAds).toList();
           _isLoadingSimilarAds = false;
@@ -1948,6 +1941,7 @@ https://syria-market-web.onrender.com/$adId
       }
     } catch (e) {
       debugPrint('Exception fetching similar ads: $e');
+      if (!mounted) return;
       setState(() {
         _hasErrorSimilarAds = true;
         _isLoadingSimilarAds = false;

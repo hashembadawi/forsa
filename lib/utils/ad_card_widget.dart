@@ -11,12 +11,12 @@ class AdCardWidget extends StatelessWidget {
   final VoidCallback? onTap;
 
   const AdCardWidget({
-    Key? key,
+    super.key,
     required this.ad,
     this.adDetailsBuilder,
     this.favoriteIconBuilder,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -165,9 +165,9 @@ class AdCardWidget extends StatelessWidget {
                       constraints: const BoxConstraints(minHeight: 80),
                       child: Padding(
                         padding: const EdgeInsets.all(6),
-                        child: adDetailsBuilder != null
-                            ? adDetailsBuilder!(ad)
-                            : const SizedBox.shrink(),
+            child: adDetailsBuilder != null
+              ? adDetailsBuilder!(ad)
+              : _DefaultAdDetails(ad: ad),
                       ),
                     ),
                   ),
@@ -183,6 +183,109 @@ class AdCardWidget extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Default ad details layout for AdCardWidget (mimics home screen)
+class _DefaultAdDetails extends StatelessWidget {
+  final home.AdModel ad;
+  const _DefaultAdDetails({required this.ad});
+
+  String _formatDate(String? isoDate) {
+    if (isoDate == null) return '';
+    try {
+      final date = DateTime.parse(isoDate);
+      final now = DateTime.now();
+      final difference = now.difference(date);
+      if (difference.inDays >= 1) return 'منذ ${difference.inDays} يوم';
+      if (difference.inHours >= 1) return 'منذ ${difference.inHours} ساعة';
+      if (difference.inMinutes >= 1) return 'منذ ${difference.inMinutes} دقيقة';
+      return 'الآن';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Text(
+          ad.adTitle ?? '',
+          style: GoogleFonts.cairo(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue[300]!, width: 1),
+                ),
+                child: Text(
+                  '${ad.price ?? '0'} ${ad.currencyName ?? ''}',
+                  style: GoogleFonts.cairo(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[700],
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange[300]!, width: 1),
+              ),
+              child: Text(
+                ad.forSale == true ? 'للبيع' : 'للإيجار',
+                style: GoogleFonts.cairo(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange[700],
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.location_on, size: 12, color: Colors.blue[600]),
+            const SizedBox(width: 2),
+            Expanded(
+              child: Text(
+                '${ad.cityName ?? ''} - ${_formatDate(ad.createDate)}',
+                style: GoogleFonts.cairo(
+                  color: Colors.black87,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
