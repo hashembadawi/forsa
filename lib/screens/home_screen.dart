@@ -1086,7 +1086,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   Widget _buildDrawer(BuildContext context) {
     return Drawer(
       backgroundColor: Colors.grey[50],
-      elevation: 16,
+      elevation: 0,
       child: Column(
         children: [
           _buildDrawerHeader(),
@@ -1594,13 +1594,15 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                   ),
                 ),
               if (!_hasMoreAds && _allAds.isNotEmpty)
-                const SliverToBoxAdapter(
+                SliverToBoxAdapter(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     child: Center(
                       child: Text(
                         'لا يوجد المزيد من الإعلانات',
-                        style: TextStyle(color: Colors.grey),
+                        style: GoogleFonts.cairo(
+                          color: Colors.grey,
+                        ),
                       ),
                     ),
                   ),

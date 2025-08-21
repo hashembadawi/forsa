@@ -25,8 +25,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   static const String _searchEndpoint = '/api/ads/search-by-title';
   static const int _defaultPage = 1;
   static const int _defaultLimit = 20;
-  static const double _gridSpacing = 12.0;
-  static const double _cardAspectRatio = 0.65;
+  static const double _gridSpacing = 5.0;
+  static const double _cardAspectRatio = 0.79;
   static const int _tabletCrossAxisCount = 3;
   static const int _mobileCrossAxisCount = 2;
   static const int _tabletBreakpoint = 600;
@@ -288,7 +288,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     return Container(
       color: Colors.white,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         child: GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: _getCrossAxisCount(context),
