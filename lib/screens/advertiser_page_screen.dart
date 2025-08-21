@@ -1,3 +1,5 @@
+import 'home_screen.dart' as home;
+import '../utils/ad_card_widget.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -133,22 +135,79 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
 
   // ========== UI Helper Methods ==========
 
-  /// Format date for display
-  String _formatDate(String? isoDate) {
-    if (isoDate == null || isoDate.isEmpty) return 'غير محدد';
-    
-    try {
-      final date = DateTime.parse(isoDate);
-      final now = DateTime.now();
-      final difference = now.difference(date);
+  /// Build loading screen
+  Widget _buildLoadingScreen() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[600]!),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'جارٍ تحميل معلومات المعلن...',
+            style: GoogleFonts.cairo(
+              fontSize: 16,
+              color: Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-      if (difference.inDays >= 1) return 'منذ ${difference.inDays} يوم';
-      if (difference.inHours >= 1) return 'منذ ${difference.inHours} ساعة';
-      if (difference.inMinutes >= 1) return 'منذ ${difference.inMinutes} دقيقة';
-      return 'الآن';
-    } catch (e) {
-      return 'غير محدد';
-    }
+  /// Build error screen
+  Widget _buildErrorScreen() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 80,
+            color: Colors.orange[600],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'حدث خطأ في تحميل معلومات المعلن',
+            style: GoogleFonts.cairo(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _retryLoading,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue[600],
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'إعادة المحاولة',
+              style: GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build pagination loading indicator
+  Widget _buildPaginationLoading() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[600]!),
+        ),
+      ),
+    );
   }
 
   // ========== Widget Building Methods ==========
@@ -500,277 +559,74 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
       padding: const EdgeInsets.all(8),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // Calculate responsive grid based on available width
-          int crossAxisCount = 2;
-          double childAspectRatio = 0.75;
-          
-          if (constraints.maxWidth > 600) {
-            crossAxisCount = 3;
-            childAspectRatio = 0.8;
-          } else if (constraints.maxWidth < 350) {
-            crossAxisCount = 1;
-            childAspectRatio = 1.2;
-          }
-
-          return GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              childAspectRatio: childAspectRatio,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-            ),
-            itemCount: _userAds.length,
-            itemBuilder: (context, index) => _buildAdCard(_userAds[index]),
-          );
-        },
-      ),
-    );
-  }
-
-  /// Build advertisement card
-  Widget _buildAdCard(dynamic ad) {
-    final List<dynamic> images = ad['images'] is List ? ad['images'] : [];
-    final firstImageBase64 = images.isNotEmpty ? images[0] : null;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            color: Colors.white,
-            border: Border.all(color: Colors.blue[300]!, width: 1.5),
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(18),
-              splashColor: Colors.blue[300]!.withOpacity(0.2),
-              highlightColor: Colors.blue[100]!.withOpacity(0.1),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => AdDetailsScreen(ad: ad)),
+          final double cardWidth = constraints.maxWidth * 0.92;
+          final double cardHeight = 290.0;
+          if (_userAds.length <= 1) {
+            // Show single card (no sliding)
+            return Center(
+              child: SizedBox(
+                width: cardWidth,
+                height: cardHeight,
+                child: _userAds.isNotEmpty
+                    ? AdCardWidget(
+                        ad: home.AdModel.fromJson(_userAds[0]),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => AdDetailsScreen(ad: _userAds[0])),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
               ),
+            );
+          } else {
+            // Show PageView for sliding with dots below
+            return SizedBox(
+              height: cardHeight + 32,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    flex: 3,
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: _buildAdImage(firstImageBase64),
-                      ),
+                  SizedBox(
+                    height: cardHeight,
+                    child: PageView.builder(
+                      itemCount: _userAds.length,
+                      itemBuilder: (context, index) {
+                        final ad = _userAds[index];
+                        final adModel = home.AdModel.fromJson(ad);
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: AdCardWidget(
+                            ad: adModel,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => AdDetailsScreen(ad: ad)),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                  Expanded(
-                    flex: 2,
-                    child: Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(constraints.maxWidth > 150 ? 8 : 6),
-                      child: _buildAdDetails(ad, constraints),
-                    ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(_userAds.length, (index) {
+                      // For now, always show as inactive (no controller)
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[400],
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      );
+                    }),
                   ),
                 ],
               ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Build ad image
-  Widget _buildAdImage(String? firstImageBase64) {
-    if (firstImageBase64 != null) {
-      return Image.memory(
-        base64Decode(firstImageBase64),
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildNoImagePlaceholder(),
-      );
-    } else {
-      return _buildNoImagePlaceholder();
-    }
-  }
-
-  /// Build no image placeholder
-  Widget _buildNoImagePlaceholder() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFF0F8FF), Color(0xFFE6F3FF)],
-        ),
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.image, size: 40, color: Colors.blue[400]),
-            const SizedBox(height: 4),
-            Text(
-              'لا توجد صورة',
-              style: GoogleFonts.cairo(
-                color: Colors.blue[700],
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Build ad details section
-  Widget _buildAdDetails(dynamic ad, BoxConstraints constraints) {
-    // Calculate responsive font sizes based on available space
-    final double titleFontSize = constraints.maxWidth > 150 ? 13 : 11;
-    final double priceFontSize = constraints.maxWidth > 150 ? 12 : 10;
-    final double locationFontSize = constraints.maxWidth > 150 ? 9 : 7;
-    final double iconSize = constraints.maxWidth > 150 ? 12 : 10;
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        // Ad Title
-        Flexible(
-          child: Text(
-            '${ad['adTitle'] ?? ''}',
-            style: GoogleFonts.cairo(
-              fontSize: titleFontSize,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: constraints.maxHeight > 150 ? 2 : 1,
-          ),
-        ),
-        
-        // Price Container
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: constraints.maxWidth > 150 ? 8 : 6,
-            vertical: constraints.maxWidth > 150 ? 3 : 2,
-          ),
-          decoration: BoxDecoration(
-            color: Colors.blue[50],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.blue[300]!, width: 1),
-          ),
-          child: Text(
-            '${ad['price'] ?? '0'} ${ad['currencyName'] ?? ''}',
-            style: GoogleFonts.cairo(
-              fontSize: priceFontSize,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[700],
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
-        ),
-        
-        // Location and Date
-        Flexible(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.location_on, size: iconSize, color: Colors.blue[600]),
-              const SizedBox(width: 2),
-              Expanded(
-                child: Text(
-                  '${ad['cityName'] ?? ''} - ${_formatDate(ad['createDate'] ?? '')}',
-                  style: GoogleFonts.cairo(
-                    color: Colors.black87,
-                    fontSize: locationFontSize,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Build pagination loading indicator
-  Widget _buildPaginationLoading() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[600]!),
-        ),
-      ),
-    );
-  }
-
-  /// Build loading screen
-  Widget _buildLoadingScreen() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[600]!),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'جارٍ تحميل معلومات المعلن...',
-            style: GoogleFonts.cairo(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build error screen
-  Widget _buildErrorScreen() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 80,
-            color: Colors.orange[600],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'حدث خطأ في تحميل معلومات المعلن',
-            style: GoogleFonts.cairo(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: _retryLoading,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[600],
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              'إعادة المحاولة',
-              style: GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
+            );
+          }
+        },
       ),
     );
   }
