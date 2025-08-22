@@ -794,40 +794,43 @@ class _CategorySelectionStepState extends State<CategorySelectionStep> {
 
   @override
   Widget build(BuildContext context) {
-      return Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'حدد خيارات الإعلان',
-                    style: GoogleFonts.cairo(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
+    bool hideForSaleAndDelivery = _selectedCategory != null && _selectedCategory!['id'] == 3;
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'حدد خيارات الإعلان',
+                  style: GoogleFonts.cairo(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
                   ),
-                  const SizedBox(height: 20),
-                  _buildCategoryDropdown(),
-                  const SizedBox(height: 20),
-                  _buildSubCategoryDropdown(),
+                ),
+                const SizedBox(height: 20),
+                _buildCategoryDropdown(),
+                const SizedBox(height: 20),
+                _buildSubCategoryDropdown(),
+                if (!hideForSaleAndDelivery) ...[
                   const SizedBox(height: 8),
                   _buildForSaleToggle(),
                   const SizedBox(height: 8),
                   _buildDeliveryServiceDropdown(),
                 ],
-              ),
+              ],
             ),
-            const SizedBox(height: 8),
-            Divider(thickness: 1, color: Colors.grey[400]),
-            const SizedBox(height: 8),
-            _buildNavigationButtons(),
-          ],
-        ),
-      );
+          ),
+          const SizedBox(height: 8),
+          Divider(thickness: 1, color: Colors.grey[400]),
+          const SizedBox(height: 8),
+          _buildNavigationButtons(),
+        ],
+      ),
+    );
   }
 
   Widget _buildForSaleToggle() {

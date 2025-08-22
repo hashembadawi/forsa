@@ -1,6 +1,3 @@
-
-
-// All imports must be at the very top
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
@@ -271,20 +268,22 @@ class _DefaultAdDetails extends StatelessWidget {
                     maxLines: 1,
                   ),
                 ),
-                const SizedBox(width: 4),
-                Flexible(
-                  flex: 1,
-                  child: Text(
-                    ad.forSale == true ? 'للبيع' : 'للإيجار',
-                    style: GoogleFonts.cairo(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.orange[700],
+                if (ad.categoryId != 3 && ad.categoryId != '3') ...[
+                  const SizedBox(width: 4),
+                  Flexible(
+                    flex: 1,
+                    child: Text(
+                      ad.forSale == true ? 'للبيع' : 'للإيجار',
+                      style: GoogleFonts.cairo(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.orange[700],
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
                   ),
-                ),
+                ],
               ],
             ),
             const SizedBox(height: 4),
