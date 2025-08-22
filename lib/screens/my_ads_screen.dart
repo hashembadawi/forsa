@@ -260,9 +260,14 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
     }
   }
 
-  /// Navigate back to home screen
+  /// Navigate back to home screen and reload it
   void _navigateToHome() {
-    Navigator.pop(context);
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => home.HomeScreen(refreshOnStart: true),
+      ),
+      (route) => false,
+    );
   }
 
   /// Navigate to add ad screen
