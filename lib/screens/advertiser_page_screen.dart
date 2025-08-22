@@ -62,6 +62,7 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
   Future<void> _fetchAdvertiserData({bool reset = false}) async {
     if (_isLoadingAds || (!_hasMoreAds && !reset)) return;
 
+    if (!mounted) return;
     setState(() {
       if (reset) {
         _isLoadingUserInfo = true;
@@ -86,12 +87,12 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
         final userInfo = decoded['user'];
         final total = decoded['total'] ?? 0;
 
+        if (!mounted) return;
         setState(() {
           if (reset || _userInfo == null) {
             _userInfo = userInfo;
             _totalAds = total;
           }
-          
           _userAds.addAll(fetchedAds);
           _currentPage++;
           _isLoadingAds = false;
@@ -111,6 +112,7 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
 
   /// Handle fetch error
   void _handleFetchError() {
+    if (!mounted) return;
     setState(() {
       _isLoadingAds = false;
       _isLoadingUserInfo = false;

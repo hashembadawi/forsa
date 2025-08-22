@@ -10,6 +10,7 @@ import 'package:syria_market/screens/search_advance_screen.dart';
 import '../utils/dialog_utils.dart';
 import '../utils/ad_card_widget.dart';
 import 'account_screen.dart';
+import 'most_active_users_screen.dart';
 import 'add_ad_screen.dart';
 import 'favorites_screen.dart';
 import 'login_screen.dart';
@@ -196,9 +197,33 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            'المستخدمين الأكثر حركة',
-            style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue[700]),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'المستخدمين الأكثر حركة',
+                style: GoogleFonts.cairo(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black87),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const MostActiveUsersScreen(),
+                    ),
+                  );
+                },
+                child: Text(
+                  'عرض الكل >',
+                  style: GoogleFonts.cairo(fontSize: 14, color: Colors.blue[700], fontWeight: FontWeight.w600),
+                ),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                  minimumSize: Size(0, 32),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+            ],
           ),
         ),
         SizedBox(
@@ -234,7 +259,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.blue[300]!, width: 2),
                         color: Colors.white,
-                        // Removed boxShadow
                       ),
                       child: base64Image != null && base64Image.isNotEmpty
                           ? ClipOval(
@@ -1622,7 +1646,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                           style: GoogleFonts.cairo(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E4A47),
+                            color: Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 8),
