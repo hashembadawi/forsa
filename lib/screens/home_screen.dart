@@ -196,13 +196,13 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'المستخدمين الأكثر حركة',
-                style: GoogleFonts.cairo(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black87),
+                style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
               ),
               TextButton(
                 onPressed: () {
@@ -215,11 +215,11 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                 },
                 child: Text(
                   'عرض الكل >',
-                  style: GoogleFonts.cairo(fontSize: 14, color: Colors.blue[700], fontWeight: FontWeight.w600),
+                  style: GoogleFonts.cairo(fontSize: 12, color: Colors.blue[700], fontWeight: FontWeight.w600),
                 ),
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                  minimumSize: Size(0, 32),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                  minimumSize: Size(0, 24),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               ),
@@ -227,12 +227,12 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
           ),
         ),
         SizedBox(
-          height: 120,
+          height: 80,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             itemCount: _mostActiveUsers.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
               final user = _mostActiveUsers[index];
               final String? base64Image = user['profileImage'];
@@ -253,11 +253,11 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                 child: Column(
                   children: [
                     Container(
-                      width: 80,
-                      height: 80,
+                      width: 48,
+                      height: 48,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.blue[300]!, width: 2),
+                        border: Border.all(color: Colors.blue[300]!, width: 1.5),
                         color: Colors.white,
                       ),
                       child: base64Image != null && base64Image.isNotEmpty
@@ -265,19 +265,19 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                               child: Image.memory(
                                 base64Decode(base64Image),
                                 fit: BoxFit.cover,
-                                width: 80,
-                                height: 80,
-                                errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 48, color: Colors.blue[400]),
+                                width: 48,
+                                height: 48,
+                                errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 28, color: Colors.blue[400]),
                               ),
                             )
-                          : Icon(Icons.person, size: 48, color: Colors.blue[400]),
+                          : Icon(Icons.person, size: 28, color: Colors.blue[400]),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     SizedBox(
-                      width: 80,
+                      width: 48,
                       child: Text(
                         userName,
-                        style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w500),
+                        style: GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.w500),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
@@ -295,7 +295,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   /// Build advanced search field
   Widget _buildAdvancedSearchField() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       child: GestureDetector(
         onTap: () {
           Navigator.push(
@@ -304,7 +304,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
           );
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
@@ -312,15 +312,14 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
           ),
           child: Row(
             children: [
-              Icon(Icons.tune, color: Colors.blue[600]),
-              const SizedBox(width: 12),
+              Icon(Icons.tune, color: Colors.blue[600], size: 20),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'بحث متقدم',
                   style: GoogleFonts.cairo(
                     color: Colors.black87,
-                    fontSize: 16,
-                    
+                    fontSize: 13,
                   ),
                 ),
               ),
@@ -1149,11 +1148,11 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   /// Build location filter button
   Widget _buildLocationButton() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       child: GestureDetector(
         onTap: _showLocationFilterDialog,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
@@ -1164,24 +1163,24 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
             children: [
               Row(
                 children: [
-                  Icon(Icons.location_on, size: 22, color: Colors.blue[600]),
-                  const SizedBox(width: 8),
+                  Icon(Icons.location_on, size: 20, color: Colors.blue[600]),
+                  const SizedBox(width: 6),
                   Text(
                     'بحث بالموقع',
                     style: GoogleFonts.cairo(
-                      fontSize: 17,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF1E4A47),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Text(
                 _selectedCity == _defaultCity
                     ? _defaultCity
                     : '$_selectedCity - $_selectedDistrict',
-                style: GoogleFonts.cairo(fontSize: 15, color: Colors.grey[700]),
+                style: GoogleFonts.cairo(fontSize: 13, color: Colors.grey[700]),
               ),
             ],
           ),
@@ -1206,7 +1205,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
           );
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
@@ -1225,7 +1224,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                     color: _searchController.text.isNotEmpty 
                         ? Colors.black87 
                         : Colors.grey[600],
-                    fontSize: 16,
+                    fontSize: 15,
                   ),
                 ),
               ),
@@ -1824,8 +1823,8 @@ class _ImageSliderState extends State<ImageSlider> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 200,
+      return SizedBox(
+        height: 140,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         child: Stack(
