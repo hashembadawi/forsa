@@ -575,6 +575,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   }
 
   Widget _buildAdInfoTab() {
+    bool hideTypeAndDelivery = _adModel.categoryId == '3' || _adModel.categoryId == 3;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -583,18 +584,20 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
         _buildAdvertiserInfo(),
         const Divider(height: 32, thickness: 1, color: Colors.grey),
         _buildCategoryInfo(),
-        const SizedBox(height: 8),
-        _buildInfoRow(
-          Icons.sell,
-          'نوع الإعلان',
-          _adModel.forSale == true ? 'للبيع' : 'للإيجار',
-        ),
-        const SizedBox(height: 8),
-        _buildInfoRow(
-          Icons.delivery_dining,
-          'خدمة التوصيل',
-          (_adModel.deliveryService == true) ? 'يوجد' : 'لا يوجد',
-        ),
+        if (!hideTypeAndDelivery) ...[
+          const SizedBox(height: 8),
+          _buildInfoRow(
+            Icons.sell,
+            'نوع الإعلان',
+            _adModel.forSale == true ? 'للبيع' : 'للإيجار',
+          ),
+          const SizedBox(height: 8),
+          _buildInfoRow(
+            Icons.delivery_dining,
+            'خدمة التوصيل',
+            (_adModel.deliveryService == true) ? 'يوجد' : 'لا يوجد',
+          ),
+        ],
       ],
     );
   }
