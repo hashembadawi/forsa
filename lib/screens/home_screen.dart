@@ -318,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                 child: Text(
                   'بحث متقدم',
                   style: GoogleFonts.cairo(
-                    color: Colors.black87,
+                    color: Colors.grey,
                     fontSize: 13,
                   ),
                 ),
@@ -1170,7 +1170,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                     style: GoogleFonts.cairo(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E4A47),
+                      color: Colors.black
                     ),
                   ),
                 ],
@@ -1180,7 +1180,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                 _selectedCity == _defaultCity
                     ? _defaultCity
                     : '$_selectedCity - $_selectedDistrict',
-                style: GoogleFonts.cairo(fontSize: 13, color: Colors.grey[700]),
+                style: GoogleFonts.cairo(fontSize: 13, color: Colors.grey),
               ),
             ],
           ),
@@ -1192,7 +1192,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   /// Build search field with autocomplete suggestions
   Widget _buildSearchField() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       child: GestureDetector(
         onTap: () {
           Navigator.push(
@@ -1205,7 +1205,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
           );
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Match advanced search field
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
@@ -1213,18 +1213,16 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
           ),
           child: Row(
             children: [
-              Icon(Icons.search, color: Colors.blue[600]),
-              const SizedBox(width: 12),
+              Icon(Icons.search, color: Colors.blue[600], size: 20), // Match icon size with advanced search
+              const SizedBox(width: 8), // Match spacing with advanced search
               Expanded(
                 child: Text(
                   _searchController.text.isNotEmpty 
                       ? _searchController.text
                       : 'ابحث عن منتج أو خدمة...',
                   style: GoogleFonts.cairo(
-                    color: _searchController.text.isNotEmpty 
-                        ? Colors.black87 
-                        : Colors.grey[600],
-                    fontSize: 15,
+                    color: Colors.grey,
+                    fontSize: 13,
                   ),
                 ),
               ),
@@ -1837,9 +1835,15 @@ class _ImageSliderState extends State<ImageSlider> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.blue[300]!, width: 1.5),
-                  image: DecorationImage(
-                    image: AssetImage(_imagePaths[index]),
-                    fit: BoxFit.cover,
+                  color: Colors.white,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(
+                    _imagePaths[index],
+                    fit: BoxFit.cover, // Fill the entire slider area
+                    width: double.infinity,
+                    height: double.infinity,
                   ),
                 ),
               ),
