@@ -395,26 +395,30 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey[400]!, width: 1.5),
+        borderRadius: BorderRadius.circular(18),
+        color: Colors.white,
       ),
-      child: Column(
-        children: [
-          // Tab Headers
-          Container(
-            child: Row(
-              children: [
-                _buildTabButton('معلومات الإعلان', 0),
-                _buildTabButton('الوصف', 1),
-                _buildTabButton('الموقع', 2),
-              ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: Column(
+          children: [
+            // Tab Headers
+            Container(
+              child: Row(
+                children: [
+                  _buildTabButton('معلومات الإعلان', 0),
+                  _buildTabButton('الوصف', 1),
+                  _buildTabButton('الموقع', 2),
+                ],
+              ),
             ),
-          ),
-          
-          // Tab Content
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: _buildTabContent(),
-          ),
-        ],
+            // Tab Content
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: _buildTabContent(),
+            ),
+          ],
+        ),
       ),
     );
   }
