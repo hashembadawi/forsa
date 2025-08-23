@@ -1841,9 +1841,7 @@ class _ImageSliderState extends State<ImageSlider> {
                   borderRadius: BorderRadius.circular(16),
                   child: Image.asset(
                     _imagePaths[index],
-                    fit: BoxFit.cover, // Fill the entire slider area
-                    width: double.infinity,
-                    height: double.infinity,
+                    fit: BoxFit.fill, // Fill the entire slider area
                   ),
                 ),
               ),
