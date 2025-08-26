@@ -1316,7 +1316,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                 Icon(Icons.copyright, size: 16, color: Colors.grey[600]),
                 const SizedBox(width: 4),
                 Text(
-                  '2025 سوق سوريا',
+                  'فرصة 2025',
                   style: GoogleFonts.cairo(
                     color: Colors.grey[600],
                     fontSize: 12,
@@ -1614,7 +1614,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                     elevation: 0,
                     backgroundColor: Colors.blue[700],
                     title: Text(
-                      'سوق سوريا',
+                      'فـرصـة',
                       style: GoogleFonts.cairo(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
