@@ -45,7 +45,7 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen> {
-  // Basic state
+
   bool _isConnected = true;
   File? _newProfileImage;
   
