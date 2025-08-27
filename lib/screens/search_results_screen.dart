@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:syria_market/screens/ad_details_screen.dart';
+import 'package:forsa/screens/ad_details_screen.dart';
 import '../utils/ad_card_widget.dart';
 import 'home_screen.dart' as home;
 import 'package:google_fonts/google_fonts.dart';

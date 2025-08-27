@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:syria_market/screens/search_advance_screen.dart';
+import 'package:forsa/screens/search_advance_screen.dart';
 import '../utils/dialog_utils.dart';
 import '../utils/ad_card_widget.dart';
 import 'account_screen.dart';

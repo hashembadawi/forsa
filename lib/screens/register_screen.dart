@@ -5,8 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:syria_market/screens/verification_screen.dart';
-import 'package:syria_market/utils/dialog_utils.dart';
+import 'package:forsa/screens/verification_screen.dart';
+import 'package:forsa/utils/dialog_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// User registration screen with form validation and country selection

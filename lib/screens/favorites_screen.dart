@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:syria_market/screens/home_screen.dart' as home;
-import 'package:syria_market/utils/ad_card_widget.dart';
-import 'package:syria_market/screens/ad_details_screen.dart';
-import 'package:syria_market/utils/dialog_utils.dart';
+import 'package:forsa/screens/home_screen.dart' as home;
+import 'package:forsa/utils/ad_card_widget.dart';
+import 'package:forsa/screens/ad_details_screen.dart';
+import 'package:forsa/utils/dialog_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Screen displaying user's favorite advertisements

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:syria_market/screens/advanced_search_results_screen.dart';
+import 'package:forsa/screens/advanced_search_results_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 

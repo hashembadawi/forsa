@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:syria_market/utils/dialog_utils.dart';
+import 'package:forsa/utils/dialog_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';

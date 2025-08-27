@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:syria_market/screens/advertiser_page_screen.dart';
+import 'package:forsa/screens/advertiser_page_screen.dart';
 
 class MostActiveUsersScreen extends StatefulWidget {
   const MostActiveUsersScreen({Key? key}) : super(key: key);

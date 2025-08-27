@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'login_screen.dart';
-import 'package:syria_market/utils/dialog_utils.dart';
+import 'package:forsa/utils/dialog_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class VerificationScreen extends StatefulWidget {
