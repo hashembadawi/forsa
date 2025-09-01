@@ -10,7 +10,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../utils/ad_card_widget.dart';
 import 'home_screen.dart' as home;
 
-import 'image_preview_screen.dart';
 import 'advertiser_page_screen.dart';
 import 'login_screen.dart';
 import '../utils/dialog_utils.dart';
@@ -112,6 +111,75 @@ class AdDetailsScreen extends StatefulWidget {
 }
 
 class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAliveClientMixin {
+  void _showBuiltInImageViewer(List<String> images, int initialIndex) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.black,
+          insetPadding: const EdgeInsets.all(0),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              int currentIndex = initialIndex;
+              return Stack(
+                children: [
+                  PageView.builder(
+                    itemCount: images.length,
+                    controller: PageController(initialPage: initialIndex),
+                    onPageChanged: (i) => setState(() => currentIndex = i),
+                    itemBuilder: (context, i) {
+                      final decoded = _getDecodedImage(images[i]);
+                      return decoded != null
+                          ? InteractiveViewer(
+                              child: Center(
+                                child: Image.memory(
+                                  decoded,
+                                  fit: BoxFit.contain,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                ),
+                              ),
+                            )
+                          : Center(child: _buildImageErrorWidget());
+                    },
+                  ),
+                  Positioned(
+                    top: 40,
+                    right: 20,
+                    child: IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white, size: 32),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                  if (images.length > 1)
+                    Positioned(
+                      bottom: 30,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          images.length,
+                          (i) => Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: i == currentIndex ? Colors.white : Colors.white24,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
   int _currentSimilarAdPage = 0;
   /// Navigate to ad details
   void _navigateToAdDetails(AdModel ad) {
@@ -505,9 +573,8 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   Widget _buildImageItem(List<String> images, int index) {
     final imgBase64 = images[index];
     final decodedImage = _getDecodedImage(imgBase64);
-    
     return GestureDetector(
-      onTap: () => _navigateToImagePreview(images, index),
+      onTap: () => _showBuiltInImageViewer(images, index),
       child: decodedImage != null
           ? Image.memory(
               decodedImage,
@@ -1476,17 +1543,6 @@ https://syria-market-web.onrender.com/$adId
   }
 
   // Navigation Methods
-  void _navigateToImagePreview(List<String> images, int index) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ImagePreviewScreen(
-          images: images,
-          initialIndex: index,
-        ),
-      ),
-    );
-  }
 
   void _navigateToAdvertiserPage() {
     final userId = _adModel.userId;
