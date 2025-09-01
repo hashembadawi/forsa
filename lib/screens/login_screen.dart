@@ -192,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await _saveUserData(responseData);
       await _navigateAfterLogin();
     } else {
-      final errorMessage = responseData['message'] ?? 'حدث خطأ أثناء تسجيل الدخول';
+      final errorMessage = 'حدث خطأ أثناء تسجيل الدخول يرجى التأكد من الرقم أو كلمة السر';
       DialogUtils.showErrorDialog(
         context: context,
         message: errorMessage,

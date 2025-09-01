@@ -1628,6 +1628,71 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                         onPressed: () => Scaffold.of(context).openDrawer(),
                       ),
                     ),
+                      actions: [
+                        Padding(
+                          padding: const EdgeInsetsDirectional.only(end: 12),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () async {
+                              if (_authToken != null && _userId != null) {
+                                final prefs = await SharedPreferences.getInstance();
+                                final username = prefs.getString('userName') ?? '';
+                                final email = prefs.getString('userEmail') ?? '';
+                                final phone = prefs.getString('userPhone') ?? '';
+                                final userId = prefs.getString('userId') ?? '';
+                                final userAccountNumber = prefs.getString('userAccountNumber') ?? '';
+                                final userProfileImage = prefs.getString('profileImage') ?? _userProfileImage;
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => AccountScreen(
+                                      isLoggedIn: true,
+                                      userName: username,
+                                      userEmail: email,
+                                      phoneNumber: phone,
+                                      userId: userId,
+                                      userProfileImage: userProfileImage,
+                                      userAccountNumber: userAccountNumber,
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                );
+                              }
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 4,
+                                    offset: Offset(0, 1),
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: (_authToken != null && _userId != null)
+                                      ? Colors.green[600]!
+                                      : Colors.blue[300]!,
+                                  width: 1.5,
+                                ),
+                              ),
+                              padding: const EdgeInsets.all(2),
+                              child: Icon(
+                                Icons.person_rounded, // User account icon
+                                size: 22,
+                                color: (_authToken != null && _userId != null)
+                                    ? Colors.green[600]
+                                    : Colors.blue[300],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                   ),
                   const SliverToBoxAdapter(child: ImageSlider()),
                   SliverToBoxAdapter(child: _buildLocationButton()),
