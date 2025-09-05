@@ -21,7 +21,9 @@ import '../utils/dialog_utils.dart';
 
 /// SIMPLIFIED VERSION - Much easier to understand and maintain
 class AccountScreen extends StatefulWidget {
-  final String userName;
+  //final String userName;
+  final String userFirstName;
+  final String userLastName;
   final String userEmail;
   final String phoneNumber;
   final bool isLoggedIn;
@@ -31,7 +33,9 @@ class AccountScreen extends StatefulWidget {
 
   const AccountScreen({
     super.key,
-    required this.userName,
+    //required this.userName,
+    required this.userFirstName,
+    required this.userLastName, 
     required this.userEmail,
     required this.phoneNumber,
     required this.isLoggedIn,
@@ -243,9 +247,11 @@ class _AccountScreenState extends State<AccountScreen> {
 
   // Simple edit dialog with keyboard handling
   void _showEditDialog() {
-    final names = widget.userName.split(' ');
-    _firstNameController.text = names.isNotEmpty ? names.first : '';
-    _lastNameController.text = names.length > 1 ? names.sublist(1).join(' ') : '';
+    //final names = widget.userName.split(' ');
+    final firstName = widget.userFirstName;
+    final lastName = widget.userLastName;
+    _firstNameController.text = firstName;
+    _lastNameController.text = lastName;
 
     showDialog(
       context: context,
@@ -573,7 +579,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                         children: [
                                           // Username
                                           Text(
-                                            widget.userName,
+                                            '${widget.userFirstName} ${widget.userLastName}',
                                             style: GoogleFonts.cairo(
                                               fontSize: MediaQuery.of(context).size.width * 0.045, // Responsive font size
                                               fontWeight: FontWeight.bold,

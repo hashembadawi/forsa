@@ -190,6 +190,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       
       await _saveUserData(responseData);
+      //show responseData
+      print('Login successful: $responseData');
       await _navigateAfterLogin();
     } else {
       final errorMessage = 'حدث خطأ أثناء تسجيل الدخول يرجى التأكد من الرقم أو كلمة السر';
@@ -207,7 +209,8 @@ class _LoginScreenState extends State<LoginScreen> {
     await Future.wait([
       prefs.setString('token', userData['token'] ?? ''),
       prefs.setBool('rememberMe', _rememberMe),
-      prefs.setString('userName', userData['userName'] ?? ''),
+      prefs.setString('userFirstName', userData['userFirstName'] ?? ''),
+      prefs.setString('userLastName', userData['userLastName'] ?? ''),
       prefs.setString('userEmail', userData['userEmail'] ?? ''),
       prefs.setString('userId', userData['userId'] ?? ''),
       prefs.setString('userPhone', userData['userPhone'] ?? ''),

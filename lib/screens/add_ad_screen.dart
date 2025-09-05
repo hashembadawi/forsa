@@ -386,7 +386,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       final token = prefs.getString('token') ?? '';
       final userId = prefs.getString('userId') ?? '';
       final userPhone = prefs.getString('userPhone') ?? '';
-      final username = prefs.getString('userName') ?? '';
+      final username = (prefs.getString('userFirstName') ?? '') + ' ' + (prefs.getString('userLastName') ?? '');
       final userIsSpecial = prefs.getBool('userIsSpecial') ?? false;
 
       final base64Images = await _processImages();

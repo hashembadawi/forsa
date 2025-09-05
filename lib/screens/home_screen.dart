@@ -498,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       if (response.statusCode == 200) {
         if (mounted) {
           setState(() {
-            _username = prefs.getString('userName') ?? 'مستخدم';
+            _username = (prefs.getString('userFirstName') ?? 'مستخدم') + ' ' + (prefs.getString('userLastName') ?? '');
             // Try different possible keys for profile image
             _userProfileImage = prefs.getString('profileImage') ?? 
                                prefs.getString('userProfileImage');
@@ -562,7 +562,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       if (token != null && token.isNotEmpty) {
         if (mounted) {
           setState(() {
-            _username = prefs.getString('userName') ?? 'مستخدم';
+            _username = (prefs.getString('userFirstName') ?? '') + ' ' + (prefs.getString('userLastName') ?? '');
             // Try different possible keys for profile image
             _userProfileImage = prefs.getString('profileImage') ?? 
                                prefs.getString('userProfileImage');
@@ -1466,7 +1466,9 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
         _refreshUserData();
       });
     } else {
-      final username = prefs.getString('userName') ?? '';
+      //final username = (prefs.getString('userFirstName') ?? '') + ' ' + (prefs.getString('userLastName') ?? '');
+      final userFirstName = prefs.getString('userFirstName') ?? '';
+      final userLastName = prefs.getString('userLastName') ?? '';
       final email = prefs.getString('userEmail') ?? '';
       final phone = prefs.getString('userPhone') ?? '';
       final userId = prefs.getString('userId') ?? '';
@@ -1477,7 +1479,9 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
         MaterialPageRoute(
           builder: (_) => AccountScreen(
             isLoggedIn: true,
-            userName: username,
+            //userName: username,
+            userFirstName: userFirstName,
+            userLastName: userLastName,
             userEmail: email,
             phoneNumber: phone,
             userId: userId,
@@ -1636,7 +1640,9 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                             onTap: () async {
                               if (_authToken != null && _userId != null) {
                                 final prefs = await SharedPreferences.getInstance();
-                                final username = prefs.getString('userName') ?? '';
+                                //final username = (prefs.getString('userFirstName') ?? '') + ' ' + (prefs.getString('userLastName') ?? '');
+                                final userFirstName = prefs.getString('userFirstName') ?? '';
+                                final userLastName = prefs.getString('userLastName') ?? '';
                                 final email = prefs.getString('userEmail') ?? '';
                                 final phone = prefs.getString('userPhone') ?? '';
                                 final userId = prefs.getString('userId') ?? '';
@@ -1647,7 +1653,8 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                                   MaterialPageRoute(
                                     builder: (_) => AccountScreen(
                                       isLoggedIn: true,
-                                      userName: username,
+                                      userFirstName: userFirstName,
+                                      userLastName: userLastName,
                                       userEmail: email,
                                       phoneNumber: phone,
                                       userId: userId,
