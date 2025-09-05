@@ -412,11 +412,11 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       if (response.statusCode == 201) {
         _showSuccessDialog();
       } else {
-        _showErrorDialog('فشل في نشر الإعلان');
+        _showErrorDialog('فشل رفع الإعلان تأكد من المعلومات وحاول مرة أخرى');
       }
     } catch (e) {
       Navigator.of(context).pop(); // Close loading dialog
-      _showErrorDialog('حدث خطأ أثناء الاتصال بالخادم');
+      _showErrorDialog('حدث خطأ أثناء رفع الإعلان حاول مرة أخرى');
     }
   }
 

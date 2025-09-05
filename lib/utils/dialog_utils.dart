@@ -541,7 +541,11 @@ class DialogUtils {
   /// [context] - The build context
   static void closeDialog(BuildContext context) {
     if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
+      try {
+        Navigator.of(context).pop();
+      } catch (e) {
+        // Ignore if already popped
+      }
     }
   }
 }
