@@ -390,11 +390,14 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       final userIsSpecial = prefs.getBool('userIsSpecial') ?? false;
 
       final base64Images = await _processImages();
+      final thumbnail = base64Images.isNotEmpty ? base64Images[0] : null;
+  final otherImages = base64Images.length > 1 ? List<String>.from(base64Images.sublist(1)) : <String>[];
       final requestData = _buildRequestData(
         userId: userId,
         userPhone: userPhone,
         username: username,
-        base64Images: base64Images,
+        base64Images: otherImages,
+        thumbnail: thumbnail,
         userIsSpecial: userIsSpecial,
       );
 
@@ -423,22 +426,21 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
   /// Process images for upload
   Future<List<String>> _processImages() async {
     final base64Images = <String>[];
-    
-    for (final image in _selectedImages.where((img) => img != null)) {
+    final images = _selectedImages.where((img) => img != null).toList();
+    for (int i = 0; i < images.length; i++) {
+      final image = images[i]!;
       final compressedBytes = await FlutterImageCompress.compressWithFile(
-        image!.path,
-        minWidth: 800,    // Maximum width of 800px
-        minHeight: 800,   // Maximum height of 800px
-        quality: 60,       // Very low quality (1-100, lower = smaller file)
+        image.path,
+        minWidth: i == 0 ? 75 : 800,
+        minHeight: i == 0 ? 75 : 800,
+        quality: 60,
         format: CompressFormat.jpeg,
         rotate: 0,
       );
-      
       if (compressedBytes != null) {
         base64Images.add(base64Encode(compressedBytes));
       }
     }
-    
     return base64Images;
   }
 
@@ -448,6 +450,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
     required String userPhone,
     required String username,
     required List<String> base64Images,
+    required String? thumbnail,
     required bool userIsSpecial,
   }) {
     final Map<String, dynamic> requestData = {
@@ -467,6 +470,7 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
       'regionId': _selectedMajorArea?['id'],
       'regionName': _selectedMajorArea?['name'],
       'description': _description,
+      'thumbnail': thumbnail,
       'images': base64Images,
       'isSpecial': userIsSpecial,
       'forSale': _forSale,
