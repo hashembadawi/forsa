@@ -35,6 +35,7 @@ class AdModel {
   final String? subCategoryId;
   final String? createDate;
   final List<String>? images;
+  final String? thumbnail;
   final Map<String, dynamic>? location;
   final bool? isSpecial;
   final bool? forSale;
@@ -57,6 +58,7 @@ class AdModel {
     this.subCategoryId,
     this.createDate,
     this.images,
+    this.thumbnail,
     this.location,
     this.isSpecial,
     this.forSale,
@@ -81,10 +83,11 @@ class AdModel {
       subCategoryId: json['subCategoryId']?.toString(),
       createDate: json['createDate'],
       images: json['images'] is List ? List<String>.from(json['images']) : null,
+      thumbnail: json['thumbnail'],
       location: json['location'] is Map<String, dynamic> ? json['location'] : null,
-      isSpecial: json['isSpecial'] ?? false, // Default to false if not present
-      forSale: json['forSale'] ?? false, // Default to false if not present
-      deliveryService: json['deliveryService'] ?? false, // Default to false if not present
+      isSpecial: json['isSpecial'] ?? false,
+      forSale: json['forSale'] ?? false,
+      deliveryService: json['deliveryService'] ?? false,
     );
   }
 
@@ -106,6 +109,7 @@ class AdModel {
       'subCategoryId': subCategoryId,
       'createDate': createDate,
       'images': images,
+      'thumbnail': thumbnail,
       'location': location,
       'isSpecial': isSpecial,
       'forSale': forSale,
@@ -1132,6 +1136,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   // AdCardWidget(
   //   ad: ad,
   //   favoriteIconBuilder: (adId) => _buildFavoriteHeartIcon(adId),
+  //   imageBuilder: (ad) => _adThumbnailImageBuilder(ad),
   // )
   // Favorite heart icon builder for AdCardWidget
   Widget _favoriteHeartIconBuilder(String adId) {

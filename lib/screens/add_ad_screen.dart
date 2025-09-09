@@ -427,21 +427,43 @@ class _MultiStepAddAdScreenState extends State<MultiStepAddAdScreen> {
   Future<List<String>> _processImages() async {
     final base64Images = <String>[];
     final images = _selectedImages.where((img) => img != null).toList();
-    for (int i = 0; i < images.length; i++) {
-      final image = images[i]!;
-      final compressedBytes = await FlutterImageCompress.compressWithFile(
-        image.path,
-        minWidth: i == 0 ? 75 : 800,
-        minHeight: i == 0 ? 75 : 800,
-        quality: 60,
+    String? thumbnailBase64;
+    if (images.isNotEmpty) {
+      // First image: only for thumbnail
+      final firstImage = images[0]!;
+      final thumbnailBytes = await FlutterImageCompress.compressWithFile(
+        firstImage.path,
+        minWidth: 400,
+        minHeight: 400,
+        quality: 85,
         format: CompressFormat.jpeg,
         rotate: 0,
       );
-      if (compressedBytes != null) {
-        base64Images.add(base64Encode(compressedBytes));
+      if (thumbnailBytes != null) {
+        thumbnailBase64 = base64Encode(thumbnailBytes);
+      }
+      // Other images (from index 1): compressed for main images
+      for (int i = 1; i < images.length; i++) {
+        final image = images[i]!;
+        final compressedBytes = await FlutterImageCompress.compressWithFile(
+          image.path,
+          minWidth: 800,
+          minHeight: 800,
+          quality: 60,
+          format: CompressFormat.jpeg,
+          rotate: 0,
+        );
+        if (compressedBytes != null) {
+          base64Images.add(base64Encode(compressedBytes));
+        }
       }
     }
-    return base64Images;
+    // Return thumbnail as first element, then images
+    if (thumbnailBase64 != null) {
+      return [thumbnailBase64, ...base64Images];
+    } else {
+      return base64Images;
+    }
   }
 
   /// Build request data

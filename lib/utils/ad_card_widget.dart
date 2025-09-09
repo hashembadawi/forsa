@@ -65,8 +65,7 @@ class AdCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final images = ad.images ?? [];
-    final firstImageBase64 = images.isNotEmpty ? images[0] : null;
+  final String? thumbnailBase64 = ad.thumbnail;
     final String adId = ad.id ?? '';
     final bool isSpecial = ad.isSpecial ?? false;
 
@@ -100,10 +99,10 @@ class AdCardWidget extends StatelessWidget {
       );
     }
 
-    Widget buildAdImage(String? firstImageBase64) {
-      if (firstImageBase64 != null) {
+    Widget buildAdImage(String? thumbnailBase64) {
+      if (thumbnailBase64 != null && thumbnailBase64.isNotEmpty) {
         try {
-          final decodedImage = base64Decode(firstImageBase64);
+          final decodedImage = base64Decode(thumbnailBase64);
           return Image.memory(
             decodedImage,
             fit: BoxFit.cover,
@@ -126,7 +125,6 @@ class AdCardWidget extends StatelessWidget {
         border: Border.all(color: Colors.blue, width: 1.5),
         boxShadow: [
           BoxShadow(
-            // ignore: deprecated_member_use
             color: Colors.black.withOpacity(0.07),
             blurRadius: 12,
             offset: const Offset(0, 4),
@@ -150,7 +148,7 @@ class AdCardWidget extends StatelessWidget {
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                     child: AspectRatio(
                       aspectRatio: 1.6,
-                      child: buildAdImage(firstImageBase64),
+                      child: buildAdImage(thumbnailBase64),
                     ),
                   ),
                   if (favoriteIconBuilder != null)
