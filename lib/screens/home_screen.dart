@@ -1339,58 +1339,50 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
 
   /// Build drawer header
   Widget _buildDrawerHeader() {
-    return Container(
-      width: double.infinity,
-      height: 240,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.blue[700]!,
-            Colors.blue[500]!,
-          ],
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.only(top: 64, left: 20, right: 20, bottom: 20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            // Profile image
-            CircleAvatar(
-              radius: 40,
-              backgroundColor: Colors.white,
-              child: _userProfileImage != null && _userProfileImage!.isNotEmpty
-                  ? ClipOval(
-                      child: Image.memory(
-                        base64Decode(_userProfileImage!),
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(Icons.person_rounded, size: 40, color: Colors.blue[700]);
-                        },
-                      ),
-                    )
-                  : Icon(Icons.person_rounded, size: 40, color: Colors.blue[700]),
-            ),
-            const SizedBox(height: 16),
-            // Welcome text without border
-            Text(
-              _username != null ? 'مرحباً، $_username 👋' : 'مرحبا بك 👋',
-              style: GoogleFonts.cairo(
-                fontSize: 18,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+    return FutureBuilder<SharedPreferences>(
+      future: SharedPreferences.getInstance(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Container(height: 240, color: Colors.blue);
+        }
+        final prefs = snapshot.data!;
+        final firstName = prefs.getString('userFirstName') ?? '';
+        final lastName = prefs.getString('userLastName') ?? '';
+        final profileImage = prefs.getString('userProfileImage');
+        ImageProvider? avatar;
+        if (profileImage != null && profileImage.isNotEmpty) {
+          try {
+            avatar = MemoryImage(base64Decode(profileImage));
+          } catch (e) {
+            avatar = null;
+          }
+        }
+        return Container(
+          width: double.infinity,
+          height: 240,
+          decoration: BoxDecoration(
+            color: Colors.blue,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 40,
+                backgroundColor: Colors.white,
+                backgroundImage: avatar,
+                child: avatar == null ? Icon(Icons.person, size: 40, color: Colors.blue) : null,
               ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
+              const SizedBox(height: 12),
+              Text(
+                '$firstName $lastName',
+                style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -1780,6 +1772,8 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                                       fontWeight: FontWeight.bold,
                                       color: Colors.grey[600],
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
@@ -1788,6 +1782,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                                       fontSize: 14,
                                       color: Colors.grey[500],
                                     ),
+                                    textAlign: TextAlign.center,
                                   ),
                                 ],
                               ),

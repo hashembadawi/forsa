@@ -64,15 +64,20 @@ class _AccountScreenState extends State<AccountScreen> {
   @override
   void initState() {
     super.initState();
+    _loadUserData();
     _checkConnectivity();
   }
 
-  @override
-  void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    super.dispose();
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _firstNameController.text = prefs.getString('userFirstName') ?? widget.userFirstName;
+      _lastNameController.text = prefs.getString('userLastName') ?? widget.userLastName;
+      _localProfileImage = prefs.getString('userProfileImage') ?? widget.userProfileImage;
+    });
   }
+
+  String? _localProfileImage;
 
   // Simple connectivity check
   Future<void> _checkConnectivity() async {
@@ -101,9 +106,9 @@ class _AccountScreenState extends State<AccountScreen> {
     if (_newProfileImage != null) {
       return FileImage(_newProfileImage!);
     }
-    if (widget.userProfileImage != null && widget.userProfileImage!.isNotEmpty) {
+    if (_localProfileImage != null && _localProfileImage!.isNotEmpty) {
       try {
-        return MemoryImage(base64Decode(widget.userProfileImage!));
+        return MemoryImage(base64Decode(_localProfileImage!));
       } catch (e) {
         return null;
       }
@@ -114,32 +119,26 @@ class _AccountScreenState extends State<AccountScreen> {
   // Simple update method
   Future<void> _updateProfile() async {
     if (!_formKey.currentState!.validate()) return;
-
-    // Show uploading dialog
     _showUploadingDialog();
-
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
-      
-      // Prepare data
       final data = {
         'firstName': _firstNameController.text.trim(),
         'lastName': _lastNameController.text.trim(),
         'userId': widget.userId,
       };
-
-      // Add image if selected
+      String? newProfileImageBase64;
       if (_newProfileImage != null) {
         final bytes = await FlutterImageCompress.compressWithFile(
           _newProfileImage!.path,
           quality: 70,
         );
         if (bytes != null) {
-          data['profileImage'] = base64Encode(bytes);
+          newProfileImageBase64 = base64Encode(bytes);
+          data['profileImage'] = newProfileImageBase64;
         }
       }
-
       final response = await http.put(
         Uri.parse('https://sahbo-app-api.onrender.com/api/user/update-info'),
         headers: {
@@ -148,19 +147,24 @@ class _AccountScreenState extends State<AccountScreen> {
         },
         body: jsonEncode(data),
       );
-
-      // Close uploading dialog
       DialogUtils.closeDialog(context);
-
       if (response.statusCode == 200) {
-        // Close the edit dialog as well
+        // Save updated info to SharedPreferences
+        await prefs.setString('userFirstName', _firstNameController.text.trim());
+        await prefs.setString('userLastName', _lastNameController.text.trim());
+        if (newProfileImageBase64 != null) {
+          await prefs.setString('userProfileImage', newProfileImageBase64);
+          setState(() {
+            _localProfileImage = newProfileImageBase64;
+          });
+        }
+        setState(() {}); // Refresh UI with new name
         DialogUtils.closeDialog(context);
-        _showMessage('لقد تم تغير البيانات بنجاح لملاحظة التغييرات اعد تسجيل الدخول', Colors.green);
+        _showMessage('لقد تم تغير البيانات بنجاح', Colors.green);
       } else {
         _showMessage('حدث خطأ', Colors.red);
       }
     } catch (e) {
-      // Close uploading dialog
       DialogUtils.closeDialog(context);
       _showMessage('خطأ في الاتصال', Colors.red);
     }
@@ -579,7 +583,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                         children: [
                                           // Username
                                           Text(
-                                            '${widget.userFirstName} ${widget.userLastName}',
+                                            '${_firstNameController.text} ${_lastNameController.text}',
                                             style: GoogleFonts.cairo(
                                               fontSize: MediaQuery.of(context).size.width * 0.045, // Responsive font size
                                               fontWeight: FontWeight.bold,
