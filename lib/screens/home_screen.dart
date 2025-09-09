@@ -16,6 +16,7 @@ import 'favorites_screen.dart';
 import 'login_screen.dart';
 import 'my_ads_screen.dart';
 import 'suggestions_list_screen.dart';
+import 'ad_details_screen.dart';
 
 // Data models for better type safety
 class AdModel {
@@ -1818,6 +1819,17 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                             return AdCardWidget(
                               ad: _allAds[index],
                               favoriteIconBuilder: _favoriteHeartIconBuilder,
+                              onTap: () {
+                                final adId = _allAds[index].id;
+                                if (adId != null) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => AdDetailsScreen(adId: adId),
+                                    ),
+                                  );
+                                }
+                              },
                             );
                           },
                           childCount: _allAds.length + (_hasMoreAds ? 1 : 0),

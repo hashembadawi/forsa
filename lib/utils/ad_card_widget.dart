@@ -137,7 +137,7 @@ class AdCardWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           onTap: onTap ?? () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => AdDetailsScreen(ad: ad.toJson())),
+            MaterialPageRoute(builder: (_) => AdDetailsScreen(adId: adId)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

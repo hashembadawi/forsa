@@ -135,7 +135,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => AdDetailsScreen(ad: ad),
+        builder: (_) => AdDetailsScreen(adId: ad['_id']),
       ),
     );
   }

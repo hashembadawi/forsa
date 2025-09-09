@@ -178,7 +178,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => AdDetailsScreen(ad: ad),
+        builder: (_) => AdDetailsScreen(adId: ad['_id']),
       ),
     ).then((_) {
       // Refresh favorites when returning from ad details

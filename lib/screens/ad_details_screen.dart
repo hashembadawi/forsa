@@ -102,9 +102,9 @@ class LocationModel {
 }
 
 class AdDetailsScreen extends StatefulWidget {
-  final dynamic ad;
+  final String adId;
 
-  const AdDetailsScreen({super.key, required this.ad});
+  const AdDetailsScreen({super.key, required this.adId});
 
   @override
   State<AdDetailsScreen> createState() => _AdDetailsScreenState();
@@ -184,33 +184,14 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   /// Navigate to ad details
   void _navigateToAdDetails(AdModel ad) {
     // Convert back to dynamic for navigation (maintaining compatibility)
-    final Map<String, dynamic> adData = {
-      '_id': ad.id,
-      'adTitle': ad.adTitle,
-      'description': ad.description,
-      'price': ad.price,
-      'currencyName': ad.currencyName,
-      'categoryName': ad.categoryName,
-      'subCategoryName': ad.subCategoryName,
-      'cityName': ad.cityName,
-      'regionName': ad.regionName,
-      'userName': ad.userName,
-      'userPhone': ad.userPhone,
-      'userId': ad.userId,
-      'categoryId': ad.categoryId,
-      'subCategoryId': ad.subCategoryId,
-      'createDate': ad.createDate,
-      'images': ad.images,
-      'location': ad.location != null ? {
-        'coordinates': ad.location!.coordinates,
-      } : null,
-    };
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AdDetailsScreen(ad: adData),
-      ),
-    );
+    if (ad.id != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AdDetailsScreen(adId: ad.id!),
+        ),
+      );
+    }
   }
   // Constants
   static const double _imageHeight = 200.0;
@@ -218,7 +199,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   static const String _baseUrl = 'https://sahbo-app-api.onrender.com';
   
   // Models
-  late final AdModel _adModel;
+  AdModel? _adModel;
+  bool _isLoadingAd = true;
+  bool _hasErrorAd = false;
   
   // State variables
   int _selectedTabIndex = 0;
@@ -245,10 +228,9 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   @override
   void initState() {
     super.initState();
-    _adModel = AdModel.fromJson(widget.ad);
     _imagePageController = PageController();
     _similarAdsPageController = PageController();
-    _initializeData();
+    _fetchAdDetails();
     _similarAdsPageController?.addListener(() {
       if (_similarAdsPageController == null) return;
       final int newPage = _similarAdsPageController!.page?.round() ?? 0;
@@ -258,6 +240,36 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
         });
       }
     });
+  }
+
+  Future<void> _fetchAdDetails() async {
+    setState(() {
+      _isLoadingAd = true;
+      _hasErrorAd = false;
+    });
+    try {
+      final url = Uri.parse('https://sahbo-app-api.onrender.com/api/ads/getAdById/${widget.adId}');
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _adModel = AdModel.fromJson(data);
+          _isLoadingAd = false;
+        });
+        // Now fetch similar ads and favorites
+        _initializeData();
+      } else {
+        setState(() {
+          _hasErrorAd = true;
+          _isLoadingAd = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _hasErrorAd = true;
+        _isLoadingAd = false;
+      });
+    }
   }
 
   @override
@@ -282,7 +294,11 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: _buildAppBar(),
-        body: _buildBody(),
+        body: _isLoadingAd
+            ? Center(child: CircularProgressIndicator())
+            : _hasErrorAd
+                ? Center(child: Text('حدث خطأ أثناء تحميل الإعلان'))
+                : _buildBody(),
       ),
     );
   }
@@ -310,13 +326,13 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
 
   // Main Body Builder
   Widget _buildBody() {
+    if (_adModel == null) return SizedBox.shrink();
     return Container(
       color: Colors.grey[50],
       child: ListView(
         children: [
           // First Section: Current Ad Details
           _buildCurrentAdSection(),
-          
           // Divider between sections
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -326,15 +342,11 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
               borderRadius: BorderRadius.circular(4),
             ),
           ),
-          
           // Action Buttons Section (Share, Report, Favorite)
           _buildActionButtonsSection(),
-          
           const SizedBox(height: 16),
-          
           // Second Section: Similar Ads
           _buildSimilarAdsSection(),
-          
           const SizedBox(height: 20),
         ],
       ),
@@ -414,7 +426,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   // Optimized widget builders
   Widget _buildAdTitle() {
     return Text(
-      _adModel.adTitle ?? 'غير متوفر',
+      _adModel?.adTitle ?? 'غير متوفر',
       style: GoogleFonts.cairo(
         fontSize: 22,
         fontWeight: FontWeight.bold,
@@ -446,7 +458,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
             ),
           ),
           Text(
-            '${_adModel.price ?? 'غير محدد'} ${_adModel.currencyName ?? ''}',
+            '${_adModel?.price ?? 'غير محدد'} ${_adModel?.currencyName ?? ''}',
             style: GoogleFonts.cairo(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -535,12 +547,10 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
 
   // Image Section Builders with optimization
   Widget _buildImageSection() {
-    final images = _adModel.images ?? [];
-    
+    final images = _adModel?.images ?? [];
     if (images.isEmpty) {
       return _buildNoImagePlaceholder();
     }
-
     return SizedBox(
       height: _imageHeight,
       child: Stack(
@@ -646,7 +656,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   }
 
   Widget _buildAdInfoTab() {
-    bool hideTypeAndDelivery = _adModel.categoryId == '3' || _adModel.categoryId == 3;
+  bool hideTypeAndDelivery = _adModel?.categoryId == '3' || _adModel?.categoryId == 3;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -660,13 +670,13 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
           _buildInfoRow(
             Icons.sell,
             'نوع الإعلان',
-            _adModel.forSale == true ? 'للبيع' : 'للإيجار',
+            _adModel?.forSale == true ? 'للبيع' : 'للإيجار',
           ),
           const SizedBox(height: 8),
           _buildInfoRow(
             Icons.delivery_dining,
             'خدمة التوصيل',
-            (_adModel.deliveryService == true) ? 'يوجد' : 'لا يوجد',
+            (_adModel?.deliveryService == true) ? 'يوجد' : 'لا يوجد',
           ),
         ],
       ],
@@ -679,13 +689,13 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
         _buildInfoRow(
           Icons.location_on,
           'الموقع',
-          '${_adModel.cityName ?? 'غير محدد'} - ${_adModel.regionName ?? 'غير محدد'}',
+          '${_adModel?.cityName ?? 'غير محدد'} - ${_adModel?.regionName ?? 'غير محدد'}',
         ),
         const SizedBox(height: 12),
         _buildInfoRow(
           Icons.calendar_today,
           'تاريخ الإعلان',
-          _formatDate(_adModel.createDate),
+          _formatDate(_adModel?.createDate),
         ),
       ],
     );
@@ -718,13 +728,13 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
           _buildInfoRow(
             Icons.person,
             'الاسم',
-            _adModel.userName ?? 'غير متوفر',
+            _adModel?.userName ?? 'غير متوفر',
           ),
           const SizedBox(height: 8),
           _buildInfoRow(
             Icons.phone,
             'الهاتف',
-            _adModel.userPhone ?? 'غير متوفر',
+            _adModel?.userPhone ?? 'غير متوفر',
           ),
           const SizedBox(height: 12),
           // Advertiser Page Button
@@ -760,7 +770,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
     return _buildInfoRow(
       Icons.category,
       'التصنيف',
-      '${_adModel.categoryName ?? 'غير محدد'} - ${_adModel.subCategoryName ?? 'غير متوفر'}',
+      '${_adModel?.categoryName ?? 'غير محدد'} - ${_adModel?.subCategoryName ?? 'غير متوفر'}',
     );
   }
 
@@ -815,7 +825,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   }
 
   Widget _buildDescriptionTab() {
-    final description = _adModel.description ?? '';
+  final description = _adModel?.description ?? '';
     
     if (description.isEmpty) {
       return Container(
@@ -856,7 +866,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   }
 
   Widget _buildLocationTab() {
-    final location = _adModel.location;
+  final location = _adModel?.location;
     
     if (location == null || !location.isValid) {
       return _buildNoLocationAvailable();
@@ -959,7 +969,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   }
 
   Widget _buildActionButtons() {
-    final phone = _adModel.userPhone ?? '';
+  final phone = _adModel?.userPhone ?? '';
     
     if (phone.isEmpty) {
       return _buildNoContactInfo();
@@ -1155,13 +1165,13 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   /// Share ad functionality
   Future<void> _shareAd() async {
     try {
-      final String adId = _adModel.id ?? '';
-      final String shareText = '''
-${_adModel.adTitle ?? 'إعلان مميز'}
+  final String adId = _adModel?.id ?? '';
+  final String shareText = '''
+${_adModel?.adTitle ?? 'إعلان مميز'}
 
 شاهد هذا الاعلان على موقع سوق سوريا
 https://syria-market-web.onrender.com/$adId
-      '''.trim();
+  '''.trim();
 
       // Show share dialog with app options
       await _showShareDialog(shareText);
@@ -1306,7 +1316,7 @@ https://syria-market-web.onrender.com/$adId
   /// Share via Facebook
   Future<void> _shareViaFacebook(String shareText) async {
     try {
-      final String adId = _adModel.id ?? '';
+  final String adId = _adModel?.id ?? '';
       final String adUrl = 'https://syria-market.onrender.com/$adId';
       final encodedMessage = Uri.encodeComponent(shareText);
       // Facebook app URL scheme
@@ -1329,7 +1339,7 @@ https://syria-market-web.onrender.com/$adId
   /// Share via Telegram
   Future<void> _shareViaTelegram(String shareText) async {
     try {
-      final String adId = _adModel.id ?? '';
+  final String adId = _adModel?.id ?? '';
       final String adUrl = 'https://syria-market.onrender.com/$adId';
       final encodedMessage = Uri.encodeComponent(shareText);
       // Telegram app URL scheme
@@ -1480,7 +1490,7 @@ https://syria-market-web.onrender.com/$adId
       
       // Prepare report data
       final reportData = {
-        'adId': _adModel.id,
+        'adId': _adModel?.id,
         'userId': _userId,
         'reason': reason,
         'reportedAt': DateTime.now().toIso8601String(),
@@ -1545,15 +1555,15 @@ https://syria-market-web.onrender.com/$adId
   // Navigation Methods
 
   void _navigateToAdvertiserPage() {
-    final userId = _adModel.userId;
+    final userId = _adModel?.userId;
     if (userId != null && userId.isNotEmpty) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => AdvertiserPageScreen(
             userId: userId,
-            initialUserName: _adModel.userName,
-            initialUserPhone: _adModel.userPhone,
+            initialUserName: _adModel?.userName,
+            initialUserPhone: _adModel?.userPhone,
           ),
         ),
       );
@@ -1570,7 +1580,7 @@ https://syria-market-web.onrender.com/$adId
   // Action Methods
   Future<void> _openWhatsApp(String phone) async {
     final formattedPhone = _cleanPhoneNumber(phone);
-    final adTitle = _adModel.adTitle ?? '';
+  final adTitle = _adModel?.adTitle ?? '';
     final message = "السلام عليكم، أنا مهتم بالإعلان الخاص بك: $adTitle";
     final encodedMessage = Uri.encodeComponent(message);
 
@@ -1813,7 +1823,7 @@ https://syria-market-web.onrender.com/$adId
         final decoded = jsonDecode(response.body);
         final List<dynamic> favorites = decoded['favorites'] ?? [];
         // Check if current ad is in favorites list
-        final currentAdId = _adModel.id;
+  final currentAdId = _adModel?.id;
         final isCurrentAdFavorite = favorites.any((favorite) {
           final ad = favorite['ad'];
           return ad != null && ad['_id'] == currentAdId;
@@ -1887,9 +1897,8 @@ https://syria-market-web.onrender.com/$adId
     });
 
     try {
-      final adId = _adModel.id;
+      final adId = _adModel?.id;
       if (adId == null) return;
-      
       if (_isFavorite) {
         // Remove from favorites directly without confirmation
         await _removeFromFavorites(adId);
@@ -2008,9 +2017,9 @@ https://syria-market-web.onrender.com/$adId
 
   /// Fetch similar ads based on category and subcategory
   Future<void> _fetchSimilarAds() async {
-    final categoryId = _adModel.categoryId;
-    final subCategoryId = _adModel.subCategoryId;
-    final currentAdId = _adModel.id;
+  final categoryId = _adModel?.categoryId;
+  final subCategoryId = _adModel?.subCategoryId;
+  final currentAdId = _adModel?.id;
     if (categoryId == null) return;
 
     if (!mounted) return;

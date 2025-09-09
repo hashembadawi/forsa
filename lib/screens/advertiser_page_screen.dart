@@ -574,7 +574,7 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
                         ad: home.AdModel.fromJson(_userAds[0]),
                         onTap: () => Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => AdDetailsScreen(ad: _userAds[0])),
+                          MaterialPageRoute(builder: (_) => AdDetailsScreen(adId: _userAds[0]['_id'])),
                         ),
                       )
                     : const SizedBox.shrink(),
@@ -600,7 +600,7 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
                             ad: adModel,
                             onTap: () => Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => AdDetailsScreen(ad: ad)),
+                              MaterialPageRoute(builder: (_) => AdDetailsScreen(adId: ad['id'])),
                             ),
                           ),
                         );
