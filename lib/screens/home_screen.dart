@@ -362,7 +362,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   // ========== Controllers & State ==========
   final TextEditingController _searchController = TextEditingController();
   late ScrollController _adsScrollController;
-  String? _username;
   String? _userProfileImage;
   
   // ========== Favorites State ==========
@@ -479,7 +478,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       debugPrint('Error checking login status: $e');
       if (mounted) {
         setState(() {
-          _username = null;
           _userProfileImage = null;
           _authToken = null;
           _userId = null;
@@ -503,7 +501,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       if (response.statusCode == 200) {
         if (mounted) {
           setState(() {
-            _username = (prefs.getString('userFirstName') ?? 'مستخدم') + ' ' + (prefs.getString('userLastName') ?? '');
             // Try different possible keys for profile image
             _userProfileImage = prefs.getString('profileImage') ?? 
                                prefs.getString('userProfileImage');
@@ -518,7 +515,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
         await prefs.clear();
         if (mounted) {
           setState(() {
-            _username = null;
             _userProfileImage = null;
             _authToken = null;
             _userId = null;
@@ -532,7 +528,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       }
       if (mounted) {
         setState(() {
-          _username = null;
           _userProfileImage = null;
           _authToken = null;
           _userId = null;
@@ -549,7 +544,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
     }
     if (mounted) {
       setState(() {
-        _username = null;
         _userProfileImage = null;
         _authToken = null;
         _userId = null;
@@ -567,7 +561,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       if (token != null && token.isNotEmpty) {
         if (mounted) {
           setState(() {
-            _username = (prefs.getString('userFirstName') ?? '') + ' ' + (prefs.getString('userLastName') ?? '');
             // Try different possible keys for profile image
             _userProfileImage = prefs.getString('profileImage') ?? 
                                prefs.getString('userProfileImage');
@@ -581,7 +574,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       } else {
         if (mounted) {
           setState(() {
-            _username = null;
             _userProfileImage = null;
             _authToken = null;
             _userId = null;
