@@ -32,6 +32,7 @@ class AdModel {
   final String? subCategoryId;
   final String? createDate;
   final List<String>? images;
+  final String? thumbnail;
   final LocationModel? location;
   final bool? forSale;
   final bool? deliveryService;
@@ -53,6 +54,7 @@ class AdModel {
     this.subCategoryId,
     this.createDate,
     this.images,
+    this.thumbnail,
     this.location,
     this.forSale,
     this.deliveryService,
@@ -76,6 +78,7 @@ class AdModel {
       subCategoryId: json['subCategoryId']?.toString(),
       createDate: json['createDate'],
       images: json['images'] is List ? List<String>.from(json['images']) : null,
+      thumbnail: json['thumbnail'],
       location: json['location'] != null ? LocationModel.fromJson(json['location']) : null,
       forSale: json['forSale'],
       deliveryService: json['deliveryService'],
@@ -548,28 +551,31 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   // Image Section Builders with optimization
   Widget _buildImageSection() {
     final images = _adModel?.images ?? [];
-    if (images.isEmpty) {
+    final thumbnail = _adModel?.thumbnail;
+    List<String> allImages = [];
+    if (thumbnail != null && thumbnail.isNotEmpty) {
+      allImages.add(thumbnail);
+    }
+    allImages.addAll(images);
+    if (allImages.isEmpty) {
       return _buildNoImagePlaceholder();
     }
     return SizedBox(
       height: _imageHeight,
       child: Stack(
         children: [
-          // Optimized Image PageView
           PageView.builder(
             controller: _imagePageController,
-            itemCount: images.length,
-            itemBuilder: (context, index) => _buildImageItem(images, index),
+            itemCount: allImages.length,
+            itemBuilder: (context, index) => _buildImageItem(allImages, index),
           ),
-          // Image indicator if multiple images
-          if (images.length > 1)
+          if (allImages.length > 1)
             Positioned(
               bottom: 10,
               left: 0,
               right: 0,
-              child: _buildImageIndicator(images.length),
+              child: _buildImageIndicator(allImages.length),
             ),
-          // Favorite Heart Icon
           Positioned(
             top: 10,
             left: 10,
@@ -1318,7 +1324,7 @@ https://syria-market-web.onrender.com/$adId
     try {
   final String adId = _adModel?.id ?? '';
       final String adUrl = 'https://syria-market.onrender.com/$adId';
-      final encodedMessage = Uri.encodeComponent(shareText);
+      final String encodedMessage = Uri.encodeComponent(shareText);
       // Facebook app URL scheme
       final uriDirect = Uri.parse("fb://facewebmodal/f?href=$adUrl");
       // Facebook web URL
@@ -1341,7 +1347,7 @@ https://syria-market-web.onrender.com/$adId
     try {
   final String adId = _adModel?.id ?? '';
       final String adUrl = 'https://syria-market.onrender.com/$adId';
-      final encodedMessage = Uri.encodeComponent(shareText);
+      final String encodedMessage = Uri.encodeComponent(shareText);
       // Telegram app URL scheme
       final uriDirect = Uri.parse("tg://msg?text=$encodedMessage");
       // Telegram web URL
@@ -2262,6 +2268,7 @@ https://syria-market-web.onrender.com/$adId
                         subCategoryId: _similarAds[0].subCategoryId,
                         createDate: _similarAds[0].createDate,
                         images: _similarAds[0].images,
+                        thumbnail: _similarAds[0].thumbnail,
                         location: _similarAds[0].location != null ? {'coordinates': _similarAds[0].location!.coordinates} : null,
                         forSale: _similarAds[0].forSale,
                         deliveryService: _similarAds[0].deliveryService,
@@ -2302,6 +2309,7 @@ https://syria-market-web.onrender.com/$adId
                         subCategoryId: ad.subCategoryId,
                         createDate: ad.createDate,
                         images: ad.images,
+                        thumbnail: ad.thumbnail,
                         location: ad.location != null ? {'coordinates': ad.location!.coordinates} : null,
                         forSale: ad.forSale,
                         deliveryService: ad.deliveryService,
