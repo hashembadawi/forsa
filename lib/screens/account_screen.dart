@@ -431,7 +431,7 @@ class _AccountScreenState extends State<AccountScreen> {
                               backgroundColor: Colors.blue,
                               foregroundColor: Colors.white,
                             ),
-                            child: Text('حفظ', style: GoogleFonts.cairo()),
+                            child: Text('حفظ', style: GoogleFonts.cairo( fontWeight: FontWeight.bold )),
                           ),
                         ),
                       ],
