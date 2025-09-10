@@ -1218,34 +1218,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
 
   // ========== Refresh Handler ==========
 
-  /// Handle pull-to-refresh
-  Future<void> _handleRefresh() async {
-    // Set refreshing state
-    if (mounted) {
-      setState(() {
-        _isRefreshing = true;
-        _resetFilters();
-        _resetAdsData();
-      });
-    }
-    
-    try {
-      // Fetch fresh data
-      await Future.wait([
-        _fetchOptions(),
-        _refreshUserData(),
-      ]);
-      
-      await _fetchAllAds();
-    } finally {
-      // Clear refreshing state
-      if (mounted) {
-        setState(() {
-          _isRefreshing = false;
-        });
-      }
-    }
-  }
 
   // ========== Main Build Method ==========
 
