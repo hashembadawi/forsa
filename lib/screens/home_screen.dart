@@ -20,6 +20,7 @@ import 'ad_details_screen.dart';
 import '../widgets/image_slider_wid.dart';
 import '../widgets/location_button_wid.dart';
 import '../widgets/loading_dialog_wid.dart';
+import '../widgets/no_results_wid.dart';
 
 // Data models for better type safety
 class AdModel {
@@ -1442,40 +1443,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                             ),
                           )
                         else if (_allAds.isEmpty && !_isLoadingAds)
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(32),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.search_off,
-                                    size: 64,
-                                    color: Colors.grey[400],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'لا يوجد نتائج',
-                                    style: GoogleFonts.cairo(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey[600],
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'لم يتم العثور على أي إعلانات',
-                                    style: GoogleFonts.cairo(
-                                      fontSize: 14,
-                                      color: Colors.grey[500],
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                          const NoResultsWid(),
                       ]),
                     ),
                   ),
@@ -1566,7 +1534,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
           barrierDismissible: false,
           builder: (BuildContext context) {
             return const LoadingDialogWid(
-              message: 'جاري البحث حسب المدينة و المنطقة',
+              message: 'جاري البحث حسب الموقع',
               showProgress: true,
             );
           },
