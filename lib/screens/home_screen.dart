@@ -749,6 +749,8 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   void _onAdsScroll() {
     if (_adsScrollController.position.pixels >= 
         _adsScrollController.position.maxScrollExtent - 200) {
+      // Prevent repeated calls if already loading or no more ads
+      if (_isLoadingAds || !_hasMoreAds) return;
       if (_selectedCategoryId != null || _selectedSubCategoryId != null) {
         _fetchCategoryFilteredAds();
       } else if (_selectedCityId != null || _selectedRegionId != null) {
@@ -852,39 +854,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   }
 
   // ========== Dialog Methods ==========
-
-
-  /// Build dropdown decoration
-  InputDecoration _buildDropdownDecoration(String labelText, double borderRadius) {
-    return InputDecoration(
-      labelText: labelText,
-      labelStyle: GoogleFonts.cairo(color: Colors.blue[600]),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(borderRadius),
-        borderSide: BorderSide(color: Colors.blue[400]!, width: 1.5),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(borderRadius),
-        borderSide: BorderSide(color: Colors.blue[400]!, width: 1.5),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(borderRadius),
-        borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
-      ),
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    );
-  }
-
-  /// Build dropdown text style
-  TextStyle _buildDropdownTextStyle() {
-    return GoogleFonts.cairo(
-      color: Colors.blue,
-      fontSize: 15,
-      fontWeight: FontWeight.w500,
-    );
-  }
 
   // ========== Widget Building Methods ==========
 
@@ -1588,6 +1557,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
           _selectedDistrict = districtName ?? _defaultDistrict;
           _selectedCityId = cityId;
           _selectedRegionId = regionId;
+          _currentPageAds = 1;
         });
         _fetchFilteredAds(reset: true);
       },
