@@ -71,8 +71,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
     }
   }
 
-  // ...existing code...
-  // ...existing code...
   // ========== Constants ==========
   static const String _baseUrl = 'https://sahbo-app-api.onrender.com';
   static const int _limitAds = 10;
