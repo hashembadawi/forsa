@@ -17,6 +17,8 @@ import 'login_screen.dart';
 import 'my_ads_screen.dart';
 import 'suggestions_list_screen.dart';
 import 'ad_details_screen.dart';
+import '../widgets/image_slider_wid.dart';
+import '../widgets/location_button_wid.dart';
 
 // Data models for better type safety
 class AdModel {
@@ -670,44 +672,23 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
 
   /// Fetch filtered advertisements by location
   Future<void> _fetchFilteredAds({bool reset = false}) async {
-    if (_isLoadingAds || !_hasMoreAds) return;
-
-    if (mounted) {
-      setState(() => _isLoadingAds = true);
-    }
-
-    try {
-      final params = <String, String>{
-        'page': '$_currentPageAds',
-        'limit': '$_limitAds',
-      };
-      
-      if (_selectedCityId != null) params['cityId'] = _selectedCityId.toString();
-      if (_selectedRegionId != null) params['regionId'] = _selectedRegionId.toString();
-
-      final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search', params);
-      final response = await http.get(uri);
-
-      if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
-        final List<dynamic> fetchedAds = decoded['ads'] ?? [];
-
-        if (mounted) {
-          setState(() {
-            if (reset) _allAds.clear();
-            _allAds.addAll(fetchedAds.map((ad) => AdModel.fromJson(ad)));
-            _currentPageAds++;
-            _isLoadingAds = false;
-            _hasMoreAds = fetchedAds.length >= _limitAds;
-          });
-        }
-      } else {
-        _handleFetchError();
-      }
-    } catch (e) {
-      debugPrint('Exception fetching filtered ads: $e');
-      _handleFetchError();
-    }
+    await LocationButtonWid.fetchFilteredAds(
+      context: context,
+      currentPageAds: _currentPageAds,
+      limitAds: _limitAds,
+      selectedCityId: _selectedCityId,
+      selectedRegionId: _selectedRegionId,
+      onResult: (ads, hasMoreAds) {
+        setState(() {
+          if (reset) _allAds.clear();
+          _allAds.addAll(ads.map((ad) => AdModel.fromJson(ad)));
+          _currentPageAds++;
+          _isLoadingAds = false;
+          _hasMoreAds = hasMoreAds;
+        });
+      },
+      reset: reset,
+    );
   }
 
   /// Fetch filtered advertisements by category
@@ -872,224 +853,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
 
   // ========== Dialog Methods ==========
 
-  /// Show location filter dialog
-  Future<void> _showLocationFilterDialog() async {
-    // Initialize with current values
-    Map<String, dynamic>? tempSelectedProvince = _selectedCityId != null 
-        ? _provinces.where((p) => p['id'] == _selectedCityId).isNotEmpty
-          ? _provinces.firstWhere((p) => p['id'] == _selectedCityId)
-          : null
-        : null;
-    
-    Map<String, dynamic>? tempSelectedArea = _selectedRegionId != null 
-        ? _majorAreas.where((a) => a['id'] == _selectedRegionId).isNotEmpty
-          ? _majorAreas.firstWhere((a) => a['id'] == _selectedRegionId)
-          : null
-        : null;
-    
-    List<Map<String, dynamic>> filteredAreas = [];
-    
-    // Initialize filtered areas if province is selected
-    if (tempSelectedProvince != null) {
-      filteredAreas.addAll(
-        _majorAreas.where((area) => area['ProvinceId'] == tempSelectedProvince!['id']).toList(),
-      );
-    }
-
-    await showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setStateDialog) {
-          return Dialog(
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(16),
-            child: Container(
-              width: double.maxFinite,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Blue Header
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: const BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
-                    ),
-                    child: Text(
-                      'بحث حسب الموقع',
-                      style: GoogleFonts.cairo(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  // White Body
-                  Container(
-                    width: double.maxFinite,
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Province Dropdown
-                        DropdownButtonFormField<Map<String, dynamic>>(
-                          value: tempSelectedProvince,
-                          isExpanded: true,
-                          decoration: _buildDropdownDecoration('اختر المحافظة', 15),
-                          dropdownColor: Colors.white,
-                          style: _buildDropdownTextStyle(),
-                          items: [
-                            DropdownMenuItem<Map<String, dynamic>>(
-                              value: null,
-                              child: Text(
-                                'كل المحافظات',
-                                style: GoogleFonts.cairo(
-                                  color: Colors.black,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            ..._provinces.map((province) => DropdownMenuItem(
-                              value: province,
-                              child: Text(
-                                province['name'],
-                                style: GoogleFonts.cairo(
-                                  color: Colors.black,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            )),
-                          ],
-                          onChanged: (value) {
-                            setStateDialog(() {
-                              tempSelectedProvince = value;
-                              tempSelectedArea = null; // Reset area selection when province changes
-                              filteredAreas.clear();
-                              if (value != null) {
-                                filteredAreas.addAll(
-                                  _majorAreas.where((area) => area['ProvinceId'] == value['id']).toList(),
-                                );
-                              }
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        // Area Dropdown
-                        DropdownButtonFormField<Map<String, dynamic>>(
-                          value: tempSelectedArea,
-                          isExpanded: true,
-                          decoration: _buildDropdownDecoration('اختر المدينة/المنطقة', 25),
-                          dropdownColor: Colors.white,
-                          style: _buildDropdownTextStyle(),
-                          items: [
-                            DropdownMenuItem<Map<String, dynamic>>(
-                              value: null,
-                              child: Text(
-                                'كل المناطق',
-                                style: GoogleFonts.cairo(
-                                  color: Colors.black,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            ...filteredAreas.map((area) => DropdownMenuItem(
-                              value: area,
-                              child: Text(
-                                area['name'],
-                                style: GoogleFonts.cairo(
-                                  color: Colors.black,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            )),
-                          ],
-                          onChanged: (value) {
-                            setStateDialog(() {
-                              tempSelectedArea = value;
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        // Action buttons
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Expanded(
-                              child: TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.grey[600],
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                ),
-                                child: Text(
-                                  'إلغاء',
-                                  style: GoogleFonts.cairo(fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  if (mounted) {
-                                    setState(() {
-                                      _selectedCity = tempSelectedProvince?['name'] ?? _defaultCity;
-                                      _selectedDistrict = tempSelectedArea?['name'] ?? _defaultDistrict;
-                                      _selectedCityId = tempSelectedProvince?['id'];
-                                      _selectedRegionId = tempSelectedArea?['id'];
-                                      _resetAdsData();
-                                    });
-                                  }
-                                  
-                                  Navigator.pop(context);
-                                  
-                                  if (_selectedCityId != null || _selectedRegionId != null) {
-                                    _fetchFilteredAds(reset: true);
-                                  } else {
-                                    _fetchAllAds();
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue[600],
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  'تطبيق',
-                                  style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
 
   /// Build dropdown decoration
   InputDecoration _buildDropdownDecoration(String labelText, double borderRadius) {
@@ -1140,50 +903,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       isFavorite: isFavorite,
       isLoggedIn: isLoggedIn,
       isLoading: isLoggedIn && _isLoadingFavorites,
-    );
-  }
-
-  /// Build location filter button
-  Widget _buildLocationButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-      child: GestureDetector(
-        onTap: _showLocationFilterDialog,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.blue[300]!, width: 1.5),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.location_on, size: 20, color: Colors.blue[600]),
-                  const SizedBox(width: 6),
-                  Text(
-                    'بحث بالموقع',
-                    style: GoogleFonts.cairo(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                _selectedCity == _defaultCity
-                    ? _defaultCity
-                    : '$_selectedCity - $_selectedDistrict',
-                style: GoogleFonts.cairo(fontSize: 13, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -1630,7 +1349,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                             onTap: () async {
                               if (_authToken != null && _userId != null) {
                                 final prefs = await SharedPreferences.getInstance();
-                                //final username = (prefs.getString('userFirstName') ?? '') + ' ' + (prefs.getString('userLastName') ?? '');
                                 final userFirstName = prefs.getString('userFirstName') ?? '';
                                 final userLastName = prefs.getString('userLastName') ?? '';
                                 final email = prefs.getString('userEmail') ?? '';
@@ -1691,8 +1409,16 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                         ),
                       ],
                   ),
-                  const SliverToBoxAdapter(child: ImageSlider()),
-                  SliverToBoxAdapter(child: _buildLocationButton()),
+                  const SliverToBoxAdapter(child: ImageSliderWid()),
+                  SliverToBoxAdapter(
+                    child: LocationButtonWid(
+                      selectedCity: _selectedCity,
+                      defaultCity: _defaultCity,
+                      selectedDistrict: _selectedDistrict,
+                      defaultDistrict: _defaultDistrict,
+                      onTap: _showLocationFilterDialog,
+                    ),
+                  ),
                   SliverToBoxAdapter(child: _buildAdvancedSearchField()),
                   SliverToBoxAdapter(child: _buildSearchField()),
                   SliverToBoxAdapter(child: _buildMostActiveUsersSection()),
@@ -1845,109 +1571,26 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       ),
     );
   }
-}
 
-/// Image slider widget for displaying promotional images
-class ImageSlider extends StatefulWidget {
-  const ImageSlider({super.key});
-
-  @override
-  State<ImageSlider> createState() => _ImageSliderState();
-}
-
-class _ImageSliderState extends State<ImageSlider> {
-  static const List<String> _imagePaths = [
-    'assets/image1.jpg',
-    'assets/image2.jpg',
-    'assets/image3.jpg',
-    'assets/image4.jpg',
-  ];
-
-  int _currentImageIndex = 0;
-  late PageController _pageController;
-  Timer? _sliderTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(viewportFraction: 1.0);
-    _startAutoSlide();
-  }
-
-  @override
-  void dispose() {
-    _sliderTimer?.cancel();
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  /// Start automatic slide transition
-  void _startAutoSlide() {
-    _sliderTimer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (_pageController.hasClients) {
-        final nextPage = (_currentImageIndex + 1) % _imagePaths.length;
-        _pageController.animateToPage(
-          nextPage,
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOut,
-        );
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-      return SizedBox(
-        height: 140,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        child: Stack(
-          children: [
-            PageView.builder(
-              controller: _pageController,
-              itemCount: _imagePaths.length,
-              onPageChanged: (index) => setState(() => _currentImageIndex = index),
-              itemBuilder: (context, index) => Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.blue[300]!, width: 1.5),
-                  color: Colors.white,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.asset(
-                    _imagePaths[index],
-                    fit: BoxFit.fill, // Fill the entire slider area
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 16,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  _imagePaths.length,
-                  (index) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    width: _currentImageIndex == index ? 20 : 8,
-                    height: 8,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      color: _currentImageIndex == index
-                          ? Colors.blue[600]
-                          : Colors.white.withOpacity(0.7),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+  // Fix: define _showLocationFilterDialog method
+  void _showLocationFilterDialog() async {
+    await LocationButtonWid.showLocationFilterDialog(
+      context: context,
+      defaultCity: _defaultCity,
+      defaultDistrict: _defaultDistrict,
+      provinces: _provinces,
+      majorAreas: _majorAreas,
+      selectedCityId: _selectedCityId,
+      selectedRegionId: _selectedRegionId,
+      onApply: ({cityName, districtName, cityId, regionId}) {
+        setState(() {
+          _selectedCity = cityName ?? _defaultCity;
+          _selectedDistrict = districtName ?? _defaultDistrict;
+          _selectedCityId = cityId;
+          _selectedRegionId = regionId;
+        });
+        _fetchFilteredAds(reset: true);
+      },
     );
   }
 }
