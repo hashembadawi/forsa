@@ -19,6 +19,7 @@ import 'suggestions_list_screen.dart';
 import 'ad_details_screen.dart';
 import '../widgets/image_slider_wid.dart';
 import '../widgets/location_button_wid.dart';
+import '../widgets/loading_dialog_wid.dart';
 
 // Data models for better type safety
 class AdModel {
@@ -1551,7 +1552,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       majorAreas: _majorAreas,
       selectedCityId: _selectedCityId,
       selectedRegionId: _selectedRegionId,
-      onApply: ({cityName, districtName, cityId, regionId}) {
+      onApply: ({cityName, districtName, cityId, regionId}) async {
         setState(() {
           _selectedCity = cityName ?? _defaultCity;
           _selectedDistrict = districtName ?? _defaultDistrict;
@@ -1559,7 +1560,22 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
           _selectedRegionId = regionId;
           _currentPageAds = 1;
         });
-        _fetchFilteredAds(reset: true);
+        // Show loading dialog using LoadingDialogWid
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const LoadingDialogWid(
+              message: 'جاري البحث حسب المدينة و المنطقة',
+              showProgress: true,
+            );
+          },
+        );
+        await _fetchFilteredAds(reset: true);
+        // Hide loading dialog
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
       },
     );
   }
