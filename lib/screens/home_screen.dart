@@ -25,23 +25,6 @@ import '../widgets/homeScreen/loading_dialog_wid.dart';
 import '../widgets/homeScreen/no_results_wid.dart';
 import '../widgets/homeScreen/full_screen_loading_wid.dart';
 
-// AdModel moved to models/ad_model.dart
-
-class LocationModel {
-  final int? id;
-  final String? name;
-  final int? provinceId;
-
-  LocationModel({this.id, this.name, this.provinceId});
-
-  factory LocationModel.fromJson(Map<String, dynamic> json) {
-    return LocationModel(
-      id: json['id'],
-      name: json['name'],
-      provinceId: json['ProvinceId'],
-    );
-  }
-}
 
 /// Home screen that displays advertisements with filtering and search capabilities
 class HomeScreen extends StatefulWidget {
