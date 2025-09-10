@@ -21,6 +21,7 @@ import '../widgets/image_slider_wid.dart';
 import '../widgets/location_button_wid.dart';
 import '../widgets/loading_dialog_wid.dart';
 import '../widgets/no_results_wid.dart';
+import '../widgets/full_screen_loading_wid.dart';
 
 // Data models for better type safety
 class AdModel {
@@ -1214,12 +1215,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
     );
   }
 
-  /// Build loading screen
-  Widget _buildLoadingScreen() {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
-  }
 
   // ========== Refresh Handler ==========
 
@@ -1258,9 +1253,9 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
     
-    // Show loading screen while checking connectivity
-    if (_isCheckingConnectivity) {
-      return _buildLoadingScreen();
+    // Show loading screen while checking connectivity, loading ads, or refreshing
+    if (_isCheckingConnectivity || _isLoadingAds || _isRefreshing) {
+      return const FullScreenLoadingWid();
     }
 
     // Show no internet connection screen
@@ -1268,7 +1263,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       return _buildNoInternetScreen();
     }
 
-    // Normal home screen when connected
+    // Normal home screen when connected and ads loaded
     return Directionality(
       textDirection: TextDirection.rtl,
       child: GestureDetector(
@@ -1279,230 +1274,195 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
           drawer: _buildDrawer(context),
           body: Container(
             decoration: const BoxDecoration(color: Colors.white),
-            child: RefreshIndicator(
-              onRefresh: () async {
-                await _handleRefresh();
-                await _fetchMostActiveUsers();
-              },
-              color: Colors.blue[600],
-              backgroundColor: Colors.white,
-              strokeWidth: 2.5,
-              child: CustomScrollView(
-                controller: _adsScrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  SliverAppBar(
-                    floating: true,
-                    pinned: true,
-                    snap: false,
-                    elevation: 0,
-                    backgroundColor: Colors.blue[700],
-                    title: Text(
-                      'الرئيسية',
-                      style: GoogleFonts.cairo(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    centerTitle: true,
-                    leading: Builder(
-                      builder: (context) => IconButton(
-                        icon: const Icon(Icons.menu, size: 28, color: Colors.white),
-                        onPressed: () => Scaffold.of(context).openDrawer(),
-                      ),
-                    ),
-                      actions: [
-                        Padding(
-                          padding: const EdgeInsetsDirectional.only(end: 12),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(20),
-                            onTap: () async {
-                              if (_authToken != null && _userId != null) {
-                                final prefs = await SharedPreferences.getInstance();
-                                final userFirstName = prefs.getString('userFirstName') ?? '';
-                                final userLastName = prefs.getString('userLastName') ?? '';
-                                final email = prefs.getString('userEmail') ?? '';
-                                final phone = prefs.getString('userPhone') ?? '';
-                                final userId = prefs.getString('userId') ?? '';
-                                final userAccountNumber = prefs.getString('userAccountNumber') ?? '';
-                                final userProfileImage = prefs.getString('profileImage') ?? _userProfileImage;
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => AccountScreen(
-                                      isLoggedIn: true,
-                                      userFirstName: userFirstName,
-                                      userLastName: userLastName,
-                                      userEmail: email,
-                                      phoneNumber: phone,
-                                      userId: userId,
-                                      userProfileImage: userProfileImage,
-                                      userAccountNumber: userAccountNumber,
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                                );
-                              }
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 4,
-                                    offset: Offset(0, 1),
-                                  ),
-                                ],
-                                border: Border.all(
-                                  color: (_authToken != null && _userId != null)
-                                      ? Colors.green[600]!
-                                      : Colors.blue[300]!,
-                                  width: 1.5,
-                                ),
-                              ),
-                              padding: const EdgeInsets.all(2),
-                              child: Icon(
-                                Icons.person_rounded, // User account icon
-                                size: 22,
-                                color: (_authToken != null && _userId != null)
-                                    ? Colors.green[600]
-                                    : Colors.blue[300],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                  ),
-                  const SliverToBoxAdapter(child: ImageSliderWid()),
-                  SliverToBoxAdapter(
-                    child: LocationButtonWid(
-                      selectedCity: _selectedCity,
-                      defaultCity: _defaultCity,
-                      selectedDistrict: _selectedDistrict,
-                      defaultDistrict: _defaultDistrict,
-                      onTap: _showLocationFilterDialog,
+            child: CustomScrollView(
+              controller: _adsScrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                // ...existing code for app bar, widgets, ads grid, etc...
+                SliverAppBar(
+                  floating: true,
+                  pinned: true,
+                  snap: false,
+                  elevation: 0,
+                  backgroundColor: Colors.blue[700],
+                  title: Text(
+                    'الرئيسية',
+                    style: GoogleFonts.cairo(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
-                  SliverToBoxAdapter(child: _buildAdvancedSearchField()),
-                  SliverToBoxAdapter(child: _buildSearchField()),
-                  SliverToBoxAdapter(child: _buildMostActiveUsersSection()),
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    sliver: SliverList(
-                      delegate: SliverChildListDelegate([
-                        Text(
-                          'جميع الإعلانات',
-                          style: GoogleFonts.cairo(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          height: 3,
-                          width: 80,
-                          decoration: BoxDecoration(
-                            color: Colors.blue[600],
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        if (_isRefreshing)
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Column(
-                                children: [
-                                  const CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'جاري تحديث الإعلانات...',
-                                    style: GoogleFonts.cairo(
-                                      color: Colors.grey,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        else if (_allAds.isEmpty && _isLoadingAds)
-                          const Center(
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                            ),
-                          )
-                        else if (_allAds.isEmpty && !_isLoadingAds)
-                          const NoResultsWid(),
-                      ]),
+                  centerTitle: true,
+                  leading: Builder(
+                    builder: (context) => IconButton(
+                      icon: const Icon(Icons.menu, size: 28, color: Colors.white),
+                      onPressed: () => Scaffold.of(context).openDrawer(),
                     ),
                   ),
-                  if (_allAds.isNotEmpty || _isRefreshing)
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                      sliver: SliverGrid(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
-                          childAspectRatio: 0.82,
-                        ),
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            if (index == _allAds.length && _hasMoreAds) {
-                              return const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(5),
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                    actions: [
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 12),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(20),
+                          onTap: () async {
+                            if (_authToken != null && _userId != null) {
+                              final prefs = await SharedPreferences.getInstance();
+                              final userFirstName = prefs.getString('userFirstName') ?? '';
+                              final userLastName = prefs.getString('userLastName') ?? '';
+                              final email = prefs.getString('userEmail') ?? '';
+                              final phone = prefs.getString('userPhone') ?? '';
+                              final userId = prefs.getString('userId') ?? '';
+                              final userAccountNumber = prefs.getString('userAccountNumber') ?? '';
+                              final userProfileImage = prefs.getString('profileImage') ?? _userProfileImage;
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AccountScreen(
+                                    isLoggedIn: true,
+                                    userFirstName: userFirstName,
+                                    userLastName: userLastName,
+                                    userEmail: email,
+                                    phoneNumber: phone,
+                                    userId: userId,
+                                    userProfileImage: userProfileImage,
+                                    userAccountNumber: userAccountNumber,
                                   ),
                                 ),
                               );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                              );
                             }
-                            return AdCardWidget(
-                              ad: _allAds[index],
-                              favoriteIconBuilder: _favoriteHeartIconBuilder,
-                              onTap: () {
-                                final adId = _allAds[index].id;
-                                if (adId != null) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => AdDetailsScreen(adId: adId),
-                                    ),
-                                  );
-                                }
-                              },
-                            );
                           },
-                          childCount: _allAds.length + (_hasMoreAds ? 1 : 0),
-                        ),
-                      ),
-                    ),
-                  if (!_hasMoreAds && _allAds.isNotEmpty)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        child: Center(
-                          child: Text(
-                            'لا يوجد المزيد من الإعلانات',
-                            style: GoogleFonts.cairo(
-                              color: Colors.grey,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 4,
+                                  offset: Offset(0, 1),
+                                ),
+                              ],
+                              border: Border.all(
+                                color: (_authToken != null && _userId != null)
+                                    ? Colors.green[600]!
+                                    : Colors.blue[300]!,
+                                width: 1.5,
+                              ),
+                            ),
+                            padding: const EdgeInsets.all(2),
+                            child: Icon(
+                              Icons.person_rounded, // User account icon
+                              size: 22,
+                              color: (_authToken != null && _userId != null)
+                                  ? Colors.green[600]
+                                  : Colors.blue[300],
                             ),
                           ),
                         ),
                       ),
+                    ],
+                ),
+                const SliverToBoxAdapter(child: ImageSliderWid()),
+                SliverToBoxAdapter(
+                  child: LocationButtonWid(
+                    selectedCity: _selectedCity,
+                    defaultCity: _defaultCity,
+                    selectedDistrict: _selectedDistrict,
+                    defaultDistrict: _defaultDistrict,
+                    onTap: _showLocationFilterDialog,
+                  ),
+                ),
+                SliverToBoxAdapter(child: _buildAdvancedSearchField()),
+                SliverToBoxAdapter(child: _buildSearchField()),
+                SliverToBoxAdapter(child: _buildMostActiveUsersSection()),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      Text(
+                        'جميع الإعلانات',
+                        style: GoogleFonts.cairo(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        height: 3,
+                        width: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.blue[600],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      if (_allAds.isEmpty && !_isLoadingAds)
+                        const NoResultsWid(),
+                    ]),
+                  ),
+                ),
+                if (_allAds.isNotEmpty)
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    sliver: SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+                        childAspectRatio: 0.82,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          if (index == _allAds.length && _hasMoreAds) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(5),
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                                ),
+                              ),
+                            );
+                          }
+                          return AdCardWidget(
+                            ad: _allAds[index],
+                            favoriteIconBuilder: _favoriteHeartIconBuilder,
+                            onTap: () {
+                              final adId = _allAds[index].id;
+                              if (adId != null) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => AdDetailsScreen(adId: adId),
+                                  ),
+                                );
+                              }
+                            },
+                          );
+                        },
+                        childCount: _allAds.length + (_hasMoreAds ? 1 : 0),
+                      ),
                     ),
-                ],
-              ),
+                  ),
+                if (!_hasMoreAds && _allAds.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      child: Center(
+                        child: Text(
+                          'لا يوجد المزيد من الإعلانات',
+                          style: GoogleFonts.cairo(
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
