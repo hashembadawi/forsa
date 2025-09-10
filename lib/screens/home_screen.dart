@@ -1,7 +1,7 @@
-import 'package:forsa/widgets/advance_search_wid.dart';
-import 'package:forsa/widgets/title_search_wid.dart';
+import 'package:forsa/widgets/homeScreen/advance_search_wid.dart';
+import 'package:forsa/widgets/homeScreen/title_search_wid.dart';
 
-import 'advertiser_page_screen.dart';
+import '../widgets/homeScreen/most_activeUser_Wid.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -14,18 +14,17 @@ import 'package:forsa/screens/search_advance_screen.dart';
 import '../utils/dialog_utils.dart';
 import '../utils/ad_card_widget.dart';
 import 'account_screen.dart';
-import 'most_active_users_screen.dart';
 import 'add_ad_screen.dart';
 import 'favorites_screen.dart';
 import 'login_screen.dart';
 import 'my_ads_screen.dart';
 import 'suggestions_list_screen.dart';
 import 'ad_details_screen.dart';
-import '../widgets/image_slider_wid.dart';
-import '../widgets/location_button_wid.dart';
-import '../widgets/loading_dialog_wid.dart';
-import '../widgets/no_results_wid.dart';
-import '../widgets/full_screen_loading_wid.dart';
+import '../widgets/homeScreen/image_slider_wid.dart';
+import '../widgets/homeScreen/location_search_wid.dart';
+import '../widgets/homeScreen/loading_dialog_wid.dart';
+import '../widgets/homeScreen/no_results_wid.dart';
+import '../widgets/homeScreen/full_screen_loading_wid.dart';
 
 // Data models for better type safety
 class AdModel {
@@ -155,7 +154,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMixin {
-  // ========== Most Active Users State ==========
+  // ========== Most Active Users State ========== 
   List<Map<String, dynamic>> _mostActiveUsers = [];
   bool _isLoadingActiveUsers = false;
   bool _hasErrorActiveUsers = false;
@@ -189,123 +188,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
     }
   }
 
-  /// Build Most Active Users section
-  Widget _buildMostActiveUsersSection() {
-    if (_isLoadingActiveUsers) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Center(child: SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2))),
-      );
-    }
-    if (_hasErrorActiveUsers) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Center(child: Text('تعذر تحميل المستخدمين الأكثر حركة', style: GoogleFonts.cairo(fontSize: 14, color: Colors.red))),
-      );
-    }
-    if (_mostActiveUsers.isEmpty) {
-      return SizedBox.shrink();
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'المستخدمين الأكثر حركة',
-                style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const MostActiveUsersScreen(),
-                    ),
-                  );
-                },
-                child: Text(
-                  'عرض الكل >',
-                  style: GoogleFonts.cairo(fontSize: 12, color: Colors.blue[700], fontWeight: FontWeight.w600),
-                ),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-                  minimumSize: Size(0, 24),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 80,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            itemCount: _mostActiveUsers.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final user = _mostActiveUsers[index];
-              final String? base64Image = user['profileImage'];
-              final String userName = ((user['firstName'] ?? '') + ' ' + (user['lastName'] ?? '')).trim();
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AdvertiserPageScreen(
-                        userId: user['userId'] ?? '',
-                        initialUserName: userName,
-                        initialUserPhone: user['phoneNumber'] ?? '',
-                      ),
-                    ),
-                  );
-                },
-                child: Column(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.blue[300]!, width: 1.5),
-                        color: Colors.white,
-                      ),
-                      child: base64Image != null && base64Image.isNotEmpty
-                          ? ClipOval(
-                              child: Image.memory(
-                                base64Decode(base64Image),
-                                fit: BoxFit.cover,
-                                width: 48,
-                                height: 48,
-                                errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 28, color: Colors.blue[400]),
-                              ),
-                            )
-                          : Icon(Icons.person, size: 28, color: Colors.blue[400]),
-                    ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      width: 48,
-                      child: Text(
-                        userName,
-                        style: GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.w500),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
+  // ...existing code...
   // ...existing code...
   // ========== Constants ==========
   static const String _baseUrl = 'https://sahbo-app-api.onrender.com';
@@ -1293,7 +1176,13 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                     child: const FullScreenLoadingWid(),
                   )
                 else ...[
-                  SliverToBoxAdapter(child: _buildMostActiveUsersSection()),
+                  SliverToBoxAdapter(
+                    child: MostActiveUserWid(
+                      mostActiveUsers: _mostActiveUsers,
+                      isLoading: _isLoadingActiveUsers,
+                      hasError: _hasErrorActiveUsers,
+                    ),
+                  ),
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                     sliver: SliverList(
