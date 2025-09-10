@@ -1,7 +1,11 @@
+import 'package:forsa/widgets/advance_search_wid.dart';
+import 'package:forsa/widgets/title_search_wid.dart';
+
 import 'advertiser_page_screen.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -302,43 +306,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       ],
     );
   }
-  /// Build advanced search field
-  Widget _buildAdvancedSearchField() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const SearchAdvanceScreen()),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.blue[300]!, width: 1.5),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.tune, color: Colors.blue[600], size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'بحث متقدم',
-                  style: GoogleFonts.cairo(
-                    color: Colors.grey,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // ...existing code...
   // ========== Constants ==========
   static const String _baseUrl = 'https://sahbo-app-api.onrender.com';
   static const int _limitAds = 10;
@@ -856,16 +824,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
     }
   }
 
-  // ========== Dialog Methods ==========
-
-  // ========== Widget Building Methods ==========
-
-  // Use AdCardWidget directly in your list/grid views:
-  // AdCardWidget(
-  //   ad: ad,
-  //   favoriteIconBuilder: (adId) => _buildFavoriteHeartIcon(adId),
-  //   imageBuilder: (ad) => _adThumbnailImageBuilder(ad),
-  // )
   // Favorite heart icon builder for AdCardWidget
   Widget _favoriteHeartIconBuilder(String adId) {
     final bool isLoggedIn = _authToken != null && _userId != null;
@@ -878,49 +836,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
     );
   }
 
-  /// Build search field with autocomplete suggestions
-  Widget _buildSearchField() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => SuggestionsListScreen(
-                initialSearchText: _searchController.text,
-              ),
-            ),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Match advanced search field
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.blue[300]!, width: 1.5),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.search, color: Colors.blue[600], size: 20), // Match icon size with advanced search
-              const SizedBox(width: 8), // Match spacing with advanced search
-              Expanded(
-                child: Text(
-                  _searchController.text.isNotEmpty 
-                      ? _searchController.text
-                      : 'ابحث عن منتج أو خدمة...',
-                  style: GoogleFonts.cairo(
-                    color: Colors.grey,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // ...existing code...
 
   /// Build navigation drawer
   Widget _buildDrawer(BuildContext context) {
@@ -1350,8 +1266,31 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                     onTap: _showLocationFilterDialog,
                   ),
                 ),
-                SliverToBoxAdapter(child: _buildAdvancedSearchField()),
-                SliverToBoxAdapter(child: _buildSearchField()),
+                SliverToBoxAdapter(
+                  child: AdvanceSearchWid(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SearchAdvanceScreen()),
+                      );
+                    },
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: TitleSearchWid(
+                    initialText: _searchController.text,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SuggestionsListScreen(
+                            initialSearchText: _searchController.text,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
                 SliverToBoxAdapter(child: _buildMostActiveUsersSection()),
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
