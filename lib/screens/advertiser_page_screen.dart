@@ -600,7 +600,7 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
                             ad: adModel,
                             onTap: () => Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => AdDetailsScreen(adId: ad['id'])),
+                              MaterialPageRoute(builder: (_) => AdDetailsScreen(adId: ad['_id'])),
                             ),
                           ),
                         );

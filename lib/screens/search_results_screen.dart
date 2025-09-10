@@ -249,40 +249,6 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     );
   }
 
-  /// Build empty results widget
-  Widget _buildEmptyResultsWidget() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.search_off,
-            size: 64,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد نتائج للبحث عن "${widget.searchText}"',
-            style: GoogleFonts.cairo(
-              fontSize: 16,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'جرب البحث بكلمات مختلفة',
-            style: GoogleFonts.cairo(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
 
   /// Build search results grid
   Widget _buildSearchResultsGrid() {
