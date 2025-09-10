@@ -8,8 +8,6 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/ad_card_widget.dart';
-import 'home_screen.dart' as home;
-
 import 'advertiser_page_screen.dart';
 import 'login_screen.dart';
 import '../utils/dialog_utils.dart';

@@ -1,4 +1,3 @@
-import 'home_screen.dart' as home;
 import '../utils/ad_card_widget.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';

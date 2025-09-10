@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import '../screens/ad_details_screen.dart';
-import '../screens/home_screen.dart' as home;
 import 'package:forsa/models/ad_model.dart';
 
 typedef FavoriteIconBuilder = Widget Function(String adId, {
