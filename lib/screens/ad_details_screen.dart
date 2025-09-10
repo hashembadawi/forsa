@@ -14,77 +14,8 @@ import 'advertiser_page_screen.dart';
 import 'login_screen.dart';
 import '../utils/dialog_utils.dart';
 
-// Models for better type safety
-class AdModel {
-  final String? id;
-  final String? adTitle;
-  final String? description;
-  final String? price;
-  final String? currencyName;
-  final String? categoryName;
-  final String? subCategoryName;
-  final String? cityName;
-  final String? regionName;
-  final String? userName;
-  final String? userPhone;
-  final String? userId;
-  final String? categoryId;
-  final String? subCategoryId;
-  final String? createDate;
-  final List<String>? images;
-  final String? thumbnail;
-  final LocationModel? location;
-  final bool? forSale;
-  final bool? deliveryService;
-
-  AdModel({
-    this.id,
-    this.adTitle,
-    this.description,
-    this.price,
-    this.currencyName,
-    this.categoryName,
-    this.subCategoryName,
-    this.cityName,
-    this.regionName,
-    this.userName,
-    this.userPhone,
-    this.userId,
-    this.categoryId,
-    this.subCategoryId,
-    this.createDate,
-    this.images,
-    this.thumbnail,
-    this.location,
-    this.forSale,
-    this.deliveryService,
-  });
-
-  factory AdModel.fromJson(Map<String, dynamic> json) {
-    return AdModel(
-      id: json['_id'],
-      adTitle: json['adTitle'],
-      description: json['description'],
-      price: json['price']?.toString(),
-      currencyName: json['currencyName'],
-      categoryName: json['categoryName'],
-      subCategoryName: json['subCategoryName'],
-      cityName: json['cityName'],
-      regionName: json['regionName'],
-      userName: json['userName'],
-      userPhone: json['userPhone'],
-      userId: json['userId'],
-      categoryId: json['categoryId']?.toString(),
-      subCategoryId: json['subCategoryId']?.toString(),
-      createDate: json['createDate'],
-      images: json['images'] is List ? List<String>.from(json['images']) : null,
-      thumbnail: json['thumbnail'],
-      location: json['location'] != null ? LocationModel.fromJson(json['location']) : null,
-      forSale: json['forSale'],
-      deliveryService: json['deliveryService'],
-    );
-  }
-}
+// AdModel is now imported from models/ad_model.dart
+import '../models/ad_model.dart';
 
 class LocationModel {
   final List<double>? coordinates;
@@ -873,12 +804,11 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
 
   Widget _buildLocationTab() {
   final location = _adModel?.location;
-    
-    if (location == null || !location.isValid) {
-      return _buildNoLocationAvailable();
-    }
-
-    return _buildLocationMap(location.latitude!, location.longitude!);
+  final locationModel = location != null ? LocationModel.fromJson(location) : null;
+  if (locationModel == null || !locationModel.isValid) {
+    return _buildNoLocationAvailable();
+  }
+  return _buildLocationMap(locationModel.latitude!, locationModel.longitude!);
   }
 
   Widget _buildNoLocationAvailable() {
@@ -2251,7 +2181,7 @@ https://syria-market-web.onrender.com/$adId
               height: cardHeight,
               child: _similarAds.isNotEmpty
                   ? AdCardWidget(
-                      ad: home.AdModel(
+                      ad: AdModel(
                         id: _similarAds[0].id,
                         adTitle: _similarAds[0].adTitle,
                         description: _similarAds[0].description,
@@ -2269,7 +2199,7 @@ https://syria-market-web.onrender.com/$adId
                         createDate: _similarAds[0].createDate,
                         images: _similarAds[0].images,
                         thumbnail: _similarAds[0].thumbnail,
-                        location: _similarAds[0].location != null ? {'coordinates': _similarAds[0].location!.coordinates} : null,
+                        location: _similarAds[0].location,
                         forSale: _similarAds[0].forSale,
                         deliveryService: _similarAds[0].deliveryService,
                       ),
@@ -2292,7 +2222,7 @@ https://syria-market-web.onrender.com/$adId
                     itemCount: _similarAds.length,
                     itemBuilder: (context, index) {
                       final ad = _similarAds[index];
-                      final homeAd = home.AdModel(
+                      final adModel = AdModel(
                         id: ad.id,
                         adTitle: ad.adTitle,
                         description: ad.description,
@@ -2310,14 +2240,14 @@ https://syria-market-web.onrender.com/$adId
                         createDate: ad.createDate,
                         images: ad.images,
                         thumbnail: ad.thumbnail,
-                        location: ad.location != null ? {'coordinates': ad.location!.coordinates} : null,
+                        location: ad.location,
                         forSale: ad.forSale,
                         deliveryService: ad.deliveryService,
                       );
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         child: AdCardWidget(
-                          ad: homeAd,
+                          ad: adModel,
                           onTap: () => _navigateToAdDetails(ad),
                         ),
                       );

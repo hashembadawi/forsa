@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import '../screens/ad_details_screen.dart';
 import '../screens/home_screen.dart' as home;
+import 'package:forsa/models/ad_model.dart';
 
 typedef FavoriteIconBuilder = Widget Function(String adId, {
   required bool isFavorite,
@@ -50,8 +51,8 @@ Widget defaultFavoriteHeartIcon(
 
 
 class AdCardWidget extends StatelessWidget {
-  final home.AdModel ad;
-  final Widget Function(home.AdModel ad)? adDetailsBuilder;
+  final AdModel ad;
+  final Widget Function(AdModel ad)? adDetailsBuilder;
   final Widget Function(String adId)? favoriteIconBuilder;
   final VoidCallback? onTap;
 
@@ -202,7 +203,7 @@ class AdCardWidget extends StatelessWidget {
 
 /// Default ad details layout for AdCardWidget (mimics home screen)
 class _DefaultAdDetails extends StatelessWidget {
-  final home.AdModel ad;
+  final AdModel ad;
   const _DefaultAdDetails({required this.ad});
 
   String _formatDate(String? isoDate) {

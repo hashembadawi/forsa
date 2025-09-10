@@ -8,6 +8,7 @@ import 'package:forsa/utils/dialog_utils.dart';
 import 'package:forsa/utils/ad_card_widget.dart';
 import 'package:forsa/screens/home_screen.dart' as home;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:forsa/models/ad_model.dart';
 
 /// Screen displaying user's personal advertisements with edit and delete functionality
 class MyAdsScreen extends StatefulWidget {
@@ -433,7 +434,7 @@ class _MyAdsScreenState extends State<MyAdsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AdCardWidget(
-            ad: home.AdModel.fromJson(ad),
+            ad: AdModel.fromJson(ad),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

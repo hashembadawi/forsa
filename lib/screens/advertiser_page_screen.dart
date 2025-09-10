@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:forsa/models/ad_model.dart';
 import 'ad_details_screen.dart';
 
 class AdvertiserPageScreen extends StatefulWidget {
@@ -571,7 +571,7 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
                 height: cardHeight,
                 child: _userAds.isNotEmpty
                     ? AdCardWidget(
-                        ad: home.AdModel.fromJson(_userAds[0]),
+                        ad: AdModel.fromJson(_userAds[0]),
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => AdDetailsScreen(adId: _userAds[0]['_id'])),
@@ -593,7 +593,7 @@ class _AdvertiserPageScreenState extends State<AdvertiserPageScreen> {
                       itemCount: _userAds.length,
                       itemBuilder: (context, index) {
                         final ad = _userAds[index];
-                        final adModel = home.AdModel.fromJson(ad);
+                        final adModel = AdModel.fromJson(ad);
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: AdCardWidget(

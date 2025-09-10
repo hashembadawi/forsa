@@ -6,7 +6,7 @@ import 'package:forsa/screens/ad_details_screen.dart';
 import '../utils/ad_card_widget.dart';
 import 'home_screen.dart' as home;
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:forsa/models/ad_model.dart';
 /// Screen displaying search results for advertisements
 class SearchResultsScreen extends StatefulWidget {
   final String searchText;
@@ -116,7 +116,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   /// Build individual advertisement card
   Widget _buildAdCard(dynamic ad) {
     // Convert the ad map to AdModel (from home_screen.dart)
-    final adModel = home.AdModel.fromJson(ad);
+    final adModel = AdModel.fromJson(ad);
     return AdCardWidget(
       ad: adModel,
       favoriteIconBuilder: (adId) => defaultFavoriteHeartIcon(
