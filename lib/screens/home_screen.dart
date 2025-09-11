@@ -661,23 +661,26 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
     // Always show the header (AppBar, Drawer), only replace the main content slivers with loading widget
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus();
-        },
-        child: Scaffold(
-          drawer: AppDrawer(
-            reloadHomeScreen: (ctx) => _reloadHomeScreen(),
-            handleProtectedNavigation: (ctx, routeKey) => _handleProtectedNavigation(ctx, routeKey),
-            handleAccountNavigation: (ctx) => _handleAccountNavigation(ctx),
-          ),
-          body: Container(
-            decoration: const BoxDecoration(color: Colors.white),
+      child: Scaffold(
+        drawer: AppDrawer(
+          reloadHomeScreen: (ctx) => _reloadHomeScreen(),
+          handleProtectedNavigation: (ctx, routeKey) => _handleProtectedNavigation(ctx, routeKey),
+          handleAccountNavigation: (ctx) => _handleAccountNavigation(ctx),
+        ),
+        body: Container(
+          decoration: const BoxDecoration(color: Colors.white),
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () {
+              if (FocusScope.of(context).hasFocus) {
+                FocusScope.of(context).unfocus();
+              }
+            },
             child: CustomScrollView(
               controller: _adsScrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                // Always show header slivers
+                // ...existing code...
                 SliverAppBar(
                   floating: true,
                   pinned: true,
@@ -802,7 +805,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                     },
                   ),
                 ),
-                // Main content area: show loading widget or actual content
+                // ...existing code...
                 if (_isCheckingConnectivity || _isLoadingAds || _isRefreshing)
                   SliverFillRemaining(
                     hasScrollBody: false,
@@ -863,11 +866,13 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                                 ),
                               );
                             }
+                            final ad = _allAds[index];
                             return AdCardWidget(
-                              ad: _allAds[index],
+                              key: ValueKey(ad.id),
+                              ad: ad,
                               favoriteIconBuilder: _favoriteHeartIconBuilder,
                               onTap: () {
-                                final adId = _allAds[index].id;
+                                final adId = ad.id;
                                 if (adId != null) {
                                   Navigator.push(
                                     context,

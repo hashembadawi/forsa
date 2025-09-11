@@ -108,6 +108,7 @@ class AdCardWidget extends StatelessWidget {
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,
+            gaplessPlayback: true,
             errorBuilder: (context, error, stackTrace) => buildNoImagePlaceholder(),
           );
         } catch (_) {
