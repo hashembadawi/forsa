@@ -24,6 +24,8 @@ import '../widgets/homeScreen/location_search_wid.dart';
 import '../widgets/homeScreen/loading_dialog_wid.dart';
 import '../widgets/homeScreen/no_results_wid.dart';
 import '../widgets/homeScreen/full_screen_loading_wid.dart';
+import '../widgets/homeScreen/app_drawer_wid.dart';
+import '../widgets/no_internet_wid.dart';
 
 
 /// Home screen that displays advertisements with filtering and search capabilities
@@ -599,215 +601,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
     );
   }
 
-  /// Build navigation drawer
-  Widget _buildDrawer(BuildContext context) {
-    return Drawer(
-      backgroundColor: Colors.grey[50],
-      elevation: 0,
-      child: Column(
-        children: [
-          _buildDrawerHeader(),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.grey[50]!,
-                    Colors.white,
-                  ],
-                ),
-              ),
-              child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 0),
-                children: [
-                  _buildDrawerItem(
-                    Icons.home_rounded, 
-                    'الرئيسية', 
-                    Colors.blue[600]!,
-                    () {
-                      Navigator.pop(context);
-                      _reloadHomeScreen();
-                    },
-                  ),
-                  _buildDrawerItem(
-                    Icons.list_alt_rounded, 
-                    'إعلاناتي', 
-                    Colors.green[600]!,
-                    () {
-                      _handleProtectedNavigation(context, 'myAds');
-                    },
-                  ),
-                  _buildDrawerItem(
-                    Icons.add_circle_outline_rounded, 
-                    'إضافة إعلان', 
-                    Colors.orange[600]!,
-                    () {
-                      _handleProtectedNavigation(context, 'addAd');
-                    },
-                  ),
-                  _buildDrawerItem(
-                    Icons.favorite_rounded, 
-                    'المفضلة', 
-                    Colors.red[600]!,
-                    () {
-                      _handleProtectedNavigation(context, 'favorites');
-                    },
-                  ),
-                  _buildDrawerItem(
-                    Icons.person_rounded, 
-                    'حسابي', 
-                    Colors.purple[600]!,
-                    () async {
-                      await _handleAccountNavigation(context);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Footer section
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              border: Border(
-                top: BorderSide(color: Colors.grey[300]!, width: 1),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.copyright, size: 16, color: Colors.grey[600]),
-                const SizedBox(width: 4),
-                Text(
-                  'فرصة 2025',
-                  style: GoogleFonts.cairo(
-                    color: Colors.grey[600],
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build drawer header
-  Widget _buildDrawerHeader() {
-    return FutureBuilder<SharedPreferences>(
-      future: SharedPreferences.getInstance(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Container(height: 240, color: Colors.blue);
-        }
-        final prefs = snapshot.data!;
-        final firstName = prefs.getString('userFirstName') ?? '';
-        final lastName = prefs.getString('userLastName') ?? '';
-        final profileImage = prefs.getString('userProfileImage');
-        ImageProvider? avatar;
-        if (profileImage != null && profileImage.isNotEmpty) {
-          try {
-            avatar = MemoryImage(base64Decode(profileImage));
-          } catch (e) {
-            avatar = null;
-          }
-        }
-        return Container(
-          width: double.infinity,
-          height: 240,
-          decoration: BoxDecoration(
-            color: Colors.blue,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: Colors.white,
-                backgroundImage: avatar,
-                child: avatar == null ? Icon(Icons.person, size: 40, color: Colors.blue) : null,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '$firstName $lastName',
-                style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  /// Build drawer item
-  Widget _buildDrawerItem(IconData icon, String title, Color iconColor, VoidCallback onTap) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 1),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.white,
-            Colors.grey[50]!,
-          ],
-        ),
-        border: Border(
-          bottom: BorderSide(color: Colors.grey[200]!, width: 0.5),
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          splashColor: iconColor.withOpacity(0.1),
-          highlightColor: iconColor.withOpacity(0.05),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: iconColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: iconColor.withOpacity(0.2), width: 1),
-                  ),
-                  child: Icon(
-                    icon, 
-                    color: iconColor,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: GoogleFonts.cairo(
-                      color: Colors.grey[800],
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: Colors.grey[400],
-                  size: 16,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   /// Handle account navigation
   Future<void> _handleAccountNavigation(BuildContext context) async {
     Navigator.pop(context);
@@ -854,48 +647,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
     }
   }
 
-  /// Build no internet screen
-  Widget _buildNoInternetScreen() {
-    return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.wifi_off, size: 100, color: Colors.grey),
-              const SizedBox(height: 20),
-              Text(
-                'لا يوجد اتصال بالإنترنت',
-                style: GoogleFonts.cairo(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى',
-                style: GoogleFonts.cairo(fontSize: 16, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: _checkInitialConnectivity,
-                child: Text('إعادة المحاولة', style: GoogleFonts.cairo(fontSize: 16)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-
-  // ========== Refresh Handler ==========
-
-
   // ========== Main Build Method ==========
 
   @override
@@ -904,7 +655,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
 
     // Show no internet connection screen
     if (!_isConnected) {
-      return _buildNoInternetScreen();
+      return NoInternetWid(onRetry: _checkInitialConnectivity);
     }
 
     // Always show the header (AppBar, Drawer), only replace the main content slivers with loading widget
@@ -915,7 +666,11 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
           FocusScope.of(context).unfocus();
         },
         child: Scaffold(
-          drawer: _buildDrawer(context),
+          drawer: AppDrawer(
+            reloadHomeScreen: (ctx) => _reloadHomeScreen(),
+            handleProtectedNavigation: (ctx, routeKey) => _handleProtectedNavigation(ctx, routeKey),
+            handleAccountNavigation: (ctx) => _handleAccountNavigation(ctx),
+          ),
           body: Container(
             decoration: const BoxDecoration(color: Colors.white),
             child: CustomScrollView(
