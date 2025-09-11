@@ -121,9 +121,10 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
 
   @override
   void initState() {
-    super.initState();
-    _initializeScreen();
-  _fetchMostActiveUsers();
+  super.initState();
+  _initializeScreen();
+  // Fetch all ads first, then fetch most active users
+  _fetchAllAds().then((_) => _fetchMostActiveUsers());
   }
 
   @override
@@ -178,8 +179,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       },
     );
   }
-
-  // ========== Data Fetching Methods ==========
 
   /// Fetch options (provinces, areas, categories)
   Future<void> _fetchOptions() async {
@@ -599,8 +598,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       isLoading: isLoggedIn && _isLoadingFavorites,
     );
   }
-
-  // ...existing code...
 
   /// Build navigation drawer
   Widget _buildDrawer(BuildContext context) {
