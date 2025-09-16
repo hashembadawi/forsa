@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:forsa/widgets/adDetails_screen/favorite_button_wid.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../widgets/adDetails_screen/image_indicator_wid.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -503,7 +505,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
               bottom: 10,
               left: 0,
               right: 0,
-              child: _buildImageIndicator(allImages.length),
+              child: ImageIndicatorWid(imageCount: allImages.length),
             ),
           Positioned(
             top: 10,
@@ -531,23 +533,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
     );
   }
 
-  Widget _buildImageIndicator(int imageCount) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(
-        imageCount,
-        (index) => Container(
-          margin: const EdgeInsets.symmetric(horizontal: 2),
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white.withOpacity(0.8),
-          ),
-        ),
-      ),
-    );
-  }
+  // Image indicator now uses ImageIndicatorWid widget
 
   Widget _buildNoImagePlaceholder() {
     return SizedBox(
@@ -1783,38 +1769,10 @@ https://syria-market-web.onrender.com/$adId
 
   /// Build favorite heart button
   Widget _buildFavoriteButton() {
-    return GestureDetector(
-      onTap: _isLoadingFavorite ? null : _toggleFavorite,
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 3,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        child: _isLoadingFavorite
-            ? const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-                ),
-              )
-            : Icon(
-                _isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: _isFavorite ? Colors.red : Colors.grey[600],
-                size: 24,
-              ),
-      ),
+    return FavoriteButtonWid(
+      isFavorite: _isFavorite,
+      isLoading: _isLoadingFavorite,
+      onTap: _toggleFavorite,
     );
   }
 
