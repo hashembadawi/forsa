@@ -262,6 +262,10 @@ class _AccountScreenState extends State<AccountScreen> {
     _firstNameController.text = firstName;
     _lastNameController.text = lastName;
 
+    // Save current image state before dialog
+    final File? prevNewProfileImage = _newProfileImage;
+    final String? prevLocalProfileImage = _localProfileImage;
+
     showDialog(
       context: context,
       builder: (context) => Directionality(
@@ -278,13 +282,24 @@ class _AccountScreenState extends State<AccountScreen> {
             onRemoveImage: () {
               setDialogState(() {
                 _newProfileImage = null;
+                _localProfileImage = null;
               });
             },
-            onSave: _updateProfile,
+            onSave: () async {
+              await _updateProfile();
+              Navigator.of(context).pop();
+            },
           ),
         ),
       ),
-    );
+    ).then((value) {
+      // If user cancelled (did not save), restore previous image state
+      if (_newProfileImage != prevNewProfileImage || _localProfileImage != prevLocalProfileImage) {
+        _newProfileImage = prevNewProfileImage;
+        _localProfileImage = prevLocalProfileImage;
+        setState(() {});
+      }
+    });
   }
 
   // Simple delete dialog using DialogUtils
