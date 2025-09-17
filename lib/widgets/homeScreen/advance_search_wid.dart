@@ -7,31 +7,36 @@ class AdvanceSearchWid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const Color accentColor = Color(0xFFFF7043); // Soft Orange
+    const Color surfaceColor = Color(0xFFF5F5F5); // Light Gray
+    const Color textColor = Color(0xFF212121); // Dark Black
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.blue[300]!, width: 1.5),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.tune, color: Colors.blue[600], size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'بحث متقدم',
-                  style: GoogleFonts.cairo(
-                    color: Colors.grey,
-                    fontSize: 13,
+      child: Material(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        elevation: 2,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Row(
+              children: [
+                Icon(Icons.tune, color: accentColor, size: 22),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'بحث متقدم',
+                    style: GoogleFonts.cairo(
+                      color: textColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

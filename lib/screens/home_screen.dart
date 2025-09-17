@@ -653,12 +653,18 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
 
-    // Show no internet connection screen
     if (!_isConnected) {
       return NoInternetWid(onRetry: _checkInitialConnectivity);
     }
 
-    // Always show the header (AppBar, Drawer), only replace the main content slivers with loading widget
+    // Define custom colors
+  const Color primaryColor = Color(0xFF42A5F5); // Light Blue (matches الرئيسية in drawer)
+  const Color accentColor = Color(0xFFFF7043); // Soft Orange
+  const Color backgroundColor = Color(0xFFFAFAFA); // White
+  const Color textColor = Color(0xFF212121); // Dark Black
+  const Color outlineColor = Color(0xFFE0E3E7); // Soft Gray
+  const Color successColor = Color(0xFF66BB6A); // Green
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -667,8 +673,16 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
           handleProtectedNavigation: (ctx, routeKey) => _handleProtectedNavigation(ctx, routeKey),
           handleAccountNavigation: (ctx) => _handleAccountNavigation(ctx),
         ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _handleProtectedNavigation(context, 'addAd'),
+          backgroundColor: accentColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: const Icon(Icons.add_circle_outline_rounded, size: 32, color: Colors.white),
+        ),
         body: Container(
-          decoration: const BoxDecoration(color: Colors.white),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+          ),
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onTap: () {
@@ -680,25 +694,30 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
               controller: _adsScrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                // ...existing code...
                 SliverAppBar(
                   floating: true,
                   pinned: true,
                   snap: false,
-                  elevation: 0,
-                  backgroundColor: Colors.blue[700],
+                  elevation: 4,
+                  backgroundColor: primaryColor,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+                  ),
                   title: Text(
                     'الرئيسية',
                     style: GoogleFonts.cairo(
-                      fontSize: 24,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: textColor,
                     ),
                   ),
                   centerTitle: true,
                   leading: Builder(
                     builder: (context) => IconButton(
-                      icon: const Icon(Icons.menu, size: 28, color: Colors.white),
+                      icon: const Icon(Icons.menu, size: 40), // Increased icon size
+                      color: textColor,
+                      iconSize: 48, // Increased button size
+                      padding: const EdgeInsets.all(8), // More touch area
                       onPressed: () => Scaffold.of(context).openDrawer(),
                     ),
                   ),
@@ -742,70 +761,85 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                         child: Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.white,
+                            color: backgroundColor,
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black12,
-                                blurRadius: 4,
-                                offset: Offset(0, 1),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
                               ),
                             ],
                             border: Border.all(
-                              color: (_authToken != null && _userId != null)
-                                  ? Colors.green[600]!
-                                  : Colors.blue[300]!,
-                              width: 1.5,
+                color: (_authToken != null && _userId != null)
+                  ? successColor
+                  : accentColor,
+                width: 2,
                             ),
                           ),
-                          padding: const EdgeInsets.all(2),
+                          padding: const EdgeInsets.all(4),
                           child: Icon(
-                            Icons.person_rounded, // User account icon
-                            size: 22,
-                            color: (_authToken != null && _userId != null)
-                                ? Colors.green[600]
-                                : Colors.blue[300],
+              Icons.person_rounded,
+              size: 26,
+              color: (_authToken != null && _userId != null)
+                ? successColor
+                : accentColor,
                           ),
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SliverToBoxAdapter(child: ImageSliderWid()),
+                const SliverToBoxAdapter(child: SizedBox(height: 10)),
+                SliverToBoxAdapter(child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: ImageSliderWid(),
+                )),
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
                 SliverToBoxAdapter(
-                  child: LocationButtonWid(
-                    selectedCity: _selectedCity,
-                    defaultCity: _defaultCity,
-                    selectedDistrict: _selectedDistrict,
-                    defaultDistrict: _defaultDistrict,
-                    onTap: _showLocationFilterDialog,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: LocationButtonWid(
+                      selectedCity: _selectedCity,
+                      defaultCity: _defaultCity,
+                      selectedDistrict: _selectedDistrict,
+                      defaultDistrict: _defaultDistrict,
+                      onTap: _showLocationFilterDialog,
+                    ),
                   ),
                 ),
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
                 SliverToBoxAdapter(
-                  child: AdvanceSearchWid(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SearchAdvanceScreen()),
-                      );
-                    },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: AdvanceSearchWid(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const SearchAdvanceScreen()),
+                        );
+                      },
+                    ),
                   ),
                 ),
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
                 SliverToBoxAdapter(
-                  child: TitleSearchWid(
-                    initialText: _searchController.text,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => SuggestionsListScreen(
-                            initialSearchText: _searchController.text,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: TitleSearchWid(
+                      initialText: _searchController.text,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => SuggestionsListScreen(
+                              initialSearchText: _searchController.text,
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
-                // ...existing code...
                 if (_isCheckingConnectivity || _isLoadingAds || _isRefreshing)
                   SliverFillRemaining(
                     hasScrollBody: false,
@@ -813,34 +847,39 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                   )
                 else ...[
                   SliverToBoxAdapter(
-                    child: MostActiveUserWid(
-                      mostActiveUsers: _mostActiveUsers,
-                      isLoading: _isLoadingActiveUsers,
-                      hasError: _hasErrorActiveUsers,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      child: MostActiveUserWid(
+                        mostActiveUsers: _mostActiveUsers,
+                        isLoading: _isLoadingActiveUsers,
+                        hasError: _hasErrorActiveUsers,
+                      ),
                     ),
                   ),
                   SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         Text(
                           'جميع الإعلانات',
                           style: GoogleFonts.cairo(
-                            fontSize: 20,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          height: 4,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [primaryColor, accentColor],
+                            ),
+                            borderRadius: BorderRadius.circular(4),
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Container(
-                          height: 3,
-                          width: 80,
-                          decoration: BoxDecoration(
-                            color: Colors.blue[600],
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
                         if (_allAds.isEmpty && !_isLoadingAds)
                           const NoResultsWid(),
                       ]),
@@ -848,40 +887,45 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                   ),
                   if (_allAds.isNotEmpty)
                     SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                       sliver: SliverGrid(
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
                           childAspectRatio: 0.82,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
                         ),
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
                             if (index == _allAds.length && _hasMoreAds) {
                               return const Center(
                                 child: Padding(
-                                  padding: EdgeInsets.all(5),
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                                  ),
+                                  padding: EdgeInsets.all(3),
+                                  child: CircularProgressIndicator(),
                                 ),
                               );
                             }
                             final ad = _allAds[index];
-                            return AdCardWidget(
-                              key: ValueKey(ad.id),
-                              ad: ad,
-                              favoriteIconBuilder: _favoriteHeartIconBuilder,
-                              onTap: () {
-                                final adId = ad.id;
-                                if (adId != null) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => AdDetailsScreen(adId: adId),
-                                    ),
-                                  );
-                                }
-                              },
+                            return Material(
+                              elevation: 3,
+                              borderRadius: BorderRadius.circular(18),
+                              color: backgroundColor,
+                              child: AdCardWidget(
+                                key: ValueKey(ad.id),
+                                ad: ad,
+                                favoriteIconBuilder: _favoriteHeartIconBuilder,
+                                onTap: () {
+                                  final adId = ad.id;
+                                  if (adId != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => AdDetailsScreen(adId: adId),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
                             );
                           },
                           childCount: _allAds.length + (_hasMoreAds ? 1 : 0),
@@ -891,12 +935,13 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                   if (!_hasMoreAds && _allAds.isNotEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                         child: Center(
                           child: Text(
                             'لا يوجد المزيد من الإعلانات',
                             style: GoogleFonts.cairo(
-                              color: Colors.grey,
+                              color: outlineColor,
+                              fontSize: 16,
                             ),
                           ),
                         ),

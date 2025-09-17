@@ -18,123 +18,146 @@ class MostActiveUserWid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const Color secondaryColor = Color(0xFF42A5F5); // Light Blue
+    const Color surfaceColor = Color(0xFFF5F5F5); // Light Gray
+    const Color textColor = Color(0xFF212121); // Dark Black
+    const Color errorColor = Color(0xFFE53935); // Red
     if (isLoading) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Center(child: SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2))),
+        child: Center(
+          child: SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(strokeWidth: 2, color: secondaryColor),
+          ),
+        ),
       );
     }
     if (hasError) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Center(child: Text('تعذر تحميل المستخدمين الأكثر حركة', style: GoogleFonts.cairo(fontSize: 14, color: Colors.red))),
+        child: Center(
+          child: Text(
+            'تعذر تحميل المستخدمين الأكثر حركة',
+            style: GoogleFonts.cairo(fontSize: 14, color: errorColor, fontWeight: FontWeight.bold),
+          ),
+        ),
       );
     }
     if (mostActiveUsers.isEmpty) {
       return SizedBox.shrink();
     }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'المستخدمين الأكثر حركة',
-                style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const MostActiveUsersScreen(),
-                    ),
-                  );
-                },
-                child: Text(
-                  'عرض الكل >',
-                  style: GoogleFonts.cairo(fontSize: 12, color: Colors.blue[700], fontWeight: FontWeight.w600),
-                ),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-                  minimumSize: Size(0, 24),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 90,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            itemCount: mostActiveUsers.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final user = mostActiveUsers[index];
-              final String? base64Image = user['profileImage'];
-              final String userName = ((user['firstName'] ?? '') + ' ' + (user['lastName'] ?? '')).trim();
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AdvertiserPageScreen(
-                        userId: user['userId'] ?? '',
-                        initialUserName: userName,
-                        initialUserPhone: user['phoneNumber'] ?? '',
-                      ),
-                    ),
-                  );
-                },
-                child: SizedBox(
-                  width: 80,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.blue[300]!, width: 2),
-                          color: Colors.white,
-                        ),
-                        child: base64Image != null && base64Image.isNotEmpty
-                            ? ClipOval(
-                                child: Image.memory(
-                                  base64Decode(base64Image),
-                                  fit: BoxFit.cover,
-                                  width: 64,
-                                  height: 64,
-                                  errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 32, color: Colors.blue[400]),
-                                ),
-                              )
-                            : Icon(Icons.person, size: 32, color: Colors.blue[400]),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        width: 70,
-                        child: Text(
-                          userName,
-                          style: GoogleFonts.cairo(fontSize: 11, fontWeight: FontWeight.w500),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
+    return Material(
+      color: surfaceColor,
+      borderRadius: BorderRadius.circular(16),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'المستخدمين الأكثر حركة',
+                    style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: textColor),
                   ),
-                ),
-              );
-            },
-          ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const MostActiveUsersScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'عرض الكل >',
+                      style: GoogleFonts.cairo(fontSize: 12, color: secondaryColor, fontWeight: FontWeight.w600),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                      minimumSize: Size(0, 24),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 90,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                itemCount: mostActiveUsers.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                itemBuilder: (context, index) {
+                  final user = mostActiveUsers[index];
+                  final String? base64Image = user['profileImage'];
+                  final String userName = ((user['firstName'] ?? '') + ' ' + (user['lastName'] ?? '')).trim();
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AdvertiserPageScreen(
+                            userId: user['userId'] ?? '',
+                            initialUserName: userName,
+                            initialUserPhone: user['phoneNumber'] ?? '',
+                          ),
+                        ),
+                      );
+                    },
+                    child: SizedBox(
+                      width: 80,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 64,
+                            height: 64,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                              color: surfaceColor,
+                            ),
+                            child: base64Image != null && base64Image.isNotEmpty
+                                ? ClipOval(
+                                    child: Image.memory(
+                                      base64Decode(base64Image),
+                                      fit: BoxFit.cover,
+                                      width: 64,
+                                      height: 64,
+                                      errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 32, color: secondaryColor.withOpacity(0.7)),
+                                    ),
+                                  )
+                                : Icon(Icons.person, size: 32, color: secondaryColor.withOpacity(0.7)),
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            width: 70,
+                            child: Text(
+                              userName,
+                              style: GoogleFonts.cairo(fontSize: 11, fontWeight: FontWeight.w500, color: textColor),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

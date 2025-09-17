@@ -309,42 +309,46 @@ class LocationButtonWid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const Color secondaryColor = Color(0xFF42A5F5); // Light Blue
+    const Color surfaceColor = Color(0xFFF5F5F5); // Light Gray
+    const Color textColor = Color(0xFF212121); // Dark Black
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.blue[300]!, width: 1.5),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.location_on, size: 20, color: Colors.blue[600]),
-                  const SizedBox(width: 6),
-                  Text(
-                    'بحث بالموقع',
-                    style: GoogleFonts.cairo(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+      child: Material(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        elevation: 2,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.location_on, size: 22, color: secondaryColor),
+                    const SizedBox(width: 8),
+                    Text(
+                      'بحث بالموقع',
+                      style: GoogleFonts.cairo(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                selectedCity == defaultCity
-                    ? defaultCity
-                    : '$selectedCity - $selectedDistrict',
-                style: GoogleFonts.cairo(fontSize: 13, color: Colors.grey),
-              ),
-            ],
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  selectedCity == defaultCity
+                      ? defaultCity
+                      : '$selectedCity - $selectedDistrict',
+                  style: GoogleFonts.cairo(fontSize: 12, color: textColor.withOpacity(0.7)),
+                ),
+              ],
+            ),
           ),
         ),
       ),
