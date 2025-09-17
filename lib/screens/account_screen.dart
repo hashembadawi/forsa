@@ -328,14 +328,20 @@ class _AccountScreenState extends State<AccountScreen> {
       );
     }
 
+    const Color headerColor = Color(0xFF7C4DFF); // Light Blue
+    const Color backgroundColor = Color(0xFFFAFAFA); // White
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
-          title: Text('حسابي', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 22)),
-          backgroundColor: Colors.blue[700],
-          foregroundColor: Colors.white,
+          title: Text('حسابي', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 25, color: const Color.fromARGB(255, 0, 0, 0))),
+          backgroundColor: headerColor,
+          foregroundColor: Color(0xFF212121),
+          elevation: 4,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+          ),
           actions: [
             IconButton(
               icon: const Icon(Icons.home),
@@ -347,6 +353,7 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
           ],
         ),
+        backgroundColor: backgroundColor,
         body: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
