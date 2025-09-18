@@ -890,7 +890,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                       sliver: SliverGrid(
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
-                          childAspectRatio: 0.82,
+                          childAspectRatio: 0.8, // Reduced to prevent overflow
                           mainAxisSpacing: 8,
                           crossAxisSpacing: 8,
                         ),
