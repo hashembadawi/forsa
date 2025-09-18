@@ -112,7 +112,7 @@ class LocationButtonWid extends StatelessWidget {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
-                                borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 2),
+                                borderSide: BorderSide(color: Color(0xFF42A5F5), width: 2),
                               ),
                               filled: true,
                               fillColor: Colors.white,
@@ -188,7 +188,7 @@ class LocationButtonWid extends StatelessWidget {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(15),
-                                borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 2),
+                                borderSide: BorderSide(color: Color(0xFF42A5F5), width: 2),
                               ),
                               filled: true,
                               fillColor: Colors.white,

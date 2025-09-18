@@ -55,7 +55,7 @@ class ProfileCardWid extends StatelessWidget {
                           Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: const Color(0xFF7C4DFF).withOpacity(0.4),
+                              color: const Color(0xFF212121).withOpacity(0.4),
                             ),
                             child: Padding(
                               padding: const EdgeInsets.all(3),
@@ -66,7 +66,7 @@ class ProfileCardWid extends StatelessWidget {
                                 child: avatarImage == null
                                     ? Icon(
                                         Icons.person,
-                                        color: const Color(0xFF7C4DFF),
+                                        color: const Color(0xFF212121),
                                         size: MediaQuery.of(context).size.width * 0.1,
                                       )
                                     : null,
@@ -78,7 +78,7 @@ class ProfileCardWid extends StatelessWidget {
                             width: 2,
                             height: double.infinity,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF7C4DFF).withOpacity(0.4),
+                              color: const Color(0xFF212121).withOpacity(0.4),
                               borderRadius: BorderRadius.circular(1),
                             ),
                           ),
