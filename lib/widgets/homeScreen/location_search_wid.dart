@@ -71,7 +71,7 @@ class LocationButtonWid extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: const BoxDecoration(
-                      color: Colors.blue,
+                      color: Color(0xFF42A5F5), // Match home_screen.dart header color
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(20),
                         topRight: Radius.circular(20),
@@ -93,129 +93,149 @@ class LocationButtonWid extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        DropdownButtonFormField<Map<String, dynamic>>(
-                          value: tempSelectedProvince,
-                          isExpanded: true,
-                          decoration: InputDecoration(
-                            labelText: 'اختر المحافظة',
-                            labelStyle: GoogleFonts.cairo(color: Colors.blue[600]),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              borderSide: BorderSide(color: Colors.blue[400]!, width: 1.5),
+                        Directionality(
+                          textDirection: TextDirection.rtl,
+                          child: DropdownButtonFormField<Map<String, dynamic>>(
+                            value: tempSelectedProvince,
+                            isExpanded: true,
+                            icon: const Icon(Icons.arrow_drop_down, textDirection: TextDirection.ltr),
+                            decoration: InputDecoration(
+                              labelText: 'اختر المحافظة',
+                              labelStyle: GoogleFonts.cairo(color: Color(0xFF42A5F5)),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 2),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                             ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              borderSide: BorderSide(color: Colors.blue[400]!, width: 1.5),
+                            dropdownColor: Colors.white,
+                            style: GoogleFonts.cairo(
+                              color: Color(0xFF212121),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
                             ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                          ),
-                          dropdownColor: Colors.white,
-                          style: GoogleFonts.cairo(
-                            color: Colors.blue,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          items: [
-                            DropdownMenuItem<Map<String, dynamic>>(
-                              value: null,
-                              child: Text(
-                                defaultCity,
-                                style: GoogleFonts.cairo(
-                                  color: Colors.black,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
+                            items: [
+                              DropdownMenuItem<Map<String, dynamic>>(
+                                value: null,
+                                child: Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: Text(
+                                    defaultCity,
+                                    style: GoogleFonts.cairo(
+                                      color: Color(0xFF212121),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                            ...provinces.map((province) => DropdownMenuItem(
-                              value: province,
-                              child: Text(
-                                province['name'],
-                                style: GoogleFonts.cairo(
-                                  color: Colors.black,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
+                              ...provinces.map((province) => DropdownMenuItem(
+                                value: province,
+                                child: Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: Text(
+                                    province['name'],
+                                    style: GoogleFonts.cairo(
+                                      color: Color(0xFF212121),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            )),
-                          ],
-                          onChanged: (value) {
-                            setStateDialog(() {
-                              tempSelectedProvince = value;
-                              tempSelectedArea = null;
-                              filteredAreas.clear();
-                              if (value != null && value['id'] != null) {
-                                filteredAreas.addAll(
-                                  majorAreas.where((area) => area['ProvinceId'] == value['id']).toList(),
-                                );
-                              }
-                            });
-                          },
+                              )),
+                            ],
+                            onChanged: (value) {
+                              setStateDialog(() {
+                                tempSelectedProvince = value;
+                                tempSelectedArea = null;
+                                filteredAreas.clear();
+                                if (value != null && value['id'] != null) {
+                                  filteredAreas.addAll(
+                                    majorAreas.where((area) => area['ProvinceId'] == value['id']).toList(),
+                                  );
+                                }
+                              });
+                            },
+                          ),
                         ),
                         const SizedBox(height: 16),
-                        DropdownButtonFormField<Map<String, dynamic>>(
-                          value: tempSelectedArea,
-                          isExpanded: true,
-                          decoration: InputDecoration(
-                            labelText: 'اختر المدينة/المنطقة',
-                            labelStyle: GoogleFonts.cairo(color: Colors.blue[600]),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(25),
-                              borderSide: BorderSide(color: Colors.blue[400]!, width: 1.5),
+                        Directionality(
+                          textDirection: TextDirection.rtl,
+                          child: DropdownButtonFormField<Map<String, dynamic>>(
+                            value: tempSelectedArea,
+                            isExpanded: true,
+                            icon: const Icon(Icons.arrow_drop_down, textDirection: TextDirection.ltr),
+                            decoration: InputDecoration(
+                              labelText: 'اختر المدينة/المنطقة',
+                              labelStyle: GoogleFonts.cairo(color: Color(0xFF42A5F5)),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 2),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                             ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(25),
-                              borderSide: BorderSide(color: Colors.blue[400]!, width: 1.5),
+                            dropdownColor: Colors.white,
+                            style: GoogleFonts.cairo(
+                              color: Color(0xFF212121),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
                             ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(25),
-                              borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                          ),
-                          dropdownColor: Colors.white,
-                          style: GoogleFonts.cairo(
-                            color: Colors.blue,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          items: [
-                            DropdownMenuItem<Map<String, dynamic>>(
-                              value: null,
-                              child: Text(
-                                defaultDistrict,
-                                style: GoogleFonts.cairo(
-                                  color: Colors.black,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
+                            items: [
+                              DropdownMenuItem<Map<String, dynamic>>(
+                                value: null,
+                                child: Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: Text(
+                                    defaultDistrict,
+                                    style: GoogleFonts.cairo(
+                                      color: Color(0xFF212121),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                            ...filteredAreas.map((area) => DropdownMenuItem(
-                              value: area,
-                              child: Text(
-                                area['name'],
-                                style: GoogleFonts.cairo(
-                                  color: Colors.black,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
+                              ...filteredAreas.map((area) => DropdownMenuItem(
+                                value: area,
+                                child: Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: Text(
+                                    area['name'],
+                                    style: GoogleFonts.cairo(
+                                      color: Color(0xFF212121),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            )),
-                          ],
-                          onChanged: (value) {
-                            setStateDialog(() {
-                              tempSelectedArea = value;
-                            });
-                          },
+                              )),
+                            ],
+                            onChanged: (value) {
+                              setStateDialog(() {
+                                tempSelectedArea = value;
+                              });
+                            },
+                          ),
                         ),
                         const SizedBox(height: 20),
                         Row(
@@ -247,7 +267,7 @@ class LocationButtonWid extends StatelessWidget {
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue[600],
+                                  backgroundColor: Color(0xFF42A5F5),
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                                   shape: RoundedRectangleBorder(

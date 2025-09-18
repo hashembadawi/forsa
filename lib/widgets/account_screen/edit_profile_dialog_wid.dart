@@ -170,18 +170,27 @@ class EditProfileDialogWid extends StatelessWidget {
                   Expanded(
                     child: TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text('إلغاء', style: GoogleFonts.cairo()),
+                      style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFF42A5F5), // Light Blue
+                        textStyle: GoogleFonts.cairo(),
+                      ),
+                      child: const Text('إلغاء'),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: ElevatedButton(
+                    child: FilledButton(
                       onPressed: onSave,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF42A5F5), // Light Blue
                         foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                        textStyle: GoogleFonts.cairo(fontWeight: FontWeight.bold),
                       ),
-                      child: Text('حفظ', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+                      child: const Text('حفظ'),
                     ),
                   ),
                 ],

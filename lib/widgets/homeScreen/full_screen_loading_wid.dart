@@ -25,13 +25,13 @@ class FullScreenLoadingWid extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 20),
-              // Simple grid shimmer for ads (2 per row)
+              // Simple grid shimmer for ads (2 per row, only 2 blocks)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: 6,
+                  itemCount: 2,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     childAspectRatio: 0.82,

@@ -13,21 +13,27 @@ class AuthButtonWid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Color buttonColor = isLoggedIn ? const Color(0xFFFF7043) : const Color(0xFF42A5F5); // Soft Orange or Light Blue
+    final Color foregroundColor = Colors.white;
     return SizedBox(
       width: double.infinity,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isLoggedIn ? Colors.orange : Colors.blue,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 12),
+      child: FilledButton(
+        style: FilledButton.styleFrom(
+          backgroundColor: buttonColor,
+          foregroundColor: foregroundColor,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          elevation: 2,
+          textStyle: GoogleFonts.cairo(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
         ),
         onPressed: onPressed,
         child: Text(
           isLoggedIn ? 'تسجيل الخروج' : 'تسجيل الدخول',
-          style: GoogleFonts.cairo(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
         ),
       ),
     );

@@ -19,6 +19,11 @@ class SuggestionsListScreen extends StatefulWidget {
 }
 
 class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
+  // Material 3 color palette from home_screen.dart
+  static const Color primaryColor = Color(0xFF42A5F5); // Light Blue
+  static const Color backgroundColor = Color(0xFFFAFAFA); // White
+  static const Color textColor = Color(0xFF212121); // Dark Black
+  static const Color outlineColor = Color(0xFFE0E3E7); // Soft Gray
   // ========== Controllers & State ==========
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -165,24 +170,25 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
       child: TextField(
         controller: _searchController,
         focusNode: _searchFocusNode,
+        style: GoogleFonts.cairo(color: textColor, fontWeight: FontWeight.w500),
         decoration: InputDecoration(
           hintText: 'ابحث عن منتج أو خدمة...',
           hintStyle: GoogleFonts.cairo(color: Colors.grey[600]),
-          prefixIcon: Icon(Icons.search, color: Colors.blue[600]),
+          prefixIcon: Icon(Icons.search, color: primaryColor),
           suffixIcon: _buildSearchSuffixIcon(),
           filled: true,
           fillColor: Colors.white,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: Colors.blue[300]!, width: 1.5),
+            borderSide: BorderSide(color: outlineColor, width: 1.5),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: Colors.blue[300]!, width: 1.5),
+            borderSide: BorderSide(color: outlineColor, width: 1.5),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
+            borderSide: BorderSide(color: primaryColor, width: 2),
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
@@ -260,12 +266,14 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemBuilder: (context, index) {
           final suggestion = _searchSuggestions[index];
-          
           return Column(
             children: [
               Material(
                 color: Colors.white,
+                elevation: 2,
+                borderRadius: BorderRadius.circular(15),
                 child: InkWell(
+                  borderRadius: BorderRadius.circular(15),
                   onTap: () => _onSuggestionSelected(suggestion),
                   child: Container(
                     width: double.infinity,
@@ -275,7 +283,7 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
                         Icon(
                           Icons.search,
                           size: 20,
-                          color: Colors.blue[400],
+                          color: primaryColor,
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -283,7 +291,7 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
                             suggestion,
                             style: GoogleFonts.cairo(
                               fontSize: 16,
-                              color: Colors.grey[800],
+                              color: textColor,
                               fontWeight: FontWeight.w500,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -293,7 +301,7 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
                         Icon(
                           Icons.north_west,
                           size: 18,
-                          color: Colors.grey[400],
+                          color: outlineColor,
                         ),
                       ],
                     ),
@@ -303,7 +311,7 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
               if (index < _searchSuggestions.length - 1)
                 Divider(
                   height: 1,
-                  color: Colors.grey[200],
+                  color: outlineColor,
                   indent: 52,
                 ),
             ],
@@ -318,10 +326,13 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: backgroundColor,
         appBar: AppBar(
-          backgroundColor: Colors.blue[700],
-          elevation: 0,
+          backgroundColor: primaryColor,
+          elevation: 4,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+          ),
           title: Text(
             'البحث',
             style: GoogleFonts.cairo(
@@ -340,7 +351,6 @@ class _SuggestionsListScreenState extends State<SuggestionsListScreen> {
           children: [
             // Search field
             _buildSearchField(),
-            
             // Suggestions list or empty state
             _buildSuggestionsList(),
           ],

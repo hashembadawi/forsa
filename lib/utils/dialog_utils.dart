@@ -45,7 +45,7 @@ class DialogUtils {
             borderRadius: BorderRadius.circular(22),
             boxShadow: [
               BoxShadow(
-                color: kOutlineColor.withOpacity(0.12),
+                color: kSuccessColor.withOpacity(0.12),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -156,7 +156,7 @@ class DialogUtils {
             borderRadius: BorderRadius.circular(22),
             boxShadow: [
               BoxShadow(
-                color: kOutlineColor.withOpacity(0.12),
+                color: kErrorColor.withOpacity(0.12),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -261,6 +261,13 @@ class DialogUtils {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: kSecondaryColor.withOpacity(0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -270,7 +277,7 @@ class DialogUtils {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: const BoxDecoration(
-                  color: Colors.blue,
+                  color: kSecondaryColor,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
@@ -347,6 +354,13 @@ class DialogUtils {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: kSecondaryColor.withOpacity(0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -356,7 +370,7 @@ class DialogUtils {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: const BoxDecoration(
-                  color: Colors.blue,
+                  color: kSecondaryColor,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
@@ -461,6 +475,13 @@ class DialogUtils {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: kSecondaryColor.withOpacity(0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -470,7 +491,7 @@ class DialogUtils {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: const BoxDecoration(
-                  color: Colors.blue,
+                  color: kSecondaryColor,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),

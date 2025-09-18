@@ -1,6 +1,6 @@
 import 'package:forsa/widgets/homeScreen/advance_search_wid.dart';
 import 'package:forsa/widgets/homeScreen/title_search_wid.dart';
-import '../widgets/homeScreen/most_activeUser_Wid.dart';
+//import '../widgets/homeScreen/most_activeUser_Wid.dart';
 import '../models/ad_model.dart' as ad_models;
 import 'dart:async';
 import 'dart:convert';
@@ -40,38 +40,38 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMixin {
   // ========== Most Active Users State ========== 
-  List<Map<String, dynamic>> _mostActiveUsers = [];
-  bool _isLoadingActiveUsers = false;
-  bool _hasErrorActiveUsers = false;
+  // List<Map<String, dynamic>> _mostActiveUsers = [];
+  // bool _isLoadingActiveUsers = false;
+  // bool _hasErrorActiveUsers = false;
 
-  /// Fetch most active users
-  Future<void> _fetchMostActiveUsers() async {
-    setState(() {
-      _isLoadingActiveUsers = true;
-      _hasErrorActiveUsers = false;
-    });
-    try {
-      final url = Uri.parse('https://sahbo-app-api.onrender.com/api/user/most-active?limit=10');
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final List<dynamic> users = jsonDecode(response.body);
-        setState(() {
-          _mostActiveUsers = users.cast<Map<String, dynamic>>();
-          _isLoadingActiveUsers = false;
-        });
-      } else {
-        setState(() {
-          _isLoadingActiveUsers = false;
-          _hasErrorActiveUsers = true;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _isLoadingActiveUsers = false;
-        _hasErrorActiveUsers = true;
-      });
-    }
-  }
+  // /// Fetch most active users
+  // Future<void> _fetchMostActiveUsers() async {
+  //   setState(() {
+  //     _isLoadingActiveUsers = true;
+  //     _hasErrorActiveUsers = false;
+  //   });
+  //   try {
+  //     final url = Uri.parse('https://sahbo-app-api.onrender.com/api/user/most-active?limit=10');
+  //     final response = await http.get(url);
+  //     if (response.statusCode == 200) {
+  //       final List<dynamic> users = jsonDecode(response.body);
+  //       setState(() {
+  //         _mostActiveUsers = users.cast<Map<String, dynamic>>();
+  //         _isLoadingActiveUsers = false;
+  //       });
+  //     } else {
+  //       setState(() {
+  //         _isLoadingActiveUsers = false;
+  //         _hasErrorActiveUsers = true;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     setState(() {
+  //       _isLoadingActiveUsers = false;
+  //       _hasErrorActiveUsers = true;
+  //     });
+  //   }
+  // }
 
   // ========== Constants ==========
   static const String _baseUrl = 'https://sahbo-app-api.onrender.com';
@@ -125,8 +125,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   void initState() {
   super.initState();
   _initializeScreen();
-  // Fetch all ads first, then fetch most active users
-  _fetchAllAds().then((_) => _fetchMostActiveUsers());
+  // _fetchAllAds().then((_) => _fetchMostActiveUsers()); // Commented: most active users
   }
 
   @override
@@ -846,16 +845,16 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                     child: const FullScreenLoadingWid(),
                   )
                 else ...[
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      child: MostActiveUserWid(
-                        mostActiveUsers: _mostActiveUsers,
-                        isLoading: _isLoadingActiveUsers,
-                        hasError: _hasErrorActiveUsers,
-                      ),
-                    ),
-                  ),
+                  // SliverToBoxAdapter(
+                  //   child: Padding(
+                  //     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  //     child: MostActiveUserWid(
+                  //       mostActiveUsers: _mostActiveUsers,
+                  //       isLoading: _isLoadingActiveUsers,
+                  //       hasError: _hasErrorActiveUsers,
+                  //     ),
+                  //   ),
+                  // ),
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     sliver: SliverList(

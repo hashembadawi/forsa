@@ -18,15 +18,20 @@ class EditDeleteButtonsWid extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(right: 4.0),
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF42A5F5), // Light Blue
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 13),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                elevation: 2,
+                textStyle: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 11),
               ),
               onPressed: onEdit,
               icon: const Icon(Icons.edit),
-              label: Text('تعديل الملف الشخصي', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 12)),
+              label: const Text('تعديل الملف الشخصي'),
             ),
           ),
         ),
@@ -34,15 +39,20 @@ class EditDeleteButtonsWid extends StatelessWidget {
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(left: 4.0),
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFE53935), // Red
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                elevation: 2,
+                textStyle: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 11),
               ),
               onPressed: onDelete,
               icon: const Icon(Icons.delete_outline),
-              label: Text('حذف الحساب', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 12)),
+              label: const Text('حذف الحساب'),
             ),
           ),
         ),

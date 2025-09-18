@@ -6,6 +6,7 @@ import 'package:forsa/screens/ad_details_screen.dart';
 import '../utils/ad_card_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:forsa/models/ad_model.dart';
+import 'package:forsa/utils/dialog_utils.dart';
 /// Screen displaying search results for advertisements
 class SearchResultsScreen extends StatefulWidget {
   final String searchText;
@@ -20,6 +21,9 @@ class SearchResultsScreen extends StatefulWidget {
 }
 
 class _SearchResultsScreenState extends State<SearchResultsScreen> {
+  // Material 3 color palette from home_screen.dart
+  static const Color primaryColor = Color(0xFF42A5F5); // Light Blue
+  static const Color backgroundColor = Color(0xFFFAFAFA); // White
   // ========== Constants ==========
   static const String _baseApiUrl = 'sahbo-app-api.onrender.com';
   static const String _searchEndpoint = '/api/ads/search-by-title';
@@ -87,16 +91,18 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
       final ads = decoded['ads'];
-      
       setState(() {
         _searchResults = ads is List ? ads : [];
         _isLoading = false;
       });
+      // Close loading dialog after ads are loaded
+      DialogUtils.closeDialog(context);
     } else {
       setState(() {
         _errorMessage = 'فشل في تحميل النتائج. رمز الخطأ: ${response.statusCode}';
         _isLoading = false;
       });
+      DialogUtils.closeDialog(context);
     }
   }
 
@@ -166,8 +172,11 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   /// Build the app bar
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.blue[700],
+      backgroundColor: primaryColor,
       elevation: 4,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+      ),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Navigator.pop(context),
@@ -187,72 +196,43 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   /// Build the main body content
   Widget _buildBody() {
     if (_isLoading) {
-      return _buildLoadingWidget();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        DialogUtils.showLoadingDialog(
+          context: context,
+          title: 'جارٍ البحث...',
+          message: 'يرجى الانتظار حتى يتم تحميل النتائج',
+          barrierDismissible: false,
+        );
+      });
+      return const SizedBox.shrink();
     }
 
     if (_errorMessage != null) {
-      return _buildErrorWidget();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        DialogUtils.showErrorDialog(
+          context: context,
+          message: _errorMessage!,
+          buttonText: 'إعادة المحاولة',
+          onPressed: () {
+            Navigator.of(context).pop();
+            _fetchSearchResults();
+          },
+        );
+      });
+      return const SizedBox.shrink();
     }
 
     if (_searchResults.isEmpty) {
-    return const NoResultsWid();
+      return const NoResultsWid();
     }
 
     return _buildSearchResultsGrid();
   }
 
-  /// Build loading indicator
-  Widget _buildLoadingWidget() {
-    return Center(
-      child: CircularProgressIndicator(
-        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[600]!),
-      ),
-    );
-  }
-
-  /// Build error message widget
-  Widget _buildErrorWidget() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Colors.red[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            _errorMessage!,
-            style: GoogleFonts.cairo(
-              fontSize: 16,
-              color: Colors.red[600],
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: _fetchSearchResults,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[700],
-              foregroundColor: Colors.white,
-            ),
-            child: Text(
-              'إعادة المحاولة',
-              style: GoogleFonts.cairo(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-
   /// Build search results grid
   Widget _buildSearchResultsGrid() {
     return Container(
-      color: Colors.white,
+      color: backgroundColor,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         child: GridView.builder(
@@ -264,7 +244,12 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
           ),
           itemCount: _searchResults.length,
           itemBuilder: (context, index) {
-            return _buildAdCard(_searchResults[index]);
+            return Material(
+              color: Colors.white,
+              elevation: 2,
+              borderRadius: BorderRadius.circular(15),
+              child: _buildAdCard(_searchResults[index]),
+            );
           },
         ),
       ),
