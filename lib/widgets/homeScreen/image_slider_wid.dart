@@ -1,21 +1,16 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 
 class ImageSliderWid extends StatefulWidget {
-  const ImageSliderWid({super.key});
+  final List<String> imageContents;
+  const ImageSliderWid({super.key, required this.imageContents});
 
   @override
   State<ImageSliderWid> createState() => _ImageSliderWidState();
 }
 
 class _ImageSliderWidState extends State<ImageSliderWid> {
-  static const List<String> _imagePaths = [
-    'assets/image1.jpg',
-    'assets/image2.jpg',
-    'assets/image3.jpg',
-    'assets/image4.jpg',
-  ];
-
   int _currentImageIndex = 0;
   late PageController _pageController;
   Timer? _sliderTimer;
@@ -36,8 +31,8 @@ class _ImageSliderWidState extends State<ImageSliderWid> {
 
   void _startAutoSlide() {
     _sliderTimer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (_pageController.hasClients) {
-        final nextPage = (_currentImageIndex + 1) % _imagePaths.length;
+      if (_pageController.hasClients && widget.imageContents.isNotEmpty) {
+        final nextPage = (_currentImageIndex + 1) % widget.imageContents.length;
         _pageController.animateToPage(
           nextPage,
           duration: const Duration(milliseconds: 600),
@@ -65,14 +60,20 @@ class _ImageSliderWidState extends State<ImageSliderWid> {
             children: [
               PageView.builder(
                 controller: _pageController,
-                itemCount: _imagePaths.length,
+                itemCount: widget.imageContents.length,
                 onPageChanged: (index) => setState(() => _currentImageIndex = index),
                 itemBuilder: (context, index) => ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Image.asset(
-                    _imagePaths[index],
-                    fit: BoxFit.cover,
-                  ),
+                  child: widget.imageContents[index].isNotEmpty
+                      ? Image.memory(
+                          base64Decode(widget.imageContents[index]),
+                          fit: BoxFit.fill,
+                          gaplessPlayback: true,
+                        )
+                      : Container(
+                          color: Colors.grey[300],
+                          child: const Center(child: Icon(Icons.broken_image)),
+                        ),
                 ),
               ),
               Positioned(
@@ -82,7 +83,7 @@ class _ImageSliderWidState extends State<ImageSliderWid> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
-                    _imagePaths.length,
+                    widget.imageContents.length,
                     (index) => AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
                       width: _currentImageIndex == index ? 20 : 8,

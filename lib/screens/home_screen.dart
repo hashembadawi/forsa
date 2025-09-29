@@ -114,7 +114,8 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   bool _isConnected = true;
   bool _isCheckingConnectivity = true;
 
-  // ========== Image Cache ==========
+  // ========== Image Slider State ===========
+  List<String> _sliderImages = [];
 
   @override
   bool get wantKeepAlive => true;
@@ -387,6 +388,13 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         final List<dynamic> fetchedAds = decoded['ads'] ?? [];
+        final List<dynamic> fetchedImages = decoded['images'] ?? [];
+
+        // Extract base64 content from images
+        final List<String> imageContents = fetchedImages
+            .map<String>((img) => img['content'] as String? ?? '')
+            .where((content) => content.isNotEmpty)
+            .toList();
 
         if (mounted) {
           setState(() {
@@ -394,6 +402,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
             _currentPageAds++;
             _isLoadingAds = false;
             _hasMoreAds = fetchedAds.length >= _limitAds;
+            _sliderImages = imageContents;
           });
         }
       } else {
@@ -791,7 +800,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                 const SliverToBoxAdapter(child: SizedBox(height: 10)),
                 SliverToBoxAdapter(child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: ImageSliderWid(),
+                  child: ImageSliderWid(imageContents: _sliderImages),
                 )),
                 const SliverToBoxAdapter(child: SizedBox(height: 8)),
                 SliverToBoxAdapter(
