@@ -809,21 +809,20 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   /// Share ad functionality
   Future<void> _shareAd() async {
     try {
-  final String adId = _adModel?.id ?? '';
-  final String shareText = '''
-${_adModel?.adTitle ?? 'إعلان مميز'}
+          final String adId = _adModel?.id ?? '';
+          final String shareText = '''
+        ${_adModel?.adTitle ?? 'إعلان مميز'}
 
-شاهد هذا الاعلان على موقع سوق سوريا
-https://syria-market-web.onrender.com/$adId
-  '''.trim();
-
-      // Show share dialog with app options
-      await _showShareDialog(shareText);
+        شاهد هذا الاعلان على موقع فرصة
+        https://syria-market-web.onrender.com/$adId
+          '''.trim();
+              // Show share dialog with app options
+              await _showShareDialog(shareText);
     } catch (e) {
-      if (mounted) {
-        _showErrorMessage('حدث خطأ أثناء المشاركة');
+          if (mounted) {
+            _showErrorMessage('حدث خطأ أثناء المشاركة');
+          }
       }
-    }
   }
 
   /// Show share dialog with social media apps
