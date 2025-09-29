@@ -10,17 +10,25 @@ class ImageIndicatorWid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
         imageCount,
         (index) => Container(
           margin: const EdgeInsets.symmetric(horizontal: 2),
-          width: 8,
-          height: 8,
+          width: 10,
+          height: 10,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white.withOpacity(0.8),
+            color: colorScheme.primary.withOpacity(0.85),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.primary.withOpacity(0.18),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+            ],
           ),
         ),
       ),

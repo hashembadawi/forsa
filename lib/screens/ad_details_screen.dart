@@ -4,7 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:forsa/widgets/adDetails_screen/favorite_button_wid.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../widgets/adDetails_screen/image_indicator_wid.dart';
+import '../widgets/adDetails_screen/image_section_wid.dart';
+import '../widgets/adDetails_screen/ad_title_wid.dart';
+import '../widgets/adDetails_screen/price_section_wid.dart';
+import '../widgets/adDetails_screen/tab_section_wid.dart';
+import '../widgets/adDetails_screen/advertiser_info_wid.dart';
+import '../widgets/adDetails_screen/action_buttons_wid.dart';
+import '../widgets/adDetails_screen/similar_ads_section_wid.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -177,6 +183,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   }
 
   Future<void> _fetchAdDetails() async {
+    if (!mounted) return;
     setState(() {
       _isLoadingAd = true;
       _hasErrorAd = false;
@@ -186,6 +193,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        if (!mounted) return;
         setState(() {
           _adModel = AdModel.fromJson(data);
           _isLoadingAd = false;
@@ -193,12 +201,14 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
         // Now fetch similar ads and favorites
         _initializeData();
       } else {
+        if (!mounted) return;
         setState(() {
           _hasErrorAd = true;
           _isLoadingAd = false;
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _hasErrorAd = true;
         _isLoadingAd = false;
@@ -224,15 +234,36 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
+    // Material 3 color scheme
+    const Color primaryColor = Color(0xFF42A5F5); // Light Blue
+    const Color backgroundColor = Color(0xFFFAFAFA); // White
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        appBar: _buildAppBar(),
-        body: _isLoadingAd
-            ? Center(child: CircularProgressIndicator())
-            : _hasErrorAd
-                ? Center(child: Text('حدث خطأ أثناء تحميل الإعلان'))
-                : _buildBody(),
+      child: Theme(
+        data: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
+          scaffoldBackgroundColor: backgroundColor,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: primaryColor,
+            foregroundColor: Colors.white,
+            elevation: 4,
+            centerTitle: true,
+            titleTextStyle: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        child: Scaffold(
+          appBar: _buildAppBar(),
+          body: _isLoadingAd
+              ? Center(child: CircularProgressIndicator())
+              : _hasErrorAd
+                  ? Center(child: Text('حدث خطأ أثناء تحميل الإعلان'))
+                  : _buildBody(),
+        ),
       ),
     );
   }
@@ -245,16 +276,19 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
         style: GoogleFonts.cairo(
           fontSize: 22,
           fontWeight: FontWeight.bold,
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.onPrimary,
         ),
       ),
-      backgroundColor: Colors.blue[700],
+      backgroundColor: Theme.of(context).colorScheme.primary,
       elevation: 4,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
+        icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onPrimary),
         onPressed: () => Navigator.pop(context),
       ),
       centerTitle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+      ),
     );
   }
 
@@ -359,112 +393,25 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
 
   // Optimized widget builders
   Widget _buildAdTitle() {
-    return Text(
-      _adModel?.adTitle ?? 'غير متوفر',
-      style: GoogleFonts.cairo(
-        fontSize: 22,
-        fontWeight: FontWeight.bold,
-        color: Colors.black87,
-      ),
-    );
+    return AdTitleWid(title: _adModel?.adTitle ?? 'غير متوفر');
   }
 
   Widget _buildPriceSection() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.blue[200]!,
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'السعر:',
-            style: GoogleFonts.cairo(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          Text(
-            '${_adModel?.price ?? 'غير محدد'} ${_adModel?.currencyName ?? ''}',
-            style: GoogleFonts.cairo(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue[700],
-            ),
-          ),
-        ],
-      ),
+    return PriceSectionWid(
+      price: _adModel?.price?.toString() ?? 'غير محدد',
+      currencyName: _adModel?.currencyName ?? '',
     );
   }
 
   // Tab Section Builder
   Widget _buildTabSection() {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[400]!, width: 1.5),
-        borderRadius: BorderRadius.circular(18),
-        color: Colors.white,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: Column(
-          children: [
-            // Tab Headers
-            Container(
-              child: Row(
-                children: [
-                  _buildTabButton('معلومات الإعلان', 0),
-                  _buildTabButton('الوصف', 1),
-                  _buildTabButton('الموقع', 2),
-                ],
-              ),
-            ),
-            // Tab Content
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: _buildTabContent(),
-            ),
-          ],
-        ),
-      ),
+    return TabSectionWid(
+      selectedTabIndex: _selectedTabIndex,
+      onTabSelected: (index) => setState(() => _selectedTabIndex = index),
+      tabContent: _buildTabContent(),
     );
   }
 
-  Widget _buildTabButton(String title, int index) {
-    final isSelected = _selectedTabIndex == index;
-    final isFirst = index == 0;
-    
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedTabIndex = index),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.blue[600] : Colors.transparent,
-            border: !isFirst ? Border(
-              right: BorderSide(color: Colors.blue[300]!, width: 1),
-            ) : null,
-          ),
-          child: Text(
-            title,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.cairo(
-              color: isSelected ? Colors.white : Colors.blue[700],
-              fontWeight: FontWeight.bold,
-              fontSize: 11,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildTabContent() {
     switch (_selectedTabIndex) {
@@ -488,84 +435,20 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
       allImages.add(thumbnail);
     }
     allImages.addAll(images);
-    if (allImages.isEmpty) {
-      return _buildNoImagePlaceholder();
-    }
-    return SizedBox(
-      height: _imageHeight,
-      child: Stack(
-        children: [
-          PageView.builder(
-            controller: _imagePageController,
-            itemCount: allImages.length,
-            itemBuilder: (context, index) => _buildImageItem(allImages, index),
-          ),
-          if (allImages.length > 1)
-            Positioned(
-              bottom: 10,
-              left: 0,
-              right: 0,
-              child: ImageIndicatorWid(imageCount: allImages.length),
-            ),
-          Positioned(
-            top: 10,
-            left: 10,
-            child: _buildFavoriteButton(),
-          ),
-        ],
-      ),
+    return ImageSectionWid(
+      allImages: allImages,
+      imageHeight: _imageHeight,
+      imagePageController: _imagePageController,
+      getDecodedImage: _getDecodedImage,
+      onImageTap: _showBuiltInImageViewer,
+      favoriteButton: _buildFavoriteButton(),
     );
   }
 
-  Widget _buildImageItem(List<String> images, int index) {
-    final imgBase64 = images[index];
-    final decodedImage = _getDecodedImage(imgBase64);
-    return GestureDetector(
-      onTap: () => _showBuiltInImageViewer(images, index),
-      child: decodedImage != null
-          ? Image.memory(
-              decodedImage,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              errorBuilder: (context, error, stackTrace) => _buildImageErrorWidget(),
-            )
-          : _buildImageErrorWidget(),
-    );
-  }
 
   // Image indicator now uses ImageIndicatorWid widget
 
-  Widget _buildNoImagePlaceholder() {
-    return SizedBox(
-      height: _imageHeight,
-      child: Stack(
-        children: [
-          // Placeholder content
-          Container(
-            height: _imageHeight,
-            color: Colors.grey[200],
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.image_not_supported, size: 60, color: Colors.grey),
-                  SizedBox(height: 8),
-                  Text('لا توجد صور متاحة', style: GoogleFonts.cairo(color: Colors.grey)),
-                ],
-              ),
-            ),
-          ),
-          // Favorite Heart Icon
-          Positioned(
-            top: 10,
-            left: 10,
-            child: _buildFavoriteButton(),
-          ),
-        ],
-      ),
-    );
-  }
-
+  
   Widget _buildImageErrorWidget() {
     return Container(
       height: _imageHeight,
@@ -623,67 +506,10 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   }
 
   Widget _buildAdvertiserInfo() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue[50]!.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: Colors.blue[200]!.withOpacity(0.7),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'معلومات المعلن',
-            style: GoogleFonts.cairo(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8),
-          _buildInfoRow(
-            Icons.person,
-            'الاسم',
-            _adModel?.userName ?? 'غير متوفر',
-          ),
-          const SizedBox(height: 8),
-          _buildInfoRow(
-            Icons.phone,
-            'الهاتف',
-            _adModel?.userPhone ?? 'غير متوفر',
-          ),
-          const SizedBox(height: 12),
-          // Advertiser Page Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.store, color: Colors.white),
-              label: Text(
-                'صفحة المعلن',
-                style: GoogleFonts.cairo(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[600],
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 2,
-              ),
-              onPressed: () => _navigateToAdvertiserPage(),
-            ),
-          ),
-        ],
-      ),
+    return AdvertiserInfoWid(
+      userName: _adModel?.userName ?? 'غير متوفر',
+      userPhone: _adModel?.userPhone ?? 'غير متوفر',
+      onAdvertiserPage: _navigateToAdvertiserPage,
     );
   }
 
@@ -926,161 +752,59 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   }
 
   Widget _buildWhatsAppButton(String phone) {
-    return ElevatedButton.icon(
-      icon: const Icon(Icons.chat, color: Colors.white),
+    return FilledButton.icon(
+      icon: Icon(Icons.chat, color: Theme.of(context).colorScheme.onPrimary),
       label: Text(
         'دردشة واتساب',
         style: GoogleFonts.cairo(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.onPrimary,
           fontWeight: FontWeight.bold,
         ),
       ),
-      style: _buildWhatsAppButtonStyle(),
+      style: FilledButton.styleFrom(
+        backgroundColor: const Color(0xFF25D366),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        elevation: 0,
+      ),
       onPressed: () => _openWhatsApp(phone),
     );
   }
 
   Widget _buildCallButton(String phone) {
-    return ElevatedButton.icon(
-      icon: const Icon(Icons.call, color: Colors.white),
+    return FilledButton.icon(
+      icon: Icon(Icons.call, color: Theme.of(context).colorScheme.onPrimary),
       label: Text(
         'اتصل الآن',
         style: GoogleFonts.cairo(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.onPrimary,
           fontWeight: FontWeight.bold,
         ),
       ),
-      style: _buildCallButtonStyle(),
+      style: FilledButton.styleFrom(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        elevation: 0,
+      ),
       onPressed: () => _showCallOptions(phone),
     );
   }
 
-  // Style Builders
-  ButtonStyle _buildWhatsAppButtonStyle() {
-    return ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFF25D366),
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      elevation: 0,
-    );
-  }
-
-  ButtonStyle _buildCallButtonStyle() {
-    return ElevatedButton.styleFrom(
-      backgroundColor: Colors.blue[600],
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      elevation: 0,
-    );
-  }
-
-  // ========== New Action Buttons Section ==========
-
   /// Build action buttons section (Share, Report, Favorite)
   Widget _buildActionButtonsSection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: Colors.blue[300]!,
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue[100]!.withOpacity(0.3),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildActionButton(
-            icon: Icons.share,
-            label: 'مشاركة',
-            color: Colors.blue[600]!,
-            onTap: _shareAd,
-          ),
-          _buildActionButton(
-            icon: Icons.report_outlined,
-            label: 'ابلاغ',
-            color: Colors.red[600]!,
-            onTap: _reportAd,
-          ),
-          _buildActionButton(
-            icon: _isFavorite ? Icons.favorite : Icons.favorite_border,
-            label: 'تفضيل',
-            color: _isFavorite ? Colors.red[600]! : Colors.grey[600]!,
-            onTap: _toggleFavorite,
-            isLoading: _isLoadingFavorite,
-          ),
-        ],
-      ),
+    return ActionButtonsWid(
+      isFavorite: _isFavorite,
+      isLoadingFavorite: _isLoadingFavorite,
+      onShare: _shareAd,
+      onReport: _reportAd,
+      onToggleFavorite: _toggleFavorite,
     );
   }
-
-  /// Build individual action button
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-    bool isLoading = false,
-  }) {
-    return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: isLoading ? null : onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isLoading)
-                  SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(color),
-                    ),
-                  )
-                else
-                  Icon(
-                    icon,
-                    color: color,
-                    size: 28,
-                  ),
-                const SizedBox(height: 6),
-                Text(
-                  label,
-                  style: GoogleFonts.cairo(
-                    color: color,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ========== Action Button Methods ==========
 
   /// Share ad functionality
   Future<void> _shareAd() async {
@@ -1915,6 +1639,7 @@ https://syria-market-web.onrender.com/$adId
     if (categoryId == null) return;
 
     if (!mounted) return;
+    if (!mounted) return;
     setState(() {
       _isLoadingSimilarAds = true;
       _hasErrorSimilarAds = false;
@@ -1938,12 +1663,14 @@ https://syria-market-web.onrender.com/$adId
         final List<dynamic> fetchedAds = decoded['ads'] ?? [];
         // Filter out the current ad from similar ads
         final filteredAds = fetchedAds.where((ad) => ad['_id'] != currentAdId).toList();
+        if (!mounted) return;
         setState(() {
           _similarAds = filteredAds.map((ad) => AdModel.fromJson(ad)).take(_limitSimilarAds).toList();
           _isLoadingSimilarAds = false;
           _hasErrorSimilarAds = false;
         });
       } else {
+        if (!mounted) return;
         setState(() {
           _hasErrorSimilarAds = true;
           _isLoadingSimilarAds = false;
@@ -1951,6 +1678,7 @@ https://syria-market-web.onrender.com/$adId
       }
     } catch (e) {
       debugPrint('Exception fetching similar ads: $e');
+      if (!mounted) return;
       if (!mounted) return;
       setState(() {
         _hasErrorSimilarAds = true;
@@ -1971,268 +1699,19 @@ https://syria-market-web.onrender.com/$adId
           width: 2,
         ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Section Header
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.blue[600],
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(10),
-                  topRight: Radius.circular(10),
-                ),
-              ),
-              child: Text(
-                'إعلانات مشابهة',
-                style: GoogleFonts.cairo(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            
-            // Similar Ads Content
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: _buildSimilarAdsContent(),
-            ),
-          ],
+      child: SimilarAdsSectionWid(
+        isLoading: _isLoadingSimilarAds,
+        hasError: _hasErrorSimilarAds,
+        similarAds: _similarAds,
+        onRetry: _fetchSimilarAds,
+        adCardBuilder: (ad) => AdCardWidget(
+          ad: ad,
+          onTap: () => _navigateToAdDetails(ad),
         ),
+        currentPage: _currentSimilarAdPage,
+        pageController: _similarAdsPageController,
+        limitSimilarAds: _limitSimilarAds,
       ),
     );
   }
-
-  /// Build similar ads content based on loading state
-  Widget _buildSimilarAdsContent() {
-    if (_isLoadingSimilarAds) {
-      return _buildSimilarAdsLoading();
-    }
-    if (_hasErrorSimilarAds) {
-      return _buildSimilarAdsError();
-    }
-    if (_similarAds.isEmpty) {
-      return _buildNoSimilarAds();
-    }
-    return _buildSimilarAdsList();
-  }
-
-  /// Build loading widget for similar ads
-  Widget _buildSimilarAdsLoading() {
-    return Container(
-      height: 120,
-      padding: const EdgeInsets.all(20),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 32,
-              height: 32,
-              child: CircularProgressIndicator(strokeWidth: 3),
-            ),
-            SizedBox(height: 12),
-            Text(
-              'جاري تحميل الإعلانات المشابهة...',
-              style: GoogleFonts.cairo(
-                color: Colors.grey,
-                fontSize: 13,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Build error widget for similar ads
-  Widget _buildSimilarAdsError() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.error_outline,
-            size: 40,
-            color: Colors.orange,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'فشل في تحميل الإعلانات المشابهة',
-            style: GoogleFonts.cairo(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _fetchSimilarAds,
-              icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('إعادة المحاولة'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[600],
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build no similar ads widget
-  Widget _buildNoSimilarAds() {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.search_off,
-            size: 40,
-            color: Colors.grey,
-          ),
-          SizedBox(height: 12),
-          Text(
-            'لا توجد إعلانات مشابهة في الوقت الحالي',
-            style: GoogleFonts.cairo(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build similar ads list
-  Widget _buildSimilarAdsList() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final double cardWidth = constraints.maxWidth * 0.92;
-        final double cardHeight = 290.0;
-        if (_similarAds.length <= 1) {
-          // Show single card (no sliding)
-          return Center(
-            child: SizedBox(
-              width: cardWidth,
-              height: cardHeight,
-              child: _similarAds.isNotEmpty
-                  ? AdCardWidget(
-                      ad: AdModel(
-                        id: _similarAds[0].id,
-                        adTitle: _similarAds[0].adTitle,
-                        description: _similarAds[0].description,
-                        price: _similarAds[0].price,
-                        currencyName: _similarAds[0].currencyName,
-                        categoryName: _similarAds[0].categoryName,
-                        subCategoryName: _similarAds[0].subCategoryName,
-                        cityName: _similarAds[0].cityName,
-                        regionName: _similarAds[0].regionName,
-                        userName: _similarAds[0].userName,
-                        userPhone: _similarAds[0].userPhone,
-                        userId: _similarAds[0].userId,
-                        categoryId: _similarAds[0].categoryId,
-                        subCategoryId: _similarAds[0].subCategoryId,
-                        createDate: _similarAds[0].createDate,
-                        images: _similarAds[0].images,
-                        thumbnail: _similarAds[0].thumbnail,
-                        location: _similarAds[0].location,
-                        forSale: _similarAds[0].forSale,
-                        deliveryService: _similarAds[0].deliveryService,
-                      ),
-                      onTap: () => _navigateToAdDetails(_similarAds[0]),
-                    )
-                  : const SizedBox.shrink(),
-            ),
-          );
-        } else {
-          // Show PageView for sliding with dots below
-          return SizedBox(
-            height: cardHeight + 32,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: cardHeight,
-                  child: PageView.builder(
-                    controller: _similarAdsPageController,
-                    itemCount: _similarAds.length,
-                    itemBuilder: (context, index) {
-                      final ad = _similarAds[index];
-                      final adModel = AdModel(
-                        id: ad.id,
-                        adTitle: ad.adTitle,
-                        description: ad.description,
-                        price: ad.price,
-                        currencyName: ad.currencyName,
-                        categoryName: ad.categoryName,
-                        subCategoryName: ad.subCategoryName,
-                        cityName: ad.cityName,
-                        regionName: ad.regionName,
-                        userName: ad.userName,
-                        userPhone: ad.userPhone,
-                        userId: ad.userId,
-                        categoryId: ad.categoryId,
-                        subCategoryId: ad.subCategoryId,
-                        createDate: ad.createDate,
-                        images: ad.images,
-                        thumbnail: ad.thumbnail,
-                        location: ad.location,
-                        forSale: ad.forSale,
-                        deliveryService: ad.deliveryService,
-                      );
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: AdCardWidget(
-                          ad: adModel,
-                          onTap: () => _navigateToAdDetails(ad),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(_similarAds.length, (index) {
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: _currentSimilarAdPage == index ? 16 : 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: _currentSimilarAdPage == index ? Colors.blue : Colors.grey[400],
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    );
-                  }),
-                ),
-              ],
-            ),
-          );
-        }
-      },
-    );
-  }
-  /// Build similar ad card (optimized with model)
-  // _buildSimilarAdCard is no longer needed and has been removed.
 }

@@ -14,15 +14,16 @@ class FavoriteButtonWid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: isLoading ? null : onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.8),
+          color: colorScheme.surface,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: colorScheme.primary.withOpacity(0.10),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -33,11 +34,14 @@ class FavoriteButtonWid extends StatelessWidget {
             ? SizedBox(
                 width: 28,
                 height: 28,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                ),
               )
             : Icon(
                 isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: isFavorite ? Colors.red : Colors.grey[600],
+                color: isFavorite ? colorScheme.error : colorScheme.outline,
                 size: 28,
               ),
       ),
