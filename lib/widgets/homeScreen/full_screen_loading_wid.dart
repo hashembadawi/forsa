@@ -15,7 +15,7 @@ class FullScreenLoadingWid extends StatelessWidget {
   Widget build(BuildContext context) {
     const Color primaryColor = Color(0xFFFFD54F); // Golden Yellow
     const Color secondaryColor = Color(0xFF42A5F5); // Light Blue
-    const Color surfaceColor = Color(0xFFF5F5F5); // Light Gray
+  const Color surfaceColor = Colors.white; // White
 // Dark Black
     return Scaffold(
       backgroundColor: surfaceColor,
