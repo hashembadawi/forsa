@@ -13,7 +13,7 @@ class AdTitleWid extends StatelessWidget {
       child: Text(
         title,
         style: GoogleFonts.cairo(
-          fontSize: 24,
+          fontSize: 20,
           fontWeight: FontWeight.w700,
           color: colorScheme.primary,
           letterSpacing: 0.2,

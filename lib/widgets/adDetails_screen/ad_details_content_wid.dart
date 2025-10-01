@@ -16,15 +16,38 @@ class AdDetailsContentWid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalPad = screenWidth * 0.04; // 4vw
+    final verticalPad = screenWidth * 0.025; // 2.5vw
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          adTitle,
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withOpacity(0.07),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: EdgeInsets.symmetric(horizontal: horizontalPad, vertical: verticalPad),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                adTitle,
+                Divider(
+                  color: colorScheme.primary.withOpacity(0.18),
+                  thickness: 1,
+                  height: 10,
+                  endIndent: 0,
+                  indent: 0,
+                ),
+                priceSection,
+              ],
+            ),
+          ),
           const SizedBox(height: 16),
-          priceSection,
-          const SizedBox(height: 20),
           tabSection,
           const SizedBox(height: 20),
           actionButtons,

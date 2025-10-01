@@ -6,7 +6,6 @@ import 'package:forsa/widgets/adDetails_screen/favorite_button_wid.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/adDetails_screen/image_section_wid.dart';
 import '../widgets/adDetails_screen/ad_title_wid.dart';
-import '../widgets/adDetails_screen/ad_details_main_body_wid.dart';
 import '../widgets/adDetails_screen/ad_details_content_wid.dart';
 import '../widgets/adDetails_screen/ad_info_tab_wid.dart';
 import '../widgets/adDetails_screen/basic_info_wid.dart';
@@ -305,39 +304,38 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   // Main Body Builder
   Widget _buildBody() {
     if (_adModel == null) return SizedBox.shrink();
-    return AdDetailsMainBodyWid(
-      currentAdSection: _buildCurrentAdSection(),
-      actionButtonsSection: _buildActionButtonsSection(),
-      similarAdsSection: _buildSimilarAdsSection(),
+    // Remove colored divider and extra padding from AdDetailsMainBodyWid
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              _buildCurrentAdSection(),
+              _buildActionButtonsSection(),
+              _buildSimilarAdsSection(),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
   // Current Ad Section Builder
   Widget _buildCurrentAdSection() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: Colors.blue[300]!,
-          width: 2,
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildImageSection(),
-            AdDetailsContentWid(
-              adTitle: _buildAdTitle(),
-              priceSection: _buildPriceSection(),
-              tabSection: _buildTabSection(),
-              actionButtons: _buildActionButtons(),
-            ),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildImageSection(),
+          AdDetailsContentWid(
+            adTitle: _buildAdTitle(),
+            priceSection: _buildPriceSection(),
+            tabSection: _buildTabSection(),
+            actionButtons: _buildActionButtons(),
+          ),
+        ],
       ),
     );
   }
@@ -1464,16 +1462,8 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
 
   /// Build similar ads section
   Widget _buildSimilarAdsSection() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: Colors.blue[300]!,
-          width: 2,
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: SimilarAdsSectionWid(
         isLoading: _isLoadingSimilarAds,
         hasError: _hasErrorSimilarAds,
