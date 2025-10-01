@@ -6,12 +6,22 @@ import 'package:forsa/widgets/adDetails_screen/favorite_button_wid.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../widgets/adDetails_screen/image_section_wid.dart';
 import '../widgets/adDetails_screen/ad_title_wid.dart';
+import '../widgets/adDetails_screen/ad_details_main_body_wid.dart';
+import '../widgets/adDetails_screen/ad_details_content_wid.dart';
+import '../widgets/adDetails_screen/ad_info_tab_wid.dart';
+import '../widgets/adDetails_screen/basic_info_wid.dart';
+import '../widgets/adDetails_screen/info_row_wid.dart';
+import '../widgets/adDetails_screen/phone_text_wid.dart';
+import '../widgets/adDetails_screen/description_tab_wid.dart';
+import '../widgets/adDetails_screen/location_map_wid.dart';
+import '../widgets/adDetails_screen/no_location_available_wid.dart';
+import '../widgets/adDetails_screen/no_contact_info_wid.dart';
+import '../widgets/adDetails_screen/ad_details_action_buttons_row_wid.dart';
 import '../widgets/adDetails_screen/price_section_wid.dart';
 import '../widgets/adDetails_screen/tab_section_wid.dart';
 import '../widgets/adDetails_screen/advertiser_info_wid.dart';
 import '../widgets/adDetails_screen/action_buttons_wid.dart';
 import '../widgets/adDetails_screen/similar_ads_section_wid.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -295,29 +305,10 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   // Main Body Builder
   Widget _buildBody() {
     if (_adModel == null) return SizedBox.shrink();
-    return Container(
-      color: Colors.grey[50],
-      child: ListView(
-        children: [
-          // First Section: Current Ad Details
-          _buildCurrentAdSection(),
-          // Divider between sections
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            height: 8,
-            decoration: BoxDecoration(
-              color: Colors.blue[100],
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
-          // Action Buttons Section (Share, Report, Favorite)
-          _buildActionButtonsSection(),
-          const SizedBox(height: 16),
-          // Second Section: Similar Ads
-          _buildSimilarAdsSection(),
-          const SizedBox(height: 20),
-        ],
-      ),
+    return AdDetailsMainBodyWid(
+      currentAdSection: _buildCurrentAdSection(),
+      actionButtonsSection: _buildActionButtonsSection(),
+      similarAdsSection: _buildSimilarAdsSection(),
     );
   }
 
@@ -338,34 +329,12 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Images Section
             _buildImageSection(),
-            
-            // Ad Content
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Ad Title
-                  _buildAdTitle(),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // Price Section
-                  _buildPriceSection(),
-                  
-                  const SizedBox(height: 20),
-                  
-                  // Tabs
-                  _buildTabSection(),
-                  
-                  const SizedBox(height: 20),
-                  
-                  // Action Buttons
-                  _buildActionButtons(),
-                ],
-              ),
+            AdDetailsContentWid(
+              adTitle: _buildAdTitle(),
+              priceSection: _buildPriceSection(),
+              tabSection: _buildTabSection(),
+              actionButtons: _buildActionButtons(),
             ),
           ],
         ),
@@ -460,48 +429,37 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   }
 
   Widget _buildAdInfoTab() {
-  bool hideTypeAndDelivery = _adModel?.categoryId == '3' || _adModel?.categoryId == 3;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildBasicInfo(),
-        const Divider(height: 32, thickness: 1, color: Colors.grey),
-        _buildAdvertiserInfo(),
-        const Divider(height: 32, thickness: 1, color: Colors.grey),
-        _buildCategoryInfo(),
-        if (!hideTypeAndDelivery) ...[
-          const SizedBox(height: 8),
-          _buildInfoRow(
-            Icons.sell,
-            'نوع الإعلان',
-            _adModel?.forSale == true ? 'للبيع' : 'للإيجار',
-          ),
-          const SizedBox(height: 8),
-          _buildInfoRow(
-            Icons.delivery_dining,
-            'خدمة التوصيل',
-            (_adModel?.deliveryService == true) ? 'يوجد' : 'لا يوجد',
-          ),
-        ],
-      ],
+    bool hideTypeAndDelivery = _adModel?.categoryId == '3' || _adModel?.categoryId == 3;
+    return AdInfoTabWid(
+      hideTypeAndDelivery: hideTypeAndDelivery,
+      basicInfo: _buildBasicInfo(),
+      advertiserInfo: _buildAdvertiserInfo(),
+      categoryInfo: _buildCategoryInfo(),
+      typeInfoRow: InfoRowWid(
+        icon: Icons.sell,
+        label: 'نوع الإعلان',
+        value: _adModel?.forSale == true ? 'للبيع' : 'للإيجار',
+      ),
+      deliveryInfoRow: InfoRowWid(
+        icon: Icons.delivery_dining,
+        label: 'خدمة التوصيل',
+        value: (_adModel?.deliveryService == true) ? 'يوجد' : 'لا يوجد',
+      ),
     );
   }
 
   Widget _buildBasicInfo() {
-    return Column(
-      children: [
-        _buildInfoRow(
-          Icons.location_on,
-          'الموقع',
-          '${_adModel?.cityName ?? 'غير محدد'} - ${_adModel?.regionName ?? 'غير محدد'}',
-        ),
-        const SizedBox(height: 12),
-        _buildInfoRow(
-          Icons.calendar_today,
-          'تاريخ الإعلان',
-          _formatDate(_adModel?.createDate),
-        ),
-      ],
+    return BasicInfoWid(
+      locationRow: InfoRowWid(
+        icon: Icons.location_on,
+        label: 'الموقع',
+        value: '${_adModel?.cityName ?? 'غير محدد'} - ${_adModel?.regionName ?? 'غير محدد'}',
+      ),
+      dateRow: InfoRowWid(
+        icon: Icons.calendar_today,
+        label: 'تاريخ الإعلان',
+        value: _formatDate(_adModel?.createDate),
+      ),
     );
   }
 
@@ -523,231 +481,49 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
 
   // Info Row Builder
   Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: Colors.blue[600]),
-        const SizedBox(width: 8),
-        Expanded(child: _buildInfoText(icon, label, value)),
-      ],
-    );
-  }
-
-  Widget _buildInfoText(IconData icon, String label, String value) {
-    return RichText(
-      text: TextSpan(
-        style: GoogleFonts.cairo(fontSize: 14, color: Colors.black87),
-        children: [
-          TextSpan(
-            text: '$label: ',
-            style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-          ),
-          // Special handling for phone numbers
-          if (icon == Icons.phone)
-            WidgetSpan(child: _buildPhoneText(value))
-          else
-            TextSpan(
-              text: value,
-              style: GoogleFonts.cairo(fontWeight: FontWeight.w500),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPhoneText(String value) {
-    final formattedPhone = value.startsWith('+') ? value : '+$value';
-    
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Text(
-        formattedPhone,
-        style: GoogleFonts.cairo(
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-          color: Colors.black87,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDescriptionTab() {
-  final description = _adModel?.description ?? '';
-    
-    if (description.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(20),
-        child: Center(
-          child: Column(
-            children: [
-              Icon(Icons.description_outlined, size: 48, color: Colors.grey),
-              SizedBox(height: 8),
-              Text(
-                'لا يوجد وصف متاح لهذا الإعلان',
-                style: GoogleFonts.cairo(
-                  color: Colors.grey,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+    // For phone, use PhoneTextWid
+    if (icon == Icons.phone) {
+      return InfoRowWid(
+        icon: icon,
+        label: label,
+        value: value,
+        phoneText: PhoneTextWid(value: value),
       );
     }
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      child: Text(
-        description,
-        style: GoogleFonts.cairo(
-          fontSize: 14,
-          color: Colors.black87,
-          height: 1.5,
-        ),
-        textAlign: TextAlign.justify,
-      ),
+    return InfoRowWid(
+      icon: icon,
+      label: label,
+      value: value,
     );
+  }
+  // _buildInfoText and _buildPhoneText are now handled by InfoRowWid and PhoneTextWid
+
+  Widget _buildDescriptionTab() {
+    final description = _adModel?.description ?? '';
+    return DescriptionTabWid(description: description);
   }
 
   Widget _buildLocationTab() {
-  final location = _adModel?.location;
-  final locationModel = location != null ? LocationModel.fromJson(location) : null;
-  if (locationModel == null || !locationModel.isValid) {
-    return _buildNoLocationAvailable();
-  }
-  return _buildLocationMap(locationModel.latitude!, locationModel.longitude!);
-  }
-
-  Widget _buildNoLocationAvailable() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Center(
-        child: Column(
-          children: [
-            Icon(Icons.location_off_outlined, size: 48, color: Colors.grey),
-            SizedBox(height: 8),
-            Text(
-              'لا يوجد موقع محدد لهذا الإعلان',
-              style: GoogleFonts.cairo(
-                color: Colors.grey,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLocationMap(double latitude, double longitude) {
-    final LatLng adLocation = LatLng(latitude, longitude);
-    
-    return Container(
-      height: 300,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Column(
-          children: [
-            // Map Section
-            Expanded(
-              child: GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: adLocation,
-                  zoom: 15.0,
-                ),
-                markers: {
-                  Marker(
-                    markerId: const MarkerId('ad_location'),
-                    position: adLocation,
-                    infoWindow: const InfoWindow(
-                      title: 'موقع الإعلان',
-                      snippet: 'اضغط على الزر أدناه للحصول على الاتجاهات',
-                    ),
-                    icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-                  ),
-                },
-                myLocationEnabled: true,
-                myLocationButtonEnabled: false,
-                zoomControlsEnabled: false,
-                mapToolbarEnabled: false,
-                onTap: (_) => _openGoogleMapsDirections(latitude, longitude),
-              ),
-            ),
-            // Directions Button
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.blue[600],
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(8),
-                  bottomRight: Radius.circular(8),
-                ),
-              ),
-              child: GestureDetector(
-                onTap: () => _openGoogleMapsDirections(latitude, longitude),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.directions, color: Colors.white),
-                    SizedBox(width: 8),
-                    Text(
-                      'الحصول على الاتجاهات في خرائط جوجل',
-                      style: GoogleFonts.cairo(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    final location = _adModel?.location;
+    final locationModel = location != null ? LocationModel.fromJson(location) : null;
+    if (locationModel == null || !locationModel.isValid) {
+      return const NoLocationAvailableWid();
+    }
+    return LocationMapWid(
+      latitude: locationModel.latitude!,
+      longitude: locationModel.longitude!,
+      onDirectionsTap: () => _openGoogleMapsDirections(locationModel.latitude!, locationModel.longitude!),
     );
   }
 
   Widget _buildActionButtons() {
-  final phone = _adModel?.userPhone ?? '';
-    
+    final phone = _adModel?.userPhone ?? '';
     if (phone.isEmpty) {
-      return _buildNoContactInfo();
+      return const NoContactInfoWid();
     }
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Expanded(child: _buildWhatsAppButton(phone)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildCallButton(phone)),
-      ],
-    );
-  }
-
-  Widget _buildNoContactInfo() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.orange[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange[200]!),
-      ),
-      child: Center(
-        child: Text(
-          'معلومات الاتصال غير متوفرة',
-          style: GoogleFonts.cairo(
-            color: Colors.orange,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
+    return AdDetailsActionButtonsRowWid(
+      whatsappButton: _buildWhatsAppButton(phone),
+      callButton: _buildCallButton(phone),
     );
   }
 
