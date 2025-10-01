@@ -18,10 +18,10 @@ class AdDetailsContentWid extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final screenWidth = MediaQuery.of(context).size.width;
-    final horizontalPad = screenWidth * 0.04; // 4vw
-    final verticalPad = screenWidth * 0.025; // 2.5vw
+    final horizontalPad = screenWidth * 0.015; // much smaller
+    final verticalPad = screenWidth * 0.008; // much smaller
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      padding: const EdgeInsets.fromLTRB(6, 4, 6, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -39,7 +39,7 @@ class AdDetailsContentWid extends StatelessWidget {
                 Divider(
                   color: colorScheme.primary.withOpacity(0.18),
                   thickness: 1,
-                  height: 10,
+                  height: 4,
                   endIndent: 0,
                   indent: 0,
                 ),
@@ -47,9 +47,9 @@ class AdDetailsContentWid extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 6),
           tabSection,
-          const SizedBox(height: 20),
+          const SizedBox(height: 8),
           actionButtons,
         ],
       ),

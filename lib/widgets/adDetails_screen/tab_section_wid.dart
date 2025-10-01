@@ -33,10 +33,30 @@ class TabSectionWid extends StatelessWidget {
                 _buildTabButton(context, 'الموقع', 2),
               ],
             ),
-            // Tab Content
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: tabContent,
+            // Tab Content with fluid animation
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              switchInCurve: Curves.easeInOut,
+              switchOutCurve: Curves.easeInOut,
+              transitionBuilder: (child, animation) {
+                final inFromRight = Tween<Offset>(
+                  begin: const Offset(1.0, 0.0),
+                  end: Offset.zero,
+                ).animate(animation);
+                final outToLeft = Tween<Offset>(
+                  begin: Offset.zero,
+                  end: const Offset(-1.0, 0.0),
+                ).animate(animation);
+                return SlideTransition(
+                  position: animation.status == AnimationStatus.reverse ? outToLeft : inFromRight,
+                  child: child,
+                );
+              },
+              child: Container(
+                key: ValueKey<int>(selectedTabIndex),
+                padding: const EdgeInsets.all(16),
+                child: tabContent,
+              ),
             ),
           ],
         ),

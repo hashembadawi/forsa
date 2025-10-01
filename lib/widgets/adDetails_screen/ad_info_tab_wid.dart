@@ -20,30 +20,23 @@ class AdInfoTabWid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Card(
-      elevation: 1.5,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: colorScheme.surfaceVariant.withOpacity(0.7),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            basicInfo,
-            const Divider(height: 32, thickness: 1, color: Colors.grey),
-            advertiserInfo,
-            const Divider(height: 32, thickness: 1, color: Colors.grey),
-            categoryInfo,
-            if (!hideTypeAndDelivery) ...[
-              const SizedBox(height: 8),
-              typeInfoRow,
-              const SizedBox(height: 8),
-              deliveryInfoRow,
-            ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          basicInfo,
+          const Divider(height: 10, thickness: 1, color: Colors.grey),
+          categoryInfo,
+          if (!hideTypeAndDelivery) ...[
+            const SizedBox(height: 3),
+            typeInfoRow,
+            const SizedBox(height: 3),
+            deliveryInfoRow,
           ],
-        ),
+          const Divider(height: 10, thickness: 1, color: Colors.grey),
+          advertiserInfo,
+        ],
       ),
     );
   }

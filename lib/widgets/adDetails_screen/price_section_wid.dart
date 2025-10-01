@@ -18,7 +18,7 @@ class PriceSectionWid extends StatelessWidget {
           child: Text(
             '$price $currencyName',
             style: GoogleFonts.cairo(
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: colorScheme.onSurface,
             ),

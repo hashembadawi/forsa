@@ -24,100 +24,110 @@ class ImageSectionWid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    if (allImages.isEmpty) {
-      return SizedBox(
-        height: imageHeight,
-        child: Stack(
-          children: [
-            Container(
-              height: imageHeight,
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: colorScheme.primary.withOpacity(0.08),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        if (allImages.isEmpty) {
+          return SizedBox(
+            width: width,
+            height: imageHeight,
+            child: Stack(
+              children: [
+                Container(
+                  width: width,
+                  height: imageHeight,
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withOpacity(0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.image_not_supported, size: 60, color: colorScheme.outline),
-                    SizedBox(height: 8),
-                    Text('لا توجد صور متاحة', style: GoogleFonts.cairo(color: colorScheme.outline)),
-                  ],
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.image_not_supported, size: 60, color: colorScheme.outline),
+                        SizedBox(height: 8),
+                        Text('لا توجد صور متاحة', style: GoogleFonts.cairo(color: colorScheme.outline)),
+                      ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 10,
+                  left: 10,
+                  child: favoriteButton,
+                ),
+              ],
+            ),
+          );
+        }
+        return SizedBox(
+          width: width,
+          height: imageHeight,
+          child: Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: PageView.builder(
+                  controller: imagePageController,
+                  itemCount: allImages.length,
+                  itemBuilder: (context, index) {
+                    final imgBase64 = allImages[index];
+                    final decodedImage = getDecodedImage(imgBase64);
+                    return GestureDetector(
+                      onTap: () => onImageTap(allImages, index),
+                      child: decodedImage != null
+                          ? Image.memory(
+                              decodedImage,
+                              fit: BoxFit.cover,
+                              width: width,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                width: width,
+                                height: imageHeight,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceVariant,
+                                ),
+                                child: Center(
+                                  child: Icon(Icons.broken_image, size: 60, color: colorScheme.outline),
+                                ),
+                              ),
+                            )
+                          : Container(
+                              width: width,
+                              height: imageHeight,
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceVariant,
+                              ),
+                              child: Center(
+                                child: Icon(Icons.broken_image, size: 60, color: colorScheme.outline),
+                              ),
+                            ),
+                    );
+                  },
                 ),
               ),
-            ),
-            Positioned(
-              top: 10,
-              left: 10,
-              child: favoriteButton,
-            ),
-          ],
-        ),
-      );
-    }
-    return SizedBox(
-      height: imageHeight,
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: PageView.builder(
-              controller: imagePageController,
-              itemCount: allImages.length,
-              itemBuilder: (context, index) {
-                final imgBase64 = allImages[index];
-                final decodedImage = getDecodedImage(imgBase64);
-                return GestureDetector(
-                  onTap: () => onImageTap(allImages, index),
-                  child: decodedImage != null
-                      ? Image.memory(
-                          decodedImage,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            height: imageHeight,
-                            decoration: BoxDecoration(
-                              color: colorScheme.surfaceVariant,
-                            ),
-                            child: Center(
-                              child: Icon(Icons.broken_image, size: 60, color: colorScheme.outline),
-                            ),
-                          ),
-                        )
-                      : Container(
-                          height: imageHeight,
-                          decoration: BoxDecoration(
-                            color: colorScheme.surfaceVariant,
-                          ),
-                          child: Center(
-                            child: Icon(Icons.broken_image, size: 60, color: colorScheme.outline),
-                          ),
-                        ),
-                );
-              },
-            ),
+              if (allImages.length > 1)
+                Positioned(
+                  bottom: 10,
+                  left: 0,
+                  right: 0,
+                  child: ImageIndicatorWid(imageCount: allImages.length),
+                ),
+              Positioned(
+                top: 10,
+                left: 10,
+                child: favoriteButton,
+              ),
+            ],
           ),
-          if (allImages.length > 1)
-            Positioned(
-              bottom: 10,
-              left: 0,
-              right: 0,
-              child: ImageIndicatorWid(imageCount: allImages.length),
-            ),
-          Positioned(
-            top: 10,
-            left: 10,
-            child: favoriteButton,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
