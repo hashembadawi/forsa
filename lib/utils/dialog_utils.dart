@@ -1,6 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+// Material 3 color palette (same as home_screen.dart)
+const Color kPrimaryColor = Color(0xFFFFD54F); // Golden Yellow
+const Color kSecondaryColor = Color(0xFF42A5F5); // Light Blue
+const Color kAccentColor = Color(0xFFFF7043); // Soft Orange
+const Color kBackgroundColor = Color(0xFFFAFAFA); // White
+const Color kSurfaceColor = Color(0xFFF5F5F5); // Light Gray
+const Color kTextColor = Color(0xFF212121); // Dark Black
+const Color kTextSecondary = Color(0xFF424242); // Dark Gray
+const Color kSuccessColor = Color(0xFF66BB6A); // Green
+const Color kErrorColor = Color(0xFFE53935); // Red
+const Color kOutlineColor = Color(0xFFE0E3E7); // Soft Gray
+
 /// Utility class for showing common dialogs throughout the app
 class DialogUtils {
   
@@ -29,21 +41,28 @@ class DialogUtils {
         child: Container(
           width: double.maxFinite,
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            color: kBackgroundColor,
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: kSuccessColor.withOpacity(0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Blue Header
+              // Header
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
+                decoration: BoxDecoration(
+                  color: kSuccessColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(22),
+                    topRight: Radius.circular(22),
                   ),
                 ),
                 child: Row(
@@ -53,7 +72,7 @@ class DialogUtils {
                     Expanded(
                       child: Text(
                         title,
-                            style: GoogleFonts.cairo(
+                        style: GoogleFonts.cairo(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
@@ -63,7 +82,7 @@ class DialogUtils {
                   ],
                 ),
               ),
-              // White Body
+              // Body
               Container(
                 width: double.maxFinite,
                 padding: const EdgeInsets.all(20),
@@ -72,9 +91,9 @@ class DialogUtils {
                   children: [
                     Text(
                       message,
-                          style: GoogleFonts.cairo(
+                      style: GoogleFonts.cairo(
                         fontSize: 16,
-                        color: Colors.black87,
+                        color: kTextColor,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -84,11 +103,11 @@ class DialogUtils {
                       child: ElevatedButton(
                         onPressed: onPressed ?? () => Navigator.of(context).pop(),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[600],
+                          backgroundColor: kSuccessColor,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
                           ),
                           elevation: 0,
                         ),
@@ -133,21 +152,28 @@ class DialogUtils {
         child: Container(
           width: double.maxFinite,
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            color: kBackgroundColor,
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: kErrorColor.withOpacity(0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Blue Header
+              // Header
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
+                decoration: BoxDecoration(
+                  color: kErrorColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(22),
+                    topRight: Radius.circular(22),
                   ),
                 ),
                 child: Row(
@@ -157,7 +183,7 @@ class DialogUtils {
                     Expanded(
                       child: Text(
                         title,
-                            style: GoogleFonts.cairo(
+                        style: GoogleFonts.cairo(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 20,
@@ -167,7 +193,7 @@ class DialogUtils {
                   ],
                 ),
               ),
-              // White Body
+              // Body
               Container(
                 width: double.maxFinite,
                 padding: const EdgeInsets.all(20),
@@ -176,9 +202,9 @@ class DialogUtils {
                   children: [
                     Text(
                       message,
-                          style: GoogleFonts.cairo(
+                      style: GoogleFonts.cairo(
                         fontSize: 16,
-                        color: Colors.black87,
+                        color: kTextColor,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -188,11 +214,11 @@ class DialogUtils {
                       child: ElevatedButton(
                         onPressed: onPressed ?? () => Navigator.of(context).pop(),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[600],
+                          backgroundColor: kErrorColor,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(14),
                           ),
                           elevation: 0,
                         ),
@@ -235,6 +261,13 @@ class DialogUtils {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: kSecondaryColor.withOpacity(0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -244,7 +277,7 @@ class DialogUtils {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: const BoxDecoration(
-                  color: Colors.blue,
+                  color: kSecondaryColor,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
@@ -321,6 +354,13 @@ class DialogUtils {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: kSecondaryColor.withOpacity(0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -330,7 +370,7 @@ class DialogUtils {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: const BoxDecoration(
-                  color: Colors.blue,
+                  color: kSecondaryColor,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
@@ -435,6 +475,13 @@ class DialogUtils {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: kSecondaryColor.withOpacity(0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -444,7 +491,7 @@ class DialogUtils {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: const BoxDecoration(
-                  color: Colors.blue,
+                  color: kSecondaryColor,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),

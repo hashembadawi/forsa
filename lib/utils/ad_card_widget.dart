@@ -2,7 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import '../screens/ad_details_screen.dart';
-import '../screens/home_screen.dart' as home;
+import 'package:forsa/models/ad_model.dart';
+
+// Consistent color palette from home_screen.dart
+const Color kPrimaryColor = Color(0xFFFFD54F); // Golden Yellow
+const Color kSecondaryColor = Color(0xFF42A5F5); // Light Blue
+const Color kAccentColor = Color(0xFFFF7043); // Soft Orange
+const Color kBackgroundColor = Color(0xFFFAFAFA); // White
+const Color kSurfaceColor = Color(0xFFF5F5F5); // Light Gray
+const Color kTextColor = Color(0xFF212121); // Dark Black
+const Color kTextSecondary = Color(0xFF424242); // Dark Gray
+const Color kSuccessColor = Color(0xFF66BB6A); // Green
+const Color kErrorColor = Color(0xFFE53935); // Red
+const Color kOutlineColor = Color(0xFFE0E3E7); // Soft Gray
 
 typedef FavoriteIconBuilder = Widget Function(String adId, {
   required bool isFavorite,
@@ -50,8 +62,8 @@ Widget defaultFavoriteHeartIcon(
 
 
 class AdCardWidget extends StatelessWidget {
-  final home.AdModel ad;
-  final Widget Function(home.AdModel ad)? adDetailsBuilder;
+  final AdModel ad;
+  final Widget Function(AdModel ad)? adDetailsBuilder;
   final Widget Function(String adId)? favoriteIconBuilder;
   final VoidCallback? onTap;
 
@@ -108,6 +120,7 @@ class AdCardWidget extends StatelessWidget {
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,
+            gaplessPlayback: true,
             errorBuilder: (context, error, stackTrace) => buildNoImagePlaceholder(),
           );
         } catch (_) {
@@ -120,21 +133,28 @@ class AdCardWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blue, width: 1.5),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [kBackgroundColor, kSurfaceColor.withOpacity(0.9)],
+        ),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.07),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
+        border: Border.all(color: kOutlineColor, width: 0.7),
       ),
       child: Material(
         color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
+          splashColor: kSecondaryColor.withOpacity(0.10),
+          highlightColor: kSecondaryColor.withOpacity(0.05),
           onTap: onTap ?? () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => AdDetailsScreen(adId: adId)),
@@ -145,7 +165,7 @@ class AdCardWidget extends StatelessWidget {
               Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                     child: AspectRatio(
                       aspectRatio: 1.6,
                       child: buildAdImage(thumbnailBase64),
@@ -153,31 +173,38 @@ class AdCardWidget extends StatelessWidget {
                   ),
                   if (favoriteIconBuilder != null)
                     Positioned(
-                      top: 10,
-                      left: 10,
+                      top: 12,
+                      left: 12,
                       child: favoriteIconBuilder!(adId),
                     ),
                   if (isSpecial)
                     Positioned(
-                      top: 10,
-                      right: 10,
+                      top: 12,
+                      right: 12,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: Colors.amber[700],
-                          borderRadius: BorderRadius.circular(10),
+                          color: kAccentColor,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: kAccentColor.withOpacity(0.18),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.star, color: Colors.white, size: 14),
-                            const SizedBox(width: 3),
+                            const Icon(Icons.star, color: Colors.white, size: 15),
+                            const SizedBox(width: 4),
                             Text(
                               'إعلان مميز',
                               style: GoogleFonts.cairo(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 11,
+                                fontSize: 12,
                               ),
                             ),
                           ],
@@ -187,7 +214,7 @@ class AdCardWidget extends StatelessWidget {
                 ],
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                 child: adDetailsBuilder != null
                     ? adDetailsBuilder!(ad)
                     : _DefaultAdDetails(ad: ad),
@@ -202,7 +229,7 @@ class AdCardWidget extends StatelessWidget {
 
 /// Default ad details layout for AdCardWidget (mimics home screen)
 class _DefaultAdDetails extends StatelessWidget {
-  final home.AdModel ad;
+  final AdModel ad;
   const _DefaultAdDetails({required this.ad});
 
   String _formatDate(String? isoDate) {
@@ -235,7 +262,7 @@ class _DefaultAdDetails extends StatelessWidget {
                 style: GoogleFonts.cairo(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: kTextColor,
                 ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 2,
@@ -246,7 +273,7 @@ class _DefaultAdDetails extends StatelessWidget {
             // Divider
             Container(
               height: 1,
-              color: Colors.blue.withOpacity(0.10),
+              color: kSecondaryColor.withOpacity(0.10),
               margin: const EdgeInsets.symmetric(vertical: 1),
             ),
             const SizedBox(height: 2),
@@ -260,7 +287,7 @@ class _DefaultAdDetails extends StatelessWidget {
                     style: GoogleFonts.cairo(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: Colors.blue[800],
+                      color: kSecondaryColor,
                     ),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
@@ -275,7 +302,7 @@ class _DefaultAdDetails extends StatelessWidget {
                       style: GoogleFonts.cairo(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.orange[700],
+                        color: kAccentColor,
                       ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
@@ -288,7 +315,7 @@ class _DefaultAdDetails extends StatelessWidget {
             // Divider
             Container(
               height: 1,
-              color: Colors.blue.withOpacity(0.10),
+              color: kSecondaryColor.withOpacity(0.10),
               margin: const EdgeInsets.symmetric(vertical: 1),
             ),
             const SizedBox(height: 2),
@@ -296,13 +323,13 @@ class _DefaultAdDetails extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.location_on, size: 14, color: Colors.blue[600]),
+                Icon(Icons.location_on, size: 14, color: kSecondaryColor),
                 const SizedBox(width: 2),
                 Flexible(
                   child: Text(
                     '${ad.cityName ?? ''} - ${_formatDate(ad.createDate)}',
                     style: GoogleFonts.cairo(
-                      color: Colors.grey[700],
+                      color: kTextSecondary,
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                     ),

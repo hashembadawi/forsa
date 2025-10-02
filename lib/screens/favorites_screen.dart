@@ -7,6 +7,7 @@ import 'package:forsa/utils/ad_card_widget.dart';
 import 'package:forsa/screens/ad_details_screen.dart';
 import 'package:forsa/utils/dialog_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:forsa/models/ad_model.dart';
 
 /// Screen displaying user's favorite advertisements
 class FavoritesScreen extends StatefulWidget {
@@ -409,7 +410,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   /// Build advertisement card
   Widget _buildAdCard(Map<String, dynamic> ad) {
     return AdCardWidget(
-      ad: home.AdModel.fromJson(ad),
+      ad: AdModel.fromJson(ad),
       onTap: () => _navigateToAdDetails(ad),
       favoriteIconBuilder: (adId) => GestureDetector(
         onTap: () => _showRemoveFromFavoritesDialog(ad),

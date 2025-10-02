@@ -98,157 +98,308 @@ class _SearchAdvanceScreenState extends State<SearchAdvanceScreen> {
   @override
   Widget build(BuildContext context) {
     bool hideFields = _categoryId == 3;
+    const Color secondaryColor = Color(0xFF42A5F5); // Light Blue
+    const Color surfaceColor = Color(0xFFF5F5F5); // Light Gray
+    const Color textColor = Color(0xFF212121); // Dark Black
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('بحث متقدم', style: GoogleFonts.cairo( fontWeight: FontWeight.bold , fontSize: 22, color: Colors.white)),
-          backgroundColor: Colors.blue[700],
+          title: Text('بحث متقدم', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white)),
+          backgroundColor: secondaryColor,
           foregroundColor: Colors.white,
+          elevation: 4,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+          ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: surfaceColor,
         body: Padding(
           padding: const EdgeInsets.all(16),
-          child: ListView(
-            children: [
-              DropdownButtonFormField<int>(
-                value: _categoryId,
-                decoration: InputDecoration(labelText: 'التصنيف الرئيسي', labelStyle: GoogleFonts.cairo()),
-                items: _categories.map((cat) => DropdownMenuItem<int>(
-                  value: cat['id'] is int ? cat['id'] : int.tryParse(cat['id'].toString()),
-                  child: Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: Text(
-                      cat['name'] ?? '',
-                      style: GoogleFonts.cairo(color: Colors.black),
+          child: Material(
+            color: Colors.white,
+            elevation: 2,
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: ListView(
+                children: [
+                  DropdownButtonFormField<int>(
+                    value: _categoryId,
+                    decoration: InputDecoration(
+                      labelText: 'التصنيف الرئيسي',
+                      labelStyle: GoogleFonts.cairo(fontWeight: FontWeight.w600, color: secondaryColor),
+                      filled: true,
+                      fillColor: Colors.white,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 2),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     ),
+                    items: _categories.map((cat) => DropdownMenuItem<int>(
+                      value: cat['id'] is int ? cat['id'] : int.tryParse(cat['id'].toString()),
+                      child: Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: Text(
+                          cat['name'] ?? '',
+                          style: GoogleFonts.cairo(color: textColor),
+                        ),
+                      ),
+                    )).toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        _categoryId = val;
+                        final relatedSubs = _subCategories.where((s) => s['categoryId'] == val || (s['categoryId'] is String && int.tryParse(s['categoryId']) == val)).toList();
+                        if (relatedSubs.isNotEmpty) {
+                          _subCategoryId = relatedSubs[0]['id'] is int ? relatedSubs[0]['id'] : int.tryParse(relatedSubs[0]['id'].toString());
+                        } else {
+                          _subCategoryId = null;
+                        }
+                      });
+                    },
+                    style: GoogleFonts.cairo(color: textColor),
+                    dropdownColor: Colors.white,
                   ),
-                )).toList(),
-                onChanged: (val) {
-                  setState(() {
-                    _categoryId = val;
-                    // Update subcategory to first related
-                    final relatedSubs = _subCategories.where((s) => s['categoryId'] == val || (s['categoryId'] is String && int.tryParse(s['categoryId']) == val)).toList();
-                    if (relatedSubs.isNotEmpty) {
-                      _subCategoryId = relatedSubs[0]['id'] is int ? relatedSubs[0]['id'] : int.tryParse(relatedSubs[0]['id'].toString());
-                    } else {
-                      _subCategoryId = null;
-                    }
-                  });
-                },
-                style: GoogleFonts.cairo(color: Colors.black),
-                dropdownColor: Colors.white,
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<int>(
-                value: _subCategoryId,
-                decoration: InputDecoration(labelText: 'التصنيف الفرعي', labelStyle: GoogleFonts.cairo()),
-                items: _subCategories
-                    .where((s) => _categoryId != null && (s['categoryId'] == _categoryId || (s['categoryId'] is String && int.tryParse(s['categoryId']) == _categoryId)))
-                    .map((sub) => DropdownMenuItem<int>(
-                          value: sub['id'] is int ? sub['id'] : int.tryParse(sub['id'].toString()),
-                          child: Text(
-                            sub['name'] ?? '',
-                            style: GoogleFonts.cairo(color: Colors.black),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<int>(
+                    value: _subCategoryId,
+                    decoration: InputDecoration(
+                      labelText: 'التصنيف الفرعي',
+                      labelStyle: GoogleFonts.cairo(fontWeight: FontWeight.w600, color: secondaryColor),
+                      filled: true,
+                      fillColor: Colors.white,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 2),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    ),
+                    items: _subCategories
+                        .where((s) => _categoryId != null && (s['categoryId'] == _categoryId || (s['categoryId'] is String && int.tryParse(s['categoryId']) == _categoryId)))
+                        .map((sub) => DropdownMenuItem<int>(
+                              value: sub['id'] is int ? sub['id'] : int.tryParse(sub['id'].toString()),
+                              child: Text(
+                                sub['name'] ?? '',
+                                style: GoogleFonts.cairo(color: textColor),
+                              ),
+                            ))
+                        .toList(),
+                    onChanged: (val) => setState(() => _subCategoryId = val),
+                    style: GoogleFonts.cairo(color: textColor),
+                    dropdownColor: Colors.white,
+                    disabledHint: Text('اختر التصنيف الرئيسي أولاً', style: GoogleFonts.cairo(color: Colors.grey)),
+                    isExpanded: true,
+                    hint: Text('اختر التصنيف الفرعي', style: GoogleFonts.cairo(color: Colors.grey)),
+                  ),
+                  const SizedBox(height: 12),
+                  if (!hideFields) ...[
+                    DropdownButtonFormField<int>(
+                      value: _currencyId,
+                      decoration: InputDecoration(
+                        labelText: 'العملة',
+                        labelStyle: GoogleFonts.cairo(fontWeight: FontWeight.w600, color: secondaryColor),
+                        filled: true,
+                        fillColor: Colors.white,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 2),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      ),
+                      items: _currencies.map((cur) => DropdownMenuItem<int>(
+                        value: cur['id'] is int ? cur['id'] : int.tryParse(cur['id'].toString()),
+                        child: Text(
+                          cur['name'] ?? '',
+                          style: GoogleFonts.cairo(color: textColor),
+                        ),
+                      )).toList(),
+                      onChanged: (val) => setState(() => _currencyId = val),
+                      style: GoogleFonts.cairo(color: textColor),
+                      dropdownColor: Colors.white,
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<bool>(
+                      value: _forSale,
+                      decoration: InputDecoration(
+                        labelText: 'نوع الإعلان',
+                        labelStyle: GoogleFonts.cairo(fontWeight: FontWeight.w600, color: secondaryColor),
+                        filled: true,
+                        fillColor: Colors.white,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 2),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      ),
+                      items: [
+                        DropdownMenuItem(value: true, child: Text('للبيع', style: GoogleFonts.cairo(color: textColor))),
+                        DropdownMenuItem(value: false, child: Text('للإيجار', style: GoogleFonts.cairo(color: textColor))),
+                      ],
+                      onChanged: (val) => setState(() => _forSale = val),
+                      style: GoogleFonts.cairo(color: textColor),
+                      dropdownColor: Colors.white,
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<bool>(
+                      value: _deliveryService,
+                      decoration: InputDecoration(
+                        labelText: 'خدمة التوصيل',
+                        labelStyle: GoogleFonts.cairo(fontWeight: FontWeight.w600, color: secondaryColor),
+                        filled: true,
+                        fillColor: Colors.white,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 2),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      ),
+                      items: [
+                        DropdownMenuItem(value: true, child: Text('يوجد', style: GoogleFonts.cairo(color: textColor))),
+                        DropdownMenuItem(value: false, child: Text('لايوجد', style: GoogleFonts.cairo(color: textColor))),
+                      ],
+                      onChanged: (val) => setState(() => _deliveryService = val),
+                      style: GoogleFonts.cairo(color: textColor),
+                      dropdownColor: Colors.white,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (!hideFields) ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                              labelText: 'السعر الأدنى',
+                              labelStyle: GoogleFonts.cairo(fontWeight: FontWeight.w600, color: secondaryColor),
+                              hintText: '0',
+                              hintStyle: GoogleFonts.cairo(color: Colors.grey),
+                              filled: true,
+                              fillColor: Colors.white,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 2),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            ),
+                            keyboardType: TextInputType.number,
+                            onChanged: (val) => setState(() => _priceMin = double.tryParse(val)),
+                            style: GoogleFonts.cairo(),
                           ),
-                        ))
-                    .toList(),
-                onChanged: (val) => setState(() => _subCategoryId = val),
-                style: GoogleFonts.cairo(color: Colors.black),
-                dropdownColor: Colors.white,
-                disabledHint: Text('اختر التصنيف الرئيسي أولاً', style: GoogleFonts.cairo(color: Colors.grey)),
-                isExpanded: true,
-                hint: Text('اختر التصنيف الفرعي', style: GoogleFonts.cairo(color: Colors.grey)),
-              ),
-              const SizedBox(height: 12),
-              if (!hideFields) ...[
-                DropdownButtonFormField<int>(
-                  value: _currencyId,
-                  decoration: InputDecoration(labelText: 'العملة', labelStyle: GoogleFonts.cairo()),
-                  items: _currencies.map((cur) => DropdownMenuItem<int>(
-                    value: cur['id'] is int ? cur['id'] : int.tryParse(cur['id'].toString()),
-                    child: Text(
-                      cur['name'] ?? '',
-                      style: GoogleFonts.cairo(color: Colors.black),
-                    ),
-                  )).toList(),
-                  onChanged: (val) => setState(() => _currencyId = val),
-                  style: GoogleFonts.cairo(color: Colors.black),
-                  dropdownColor: Colors.white,
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<bool>(
-                  value: _forSale,
-                  decoration: InputDecoration(labelText: 'نوع الإعلان', labelStyle: GoogleFonts.cairo()),
-                  items: [
-                    DropdownMenuItem(value: true, child: Text('للبيع', style: GoogleFonts.cairo(color: Colors.black))),
-                    DropdownMenuItem(value: false, child: Text('للإيجار', style: GoogleFonts.cairo(color: Colors.black))),
-                  ],
-                  onChanged: (val) => setState(() => _forSale = val),
-                  style: GoogleFonts.cairo(color: Colors.black),
-                  dropdownColor: Colors.white,
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<bool>(
-                  value: _deliveryService,
-                  decoration: InputDecoration(labelText: 'خدمة التوصيل', labelStyle: GoogleFonts.cairo()),
-                  items: [
-                    DropdownMenuItem(value: true, child: Text('يوجد', style: GoogleFonts.cairo(color: Colors.black))),
-                    DropdownMenuItem(value: false, child: Text('لايوجد', style: GoogleFonts.cairo(color: Colors.black))),
-                  ],
-                  onChanged: (val) => setState(() => _deliveryService = val),
-                  style: GoogleFonts.cairo(color: Colors.black),
-                  dropdownColor: Colors.white,
-                ),
-                const SizedBox(height: 12),
-              ],
-              if (!hideFields) ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'السعر الأدنى',
-                          labelStyle: GoogleFonts.cairo(),
-                          hintText: '0',
-                          hintStyle: GoogleFonts.cairo(color: Colors.grey),
                         ),
-                        keyboardType: TextInputType.number,
-                        onChanged: (val) => setState(() => _priceMin = double.tryParse(val)),
-                        style: GoogleFonts.cairo(),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'السعر الأعلى',
-                          labelStyle: GoogleFonts.cairo(),
-                          hintText: '0',
-                          hintStyle: GoogleFonts.cairo(color: Colors.grey),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                              labelText: 'السعر الأعلى',
+                              labelStyle: GoogleFonts.cairo(fontWeight: FontWeight.w600, color: secondaryColor),
+                              hintText: '0',
+                              hintStyle: GoogleFonts.cairo(color: Colors.grey),
+                              filled: true,
+                              fillColor: Colors.white,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: const BorderSide(color: Color(0xFF42A5F5), width: 2),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide(color: Colors.black.withOpacity(0.4), width: 1.5),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            ),
+                            keyboardType: TextInputType.number,
+                            onChanged: (val) => setState(() => _priceMax = double.tryParse(val)),
+                            style: GoogleFonts.cairo(),
+                          ),
                         ),
-                        keyboardType: TextInputType.number,
-                        onChanged: (val) => setState(() => _priceMax = double.tryParse(val)),
-                        style: GoogleFonts.cairo(),
-                      ),
+                      ],
                     ),
+                    const SizedBox(height: 20),
                   ],
-                ),
-                const SizedBox(height: 20),
-              ],
-              ElevatedButton(
-                onPressed: _search,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[700],
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  textStyle: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                child: Text('بحث', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _search,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: secondaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            textStyle: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 17),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                            elevation: 3,
+                          ),
+                          child: Text('بحث', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.grey[600],
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: Text('إلغاء', style: GoogleFonts.cairo(fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              // Error display removed: errors are now handled in AdvancedSearchResultsScreen
-              // Results are now shown in AdvancedSearchResultsScreen
-            ],
+            ),
           ),
         ),
       ),

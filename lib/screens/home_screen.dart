@@ -1,4 +1,7 @@
-import 'advertiser_page_screen.dart';
+import 'package:forsa/widgets/homeScreen/advance_search_wid.dart';
+import 'package:forsa/widgets/homeScreen/title_search_wid.dart';
+//import '../widgets/homeScreen/most_activeUser_Wid.dart';
+import '../models/ad_model.dart' as ad_models;
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -10,130 +13,20 @@ import 'package:forsa/screens/search_advance_screen.dart';
 import '../utils/dialog_utils.dart';
 import '../utils/ad_card_widget.dart';
 import 'account_screen.dart';
-import 'most_active_users_screen.dart';
 import 'add_ad_screen.dart';
 import 'favorites_screen.dart';
 import 'login_screen.dart';
 import 'my_ads_screen.dart';
 import 'suggestions_list_screen.dart';
 import 'ad_details_screen.dart';
+import '../widgets/homeScreen/image_slider_wid.dart';
+import '../widgets/homeScreen/location_search_wid.dart';
+import '../widgets/homeScreen/loading_dialog_wid.dart';
+import '../widgets/homeScreen/no_results_wid.dart';
+import '../widgets/homeScreen/full_screen_loading_wid.dart';
+import '../widgets/homeScreen/app_drawer_wid.dart';
+import '../widgets/no_internet_wid.dart';
 
-// Data models for better type safety
-class AdModel {
-  final String? id;
-  final String? adTitle;
-  final String? description;
-  final String? price;
-  final String? currencyName;
-  final String? categoryName;
-  final String? subCategoryName;
-  final String? cityName;
-  final String? regionName;
-  final String? userName;
-  final String? userPhone;
-  final String? userId;
-  final String? categoryId;
-  final String? subCategoryId;
-  final String? createDate;
-  final List<String>? images;
-  final String? thumbnail;
-  final Map<String, dynamic>? location;
-  final bool? isSpecial;
-  final bool? forSale;
-  final bool? deliveryService;
-
-  AdModel({
-    this.id,
-    this.adTitle,
-    this.description,
-    this.price,
-    this.currencyName,
-    this.categoryName,
-    this.subCategoryName,
-    this.cityName,
-    this.regionName,
-    this.userName,
-    this.userPhone,
-    this.userId,
-    this.categoryId,
-    this.subCategoryId,
-    this.createDate,
-    this.images,
-    this.thumbnail,
-    this.location,
-    this.isSpecial,
-    this.forSale,
-    this.deliveryService,
-  });
-
-  factory AdModel.fromJson(Map<String, dynamic> json) {
-    return AdModel(
-      id: json['_id'],
-      adTitle: json['adTitle'],
-      description: json['description'],
-      price: json['price']?.toString(),
-      currencyName: json['currencyName'],
-      categoryName: json['categoryName'],
-      subCategoryName: json['subCategoryName'],
-      cityName: json['cityName'],
-      regionName: json['regionName'],
-      userName: json['userName'],
-      userPhone: json['userPhone'],
-      userId: json['userId'],
-      categoryId: json['categoryId']?.toString(),
-      subCategoryId: json['subCategoryId']?.toString(),
-      createDate: json['createDate'],
-      images: json['images'] is List ? List<String>.from(json['images']) : null,
-      thumbnail: json['thumbnail'],
-      location: json['location'] is Map<String, dynamic> ? json['location'] : null,
-      isSpecial: json['isSpecial'] ?? false,
-      forSale: json['forSale'] ?? false,
-      deliveryService: json['deliveryService'] ?? false,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'adTitle': adTitle,
-      'description': description,
-      'price': price,
-      'currencyName': currencyName,
-      'categoryName': categoryName,
-      'subCategoryName': subCategoryName,
-      'cityName': cityName,
-      'regionName': regionName,
-      'userName': userName,
-      'userPhone': userPhone,
-      'userId': userId,
-      'categoryId': categoryId,
-      'subCategoryId': subCategoryId,
-      'createDate': createDate,
-      'images': images,
-      'thumbnail': thumbnail,
-      'location': location,
-      'isSpecial': isSpecial,
-      'forSale': forSale,
-      'deliveryService': deliveryService,
-    };
-  }
-}
-
-class LocationModel {
-  final int? id;
-  final String? name;
-  final int? provinceId;
-
-  LocationModel({this.id, this.name, this.provinceId});
-
-  factory LocationModel.fromJson(Map<String, dynamic> json) {
-    return LocationModel(
-      id: json['id'],
-      name: json['name'],
-      provinceId: json['ProvinceId'],
-    );
-  }
-}
 
 /// Home screen that displays advertisements with filtering and search capabilities
 class HomeScreen extends StatefulWidget {
@@ -146,194 +39,40 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMixin {
-  // ========== Most Active Users State ==========
-  List<Map<String, dynamic>> _mostActiveUsers = [];
-  bool _isLoadingActiveUsers = false;
-  bool _hasErrorActiveUsers = false;
+  // ========== Most Active Users State ========== 
+  // List<Map<String, dynamic>> _mostActiveUsers = [];
+  // bool _isLoadingActiveUsers = false;
+  // bool _hasErrorActiveUsers = false;
 
-  /// Fetch most active users
-  Future<void> _fetchMostActiveUsers() async {
-    setState(() {
-      _isLoadingActiveUsers = true;
-      _hasErrorActiveUsers = false;
-    });
-    try {
-      final url = Uri.parse('https://sahbo-app-api.onrender.com/api/user/most-active?limit=10');
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final List<dynamic> users = jsonDecode(response.body);
-        setState(() {
-          _mostActiveUsers = users.cast<Map<String, dynamic>>();
-          _isLoadingActiveUsers = false;
-        });
-      } else {
-        setState(() {
-          _isLoadingActiveUsers = false;
-          _hasErrorActiveUsers = true;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _isLoadingActiveUsers = false;
-        _hasErrorActiveUsers = true;
-      });
-    }
-  }
+  // /// Fetch most active users
+  // Future<void> _fetchMostActiveUsers() async {
+  //   setState(() {
+  //     _isLoadingActiveUsers = true;
+  //     _hasErrorActiveUsers = false;
+  //   });
+  //   try {
+  //     final url = Uri.parse('https://sahbo-app-api.onrender.com/api/user/most-active?limit=10');
+  //     final response = await http.get(url);
+  //     if (response.statusCode == 200) {
+  //       final List<dynamic> users = jsonDecode(response.body);
+  //       setState(() {
+  //         _mostActiveUsers = users.cast<Map<String, dynamic>>();
+  //         _isLoadingActiveUsers = false;
+  //       });
+  //     } else {
+  //       setState(() {
+  //         _isLoadingActiveUsers = false;
+  //         _hasErrorActiveUsers = true;
+  //       });
+  //     }
+  //   } catch (e) {
+  //     setState(() {
+  //       _isLoadingActiveUsers = false;
+  //       _hasErrorActiveUsers = true;
+  //     });
+  //   }
+  // }
 
-  /// Build Most Active Users section
-  Widget _buildMostActiveUsersSection() {
-    if (_isLoadingActiveUsers) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Center(child: SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2))),
-      );
-    }
-    if (_hasErrorActiveUsers) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Center(child: Text('تعذر تحميل المستخدمين الأكثر حركة', style: GoogleFonts.cairo(fontSize: 14, color: Colors.red))),
-      );
-    }
-    if (_mostActiveUsers.isEmpty) {
-      return SizedBox.shrink();
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'المستخدمين الأكثر حركة',
-                style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const MostActiveUsersScreen(),
-                    ),
-                  );
-                },
-                child: Text(
-                  'عرض الكل >',
-                  style: GoogleFonts.cairo(fontSize: 12, color: Colors.blue[700], fontWeight: FontWeight.w600),
-                ),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-                  minimumSize: Size(0, 24),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 80,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            itemCount: _mostActiveUsers.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 10),
-            itemBuilder: (context, index) {
-              final user = _mostActiveUsers[index];
-              final String? base64Image = user['profileImage'];
-              final String userName = ((user['firstName'] ?? '') + ' ' + (user['lastName'] ?? '')).trim();
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AdvertiserPageScreen(
-                        userId: user['userId'] ?? '',
-                        initialUserName: userName,
-                        initialUserPhone: user['phoneNumber'] ?? '',
-                      ),
-                    ),
-                  );
-                },
-                child: Column(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.blue[300]!, width: 1.5),
-                        color: Colors.white,
-                      ),
-                      child: base64Image != null && base64Image.isNotEmpty
-                          ? ClipOval(
-                              child: Image.memory(
-                                base64Decode(base64Image),
-                                fit: BoxFit.cover,
-                                width: 48,
-                                height: 48,
-                                errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 28, color: Colors.blue[400]),
-                              ),
-                            )
-                          : Icon(Icons.person, size: 28, color: Colors.blue[400]),
-                    ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      width: 48,
-                      child: Text(
-                        userName,
-                        style: GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.w500),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-  /// Build advanced search field
-  Widget _buildAdvancedSearchField() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const SearchAdvanceScreen()),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.blue[300]!, width: 1.5),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.tune, color: Colors.blue[600], size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'بحث متقدم',
-                  style: GoogleFonts.cairo(
-                    color: Colors.grey,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
   // ========== Constants ==========
   static const String _baseUrl = 'https://sahbo-app-api.onrender.com';
   static const int _limitAds = 10;
@@ -353,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   int? _selectedSubCategoryId;
 
   // ========== Ads State ==========
-  final List<AdModel> _allAds = [];
+  final List<ad_models.AdModel> _allAds = [];
   bool _isLoadingAds = false;
   bool _isRefreshing = false;
   int _currentPageAds = 1;
@@ -375,7 +114,8 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   bool _isConnected = true;
   bool _isCheckingConnectivity = true;
 
-  // ========== Image Cache ==========
+  // ========== Image Slider State ===========
+  List<String> _sliderImages = [];
 
   @override
   bool get wantKeepAlive => true;
@@ -384,9 +124,9 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
 
   @override
   void initState() {
-    super.initState();
-    _initializeScreen();
-  _fetchMostActiveUsers();
+  super.initState();
+  _initializeScreen();
+  // _fetchAllAds().then((_) => _fetchMostActiveUsers()); // Commented: most active users
   }
 
   @override
@@ -441,8 +181,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       },
     );
   }
-
-  // ========== Data Fetching Methods ==========
 
   /// Fetch options (provinces, areas, categories)
   Future<void> _fetchOptions() async {
@@ -650,13 +388,21 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         final List<dynamic> fetchedAds = decoded['ads'] ?? [];
+        final List<dynamic> fetchedImages = decoded['images'] ?? [];
+
+        // Extract base64 content from images
+        final List<String> imageContents = fetchedImages
+            .map<String>((img) => img['content'] as String? ?? '')
+            .where((content) => content.isNotEmpty)
+            .toList();
 
         if (mounted) {
           setState(() {
-            _allAds.addAll(fetchedAds.map((ad) => AdModel.fromJson(ad)));
+            _allAds.addAll(fetchedAds.map((ad) => ad_models.AdModel.fromJson(ad)));
             _currentPageAds++;
             _isLoadingAds = false;
             _hasMoreAds = fetchedAds.length >= _limitAds;
+            _sliderImages = imageContents;
           });
         }
       } else {
@@ -670,44 +416,23 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
 
   /// Fetch filtered advertisements by location
   Future<void> _fetchFilteredAds({bool reset = false}) async {
-    if (_isLoadingAds || !_hasMoreAds) return;
-
-    if (mounted) {
-      setState(() => _isLoadingAds = true);
-    }
-
-    try {
-      final params = <String, String>{
-        'page': '$_currentPageAds',
-        'limit': '$_limitAds',
-      };
-      
-      if (_selectedCityId != null) params['cityId'] = _selectedCityId.toString();
-      if (_selectedRegionId != null) params['regionId'] = _selectedRegionId.toString();
-
-      final uri = Uri.https('sahbo-app-api.onrender.com', '/api/ads/search', params);
-      final response = await http.get(uri);
-
-      if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
-        final List<dynamic> fetchedAds = decoded['ads'] ?? [];
-
-        if (mounted) {
-          setState(() {
-            if (reset) _allAds.clear();
-            _allAds.addAll(fetchedAds.map((ad) => AdModel.fromJson(ad)));
-            _currentPageAds++;
-            _isLoadingAds = false;
-            _hasMoreAds = fetchedAds.length >= _limitAds;
-          });
-        }
-      } else {
-        _handleFetchError();
-      }
-    } catch (e) {
-      debugPrint('Exception fetching filtered ads: $e');
-      _handleFetchError();
-    }
+    await LocationButtonWid.fetchFilteredAds(
+      context: context,
+      currentPageAds: _currentPageAds,
+      limitAds: _limitAds,
+      selectedCityId: _selectedCityId,
+      selectedRegionId: _selectedRegionId,
+      onResult: (ads, hasMoreAds) {
+        setState(() {
+          if (reset) _allAds.clear();
+          _allAds.addAll(ads.map((ad) => ad_models.AdModel.fromJson(ad)));
+          _currentPageAds++;
+          _isLoadingAds = false;
+          _hasMoreAds = hasMoreAds;
+        });
+      },
+      reset: reset,
+    );
   }
 
   /// Fetch filtered advertisements by category
@@ -737,7 +462,7 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
         if (mounted) {
           setState(() {
             if (reset) _allAds.clear();
-            _allAds.addAll(fetchedAds.map((ad) => AdModel.fromJson(ad)));
+            _allAds.addAll(fetchedAds.map((ad) => ad_models.AdModel.fromJson(ad)));
             _currentPageAds++;
             _isLoadingAds = false;
             _hasMoreAds = fetchedAds.length >= _limitAds;
@@ -768,6 +493,8 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
   void _onAdsScroll() {
     if (_adsScrollController.position.pixels >= 
         _adsScrollController.position.maxScrollExtent - 200) {
+      // Prevent repeated calls if already loading or no more ads
+      if (_isLoadingAds || !_hasMoreAds) return;
       if (_selectedCategoryId != null || _selectedSubCategoryId != null) {
         _fetchCategoryFilteredAds();
       } else if (_selectedCityId != null || _selectedRegionId != null) {
@@ -870,267 +597,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
     }
   }
 
-  // ========== Dialog Methods ==========
-
-  /// Show location filter dialog
-  Future<void> _showLocationFilterDialog() async {
-    // Initialize with current values
-    Map<String, dynamic>? tempSelectedProvince = _selectedCityId != null 
-        ? _provinces.where((p) => p['id'] == _selectedCityId).isNotEmpty
-          ? _provinces.firstWhere((p) => p['id'] == _selectedCityId)
-          : null
-        : null;
-    
-    Map<String, dynamic>? tempSelectedArea = _selectedRegionId != null 
-        ? _majorAreas.where((a) => a['id'] == _selectedRegionId).isNotEmpty
-          ? _majorAreas.firstWhere((a) => a['id'] == _selectedRegionId)
-          : null
-        : null;
-    
-    List<Map<String, dynamic>> filteredAreas = [];
-    
-    // Initialize filtered areas if province is selected
-    if (tempSelectedProvince != null) {
-      filteredAreas.addAll(
-        _majorAreas.where((area) => area['ProvinceId'] == tempSelectedProvince!['id']).toList(),
-      );
-    }
-
-    await showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setStateDialog) {
-          return Dialog(
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(16),
-            child: Container(
-              width: double.maxFinite,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Blue Header
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: const BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
-                    ),
-                    child: Text(
-                      'بحث حسب الموقع',
-                      style: GoogleFonts.cairo(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  // White Body
-                  Container(
-                    width: double.maxFinite,
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Province Dropdown
-                        DropdownButtonFormField<Map<String, dynamic>>(
-                          value: tempSelectedProvince,
-                          isExpanded: true,
-                          decoration: _buildDropdownDecoration('اختر المحافظة', 15),
-                          dropdownColor: Colors.white,
-                          style: _buildDropdownTextStyle(),
-                          items: [
-                            DropdownMenuItem<Map<String, dynamic>>(
-                              value: null,
-                              child: Text(
-                                'كل المحافظات',
-                                style: GoogleFonts.cairo(
-                                  color: Colors.black,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            ..._provinces.map((province) => DropdownMenuItem(
-                              value: province,
-                              child: Text(
-                                province['name'],
-                                style: GoogleFonts.cairo(
-                                  color: Colors.black,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            )),
-                          ],
-                          onChanged: (value) {
-                            setStateDialog(() {
-                              tempSelectedProvince = value;
-                              tempSelectedArea = null; // Reset area selection when province changes
-                              filteredAreas.clear();
-                              if (value != null) {
-                                filteredAreas.addAll(
-                                  _majorAreas.where((area) => area['ProvinceId'] == value['id']).toList(),
-                                );
-                              }
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        // Area Dropdown
-                        DropdownButtonFormField<Map<String, dynamic>>(
-                          value: tempSelectedArea,
-                          isExpanded: true,
-                          decoration: _buildDropdownDecoration('اختر المدينة/المنطقة', 25),
-                          dropdownColor: Colors.white,
-                          style: _buildDropdownTextStyle(),
-                          items: [
-                            DropdownMenuItem<Map<String, dynamic>>(
-                              value: null,
-                              child: Text(
-                                'كل المناطق',
-                                style: GoogleFonts.cairo(
-                                  color: Colors.black,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            ...filteredAreas.map((area) => DropdownMenuItem(
-                              value: area,
-                              child: Text(
-                                area['name'],
-                                style: GoogleFonts.cairo(
-                                  color: Colors.black,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            )),
-                          ],
-                          onChanged: (value) {
-                            setStateDialog(() {
-                              tempSelectedArea = value;
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        // Action buttons
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Expanded(
-                              child: TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.grey[600],
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                ),
-                                child: Text(
-                                  'إلغاء',
-                                  style: GoogleFonts.cairo(fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  if (mounted) {
-                                    setState(() {
-                                      _selectedCity = tempSelectedProvince?['name'] ?? _defaultCity;
-                                      _selectedDistrict = tempSelectedArea?['name'] ?? _defaultDistrict;
-                                      _selectedCityId = tempSelectedProvince?['id'];
-                                      _selectedRegionId = tempSelectedArea?['id'];
-                                      _resetAdsData();
-                                    });
-                                  }
-                                  
-                                  Navigator.pop(context);
-                                  
-                                  if (_selectedCityId != null || _selectedRegionId != null) {
-                                    _fetchFilteredAds(reset: true);
-                                  } else {
-                                    _fetchAllAds();
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue[600],
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Text(
-                                  'تطبيق',
-                                  style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  /// Build dropdown decoration
-  InputDecoration _buildDropdownDecoration(String labelText, double borderRadius) {
-    return InputDecoration(
-      labelText: labelText,
-      labelStyle: GoogleFonts.cairo(color: Colors.blue[600]),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(borderRadius),
-        borderSide: BorderSide(color: Colors.blue[400]!, width: 1.5),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(borderRadius),
-        borderSide: BorderSide(color: Colors.blue[400]!, width: 1.5),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(borderRadius),
-        borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
-      ),
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    );
-  }
-
-  /// Build dropdown text style
-  TextStyle _buildDropdownTextStyle() {
-    return GoogleFonts.cairo(
-      color: Colors.blue,
-      fontSize: 15,
-      fontWeight: FontWeight.w500,
-    );
-  }
-
-  // ========== Widget Building Methods ==========
-
-  // Use AdCardWidget directly in your list/grid views:
-  // AdCardWidget(
-  //   ad: ad,
-  //   favoriteIconBuilder: (adId) => _buildFavoriteHeartIcon(adId),
-  //   imageBuilder: (ad) => _adThumbnailImageBuilder(ad),
-  // )
   // Favorite heart icon builder for AdCardWidget
   Widget _favoriteHeartIconBuilder(String adId) {
     final bool isLoggedIn = _authToken != null && _userId != null;
@@ -1140,303 +606,6 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
       isFavorite: isFavorite,
       isLoggedIn: isLoggedIn,
       isLoading: isLoggedIn && _isLoadingFavorites,
-    );
-  }
-
-  /// Build location filter button
-  Widget _buildLocationButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-      child: GestureDetector(
-        onTap: _showLocationFilterDialog,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.blue[300]!, width: 1.5),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.location_on, size: 20, color: Colors.blue[600]),
-                  const SizedBox(width: 6),
-                  Text(
-                    'بحث بالموقع',
-                    style: GoogleFonts.cairo(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                _selectedCity == _defaultCity
-                    ? _defaultCity
-                    : '$_selectedCity - $_selectedDistrict',
-                style: GoogleFonts.cairo(fontSize: 13, color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Build search field with autocomplete suggestions
-  Widget _buildSearchField() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => SuggestionsListScreen(
-                initialSearchText: _searchController.text,
-              ),
-            ),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Match advanced search field
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.blue[300]!, width: 1.5),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.search, color: Colors.blue[600], size: 20), // Match icon size with advanced search
-              const SizedBox(width: 8), // Match spacing with advanced search
-              Expanded(
-                child: Text(
-                  _searchController.text.isNotEmpty 
-                      ? _searchController.text
-                      : 'ابحث عن منتج أو خدمة...',
-                  style: GoogleFonts.cairo(
-                    color: Colors.grey,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Build navigation drawer
-  Widget _buildDrawer(BuildContext context) {
-    return Drawer(
-      backgroundColor: Colors.grey[50],
-      elevation: 0,
-      child: Column(
-        children: [
-          _buildDrawerHeader(),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.grey[50]!,
-                    Colors.white,
-                  ],
-                ),
-              ),
-              child: ListView(
-                padding: const EdgeInsets.symmetric(vertical: 0),
-                children: [
-                  _buildDrawerItem(
-                    Icons.home_rounded, 
-                    'الرئيسية', 
-                    Colors.blue[600]!,
-                    () {
-                      Navigator.pop(context);
-                      _reloadHomeScreen();
-                    },
-                  ),
-                  _buildDrawerItem(
-                    Icons.list_alt_rounded, 
-                    'إعلاناتي', 
-                    Colors.green[600]!,
-                    () {
-                      _handleProtectedNavigation(context, 'myAds');
-                    },
-                  ),
-                  _buildDrawerItem(
-                    Icons.add_circle_outline_rounded, 
-                    'إضافة إعلان', 
-                    Colors.orange[600]!,
-                    () {
-                      _handleProtectedNavigation(context, 'addAd');
-                    },
-                  ),
-                  _buildDrawerItem(
-                    Icons.favorite_rounded, 
-                    'المفضلة', 
-                    Colors.red[600]!,
-                    () {
-                      _handleProtectedNavigation(context, 'favorites');
-                    },
-                  ),
-                  _buildDrawerItem(
-                    Icons.person_rounded, 
-                    'حسابي', 
-                    Colors.purple[600]!,
-                    () async {
-                      await _handleAccountNavigation(context);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Footer section
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              border: Border(
-                top: BorderSide(color: Colors.grey[300]!, width: 1),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.copyright, size: 16, color: Colors.grey[600]),
-                const SizedBox(width: 4),
-                Text(
-                  'فرصة 2025',
-                  style: GoogleFonts.cairo(
-                    color: Colors.grey[600],
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build drawer header
-  Widget _buildDrawerHeader() {
-    return FutureBuilder<SharedPreferences>(
-      future: SharedPreferences.getInstance(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Container(height: 240, color: Colors.blue);
-        }
-        final prefs = snapshot.data!;
-        final firstName = prefs.getString('userFirstName') ?? '';
-        final lastName = prefs.getString('userLastName') ?? '';
-        final profileImage = prefs.getString('userProfileImage');
-        ImageProvider? avatar;
-        if (profileImage != null && profileImage.isNotEmpty) {
-          try {
-            avatar = MemoryImage(base64Decode(profileImage));
-          } catch (e) {
-            avatar = null;
-          }
-        }
-        return Container(
-          width: double.infinity,
-          height: 240,
-          decoration: BoxDecoration(
-            color: Colors.blue,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: Colors.white,
-                backgroundImage: avatar,
-                child: avatar == null ? Icon(Icons.person, size: 40, color: Colors.blue) : null,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '$firstName $lastName',
-                style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  /// Build drawer item
-  Widget _buildDrawerItem(IconData icon, String title, Color iconColor, VoidCallback onTap) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 1),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.white,
-            Colors.grey[50]!,
-          ],
-        ),
-        border: Border(
-          bottom: BorderSide(color: Colors.grey[200]!, width: 0.5),
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          splashColor: iconColor.withOpacity(0.1),
-          highlightColor: iconColor.withOpacity(0.05),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: iconColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: iconColor.withOpacity(0.2), width: 1),
-                  ),
-                  child: Icon(
-                    icon, 
-                    color: iconColor,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: GoogleFonts.cairo(
-                      color: Colors.grey[800],
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: Colors.grey[400],
-                  size: 16,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -1486,337 +655,285 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
     }
   }
 
-  /// Build no internet screen
-  Widget _buildNoInternetScreen() {
-    return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.wifi_off, size: 100, color: Colors.grey),
-              const SizedBox(height: 20),
-              Text(
-                'لا يوجد اتصال بالإنترنت',
-                style: GoogleFonts.cairo(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى',
-                style: GoogleFonts.cairo(fontSize: 16, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: _checkInitialConnectivity,
-                child: Text('إعادة المحاولة', style: GoogleFonts.cairo(fontSize: 16)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Build loading screen
-  Widget _buildLoadingScreen() {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
-  }
-
-  // ========== Refresh Handler ==========
-
-  /// Handle pull-to-refresh
-  Future<void> _handleRefresh() async {
-    // Set refreshing state
-    if (mounted) {
-      setState(() {
-        _isRefreshing = true;
-        _resetFilters();
-        _resetAdsData();
-      });
-    }
-    
-    try {
-      // Fetch fresh data
-      await Future.wait([
-        _fetchOptions(),
-        _refreshUserData(),
-      ]);
-      
-      await _fetchAllAds();
-    } finally {
-      // Clear refreshing state
-      if (mounted) {
-        setState(() {
-          _isRefreshing = false;
-        });
-      }
-    }
-  }
-
   // ========== Main Build Method ==========
 
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
-    
-    // Show loading screen while checking connectivity
-    if (_isCheckingConnectivity) {
-      return _buildLoadingScreen();
-    }
 
-    // Show no internet connection screen
     if (!_isConnected) {
-      return _buildNoInternetScreen();
+      return NoInternetWid(onRetry: _checkInitialConnectivity);
     }
 
-    // Normal home screen when connected
+    // Define custom colors
+  const Color primaryColor = Color(0xFF42A5F5); // Light Blue (matches الرئيسية in drawer)
+  const Color accentColor = Color(0xFFFF7043); // Soft Orange
+  const Color backgroundColor = Color(0xFFFAFAFA); // White
+  const Color textColor = Color(0xFF212121); // Dark Black
+  const Color outlineColor = Color(0xFFE0E3E7); // Soft Gray
+  const Color successColor = Color(0xFF66BB6A); // Green
+
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus();
-        },
-        child: Scaffold(
-          drawer: _buildDrawer(context),
-          body: Container(
-            decoration: const BoxDecoration(color: Colors.white),
-            child: RefreshIndicator(
-              onRefresh: () async {
-                await _handleRefresh();
-                await _fetchMostActiveUsers();
-              },
-              color: Colors.blue[600],
-              backgroundColor: Colors.white,
-              strokeWidth: 2.5,
-              child: CustomScrollView(
-                controller: _adsScrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  SliverAppBar(
-                    floating: true,
-                    pinned: true,
-                    snap: false,
-                    elevation: 0,
-                    backgroundColor: Colors.blue[700],
-                    title: Text(
-                      'الرئيسية',
-                      style: GoogleFonts.cairo(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+      child: Scaffold(
+        drawer: AppDrawer(
+          reloadHomeScreen: (ctx) => _reloadHomeScreen(),
+          handleProtectedNavigation: (ctx, routeKey) => _handleProtectedNavigation(ctx, routeKey),
+          handleAccountNavigation: (ctx) => _handleAccountNavigation(ctx),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _handleProtectedNavigation(context, 'addAd'),
+          backgroundColor: accentColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: const Icon(Icons.add_circle_outline_rounded, size: 32, color: Colors.white),
+        ),
+        body: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+          ),
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: () {
+              if (FocusScope.of(context).hasFocus) {
+                FocusScope.of(context).unfocus();
+              }
+            },
+            child: CustomScrollView(
+              controller: _adsScrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverAppBar(
+                  floating: true,
+                  pinned: true,
+                  snap: false,
+                  elevation: 4,
+                  backgroundColor: primaryColor,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+                  ),
+                  title: Text(
+                    'الرئيسية',
+                    style: GoogleFonts.cairo(
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
                     ),
-                    centerTitle: true,
-                    leading: Builder(
-                      builder: (context) => IconButton(
-                        icon: const Icon(Icons.menu, size: 28, color: Colors.white),
-                        onPressed: () => Scaffold.of(context).openDrawer(),
-                      ),
+                  ),
+                  centerTitle: true,
+                  leading: Builder(
+                    builder: (context) => IconButton(
+                      icon: const Icon(Icons.menu, size: 40), // Increased icon size
+                      color: textColor,
+                      iconSize: 48, // Increased button size
+                      padding: const EdgeInsets.all(8), // More touch area
+                      onPressed: () => Scaffold.of(context).openDrawer(),
                     ),
-                      actions: [
-                        Padding(
-                          padding: const EdgeInsetsDirectional.only(end: 12),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(20),
-                            onTap: () async {
-                              if (_authToken != null && _userId != null) {
-                                final prefs = await SharedPreferences.getInstance();
-                                //final username = (prefs.getString('userFirstName') ?? '') + ' ' + (prefs.getString('userLastName') ?? '');
-                                final userFirstName = prefs.getString('userFirstName') ?? '';
-                                final userLastName = prefs.getString('userLastName') ?? '';
-                                final email = prefs.getString('userEmail') ?? '';
-                                final phone = prefs.getString('userPhone') ?? '';
-                                final userId = prefs.getString('userId') ?? '';
-                                final userAccountNumber = prefs.getString('userAccountNumber') ?? '';
-                                final userProfileImage = prefs.getString('profileImage') ?? _userProfileImage;
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => AccountScreen(
-                                      isLoggedIn: true,
-                                      userFirstName: userFirstName,
-                                      userLastName: userLastName,
-                                      userEmail: email,
-                                      phoneNumber: phone,
-                                      userId: userId,
-                                      userProfileImage: userProfileImage,
-                                      userAccountNumber: userAccountNumber,
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                                );
-                              }
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 4,
-                                    offset: Offset(0, 1),
-                                  ),
-                                ],
-                                border: Border.all(
-                                  color: (_authToken != null && _userId != null)
-                                      ? Colors.green[600]!
-                                      : Colors.blue[300]!,
-                                  width: 1.5,
+                  ),
+                  actions: [
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 12),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: () async {
+                          if (_authToken != null && _userId != null) {
+                            final prefs = await SharedPreferences.getInstance();
+                            final userFirstName = prefs.getString('userFirstName') ?? '';
+                            final userLastName = prefs.getString('userLastName') ?? '';
+                            final email = prefs.getString('userEmail') ?? '';
+                            final phone = prefs.getString('userPhone') ?? '';
+                            final userId = prefs.getString('userId') ?? '';
+                            final userAccountNumber = prefs.getString('userAccountNumber') ?? '';
+                            final userProfileImage = prefs.getString('profileImage') ?? _userProfileImage;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => AccountScreen(
+                                  isLoggedIn: true,
+                                  userFirstName: userFirstName,
+                                  userLastName: userLastName,
+                                  userEmail: email,
+                                  phoneNumber: phone,
+                                  userId: userId,
+                                  userProfileImage: userProfileImage,
+                                  userAccountNumber: userAccountNumber,
                                 ),
                               ),
-                              padding: const EdgeInsets.all(2),
-                              child: Icon(
-                                Icons.person_rounded, // User account icon
-                                size: 22,
-                                color: (_authToken != null && _userId != null)
-                                    ? Colors.green[600]
-                                    : Colors.blue[300],
+                            );
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const LoginScreen()),
+                            );
+                          }
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: backgroundColor,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
                               ),
+                            ],
+                            border: Border.all(
+                color: (_authToken != null && _userId != null)
+                  ? successColor
+                  : accentColor,
+                width: 2,
                             ),
                           ),
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(
+              Icons.person_rounded,
+              size: 26,
+              color: (_authToken != null && _userId != null)
+                ? successColor
+                : accentColor,
+                          ),
                         ),
-                      ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 10)),
+                SliverToBoxAdapter(child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: ImageSliderWid(imageContents: _sliderImages),
+                )),
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: LocationButtonWid(
+                      selectedCity: _selectedCity,
+                      defaultCity: _defaultCity,
+                      selectedDistrict: _selectedDistrict,
+                      defaultDistrict: _defaultDistrict,
+                      onTap: _showLocationFilterDialog,
+                    ),
                   ),
-                  const SliverToBoxAdapter(child: ImageSlider()),
-                  SliverToBoxAdapter(child: _buildLocationButton()),
-                  SliverToBoxAdapter(child: _buildAdvancedSearchField()),
-                  SliverToBoxAdapter(child: _buildSearchField()),
-                  SliverToBoxAdapter(child: _buildMostActiveUsersSection()),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: AdvanceSearchWid(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const SearchAdvanceScreen()),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: TitleSearchWid(
+                      initialText: _searchController.text,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => SuggestionsListScreen(
+                              initialSearchText: _searchController.text,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                if (_isCheckingConnectivity || _isLoadingAds || _isRefreshing)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: const FullScreenLoadingWid(),
+                  )
+                else ...[
+                  // SliverToBoxAdapter(
+                  //   child: Padding(
+                  //     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  //     child: MostActiveUserWid(
+                  //       mostActiveUsers: _mostActiveUsers,
+                  //       isLoading: _isLoadingActiveUsers,
+                  //       hasError: _hasErrorActiveUsers,
+                  //     ),
+                  //   ),
+                  // ),
                   SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         Text(
                           'جميع الإعلانات',
                           style: GoogleFonts.cairo(
-                            fontSize: 20,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          height: 4,
+                          width: 100,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [primaryColor, accentColor],
+                            ),
+                            borderRadius: BorderRadius.circular(4),
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Container(
-                          height: 3,
-                          width: 80,
-                          decoration: BoxDecoration(
-                            color: Colors.blue[600],
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        if (_isRefreshing)
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Column(
-                                children: [
-                                  const CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'جاري تحديث الإعلانات...',
-                                    style: GoogleFonts.cairo(
-                                      color: Colors.grey,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        else if (_allAds.isEmpty && _isLoadingAds)
-                          const Center(
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                            ),
-                          )
-                        else if (_allAds.isEmpty && !_isLoadingAds)
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(32),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.search_off,
-                                    size: 64,
-                                    color: Colors.grey[400],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'لا يوجد نتائج',
-                                    style: GoogleFonts.cairo(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey[600],
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'لم يتم العثور على أي إعلانات',
-                                    style: GoogleFonts.cairo(
-                                      fontSize: 14,
-                                      color: Colors.grey[500],
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                        if (_allAds.isEmpty && !_isLoadingAds)
+                          const NoResultsWid(),
                       ]),
                     ),
                   ),
-                  if (_allAds.isNotEmpty || _isRefreshing)
+                  if (_allAds.isNotEmpty)
                     SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                       sliver: SliverGrid(
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
-                          childAspectRatio: 0.82,
+                          childAspectRatio: 0.8, // Reduced to prevent overflow
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
                         ),
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
                             if (index == _allAds.length && _hasMoreAds) {
                               return const Center(
                                 child: Padding(
-                                  padding: EdgeInsets.all(5),
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                                  ),
+                                  padding: EdgeInsets.all(3),
+                                  child: CircularProgressIndicator(),
                                 ),
                               );
                             }
-                            return AdCardWidget(
-                              ad: _allAds[index],
-                              favoriteIconBuilder: _favoriteHeartIconBuilder,
-                              onTap: () {
-                                final adId = _allAds[index].id;
-                                if (adId != null) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => AdDetailsScreen(adId: adId),
-                                    ),
-                                  );
-                                }
-                              },
+                            final ad = _allAds[index];
+                            return Material(
+                              elevation: 3,
+                              borderRadius: BorderRadius.circular(18),
+                              color: backgroundColor,
+                              child: AdCardWidget(
+                                key: ValueKey(ad.id),
+                                ad: ad,
+                                favoriteIconBuilder: _favoriteHeartIconBuilder,
+                                onTap: () {
+                                  final adId = ad.id;
+                                  if (adId != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => AdDetailsScreen(adId: adId),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
                             );
                           },
                           childCount: _allAds.length + (_hasMoreAds ? 1 : 0),
@@ -1826,128 +943,61 @@ class _HomeScreenState extends State<HomeScreen> with AutomaticKeepAliveClientMi
                   if (!_hasMoreAds && _allAds.isNotEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                         child: Center(
                           child: Text(
                             'لا يوجد المزيد من الإعلانات',
                             style: GoogleFonts.cairo(
-                              color: Colors.grey,
+                              color: outlineColor,
+                              fontSize: 16,
                             ),
                           ),
                         ),
                       ),
                     ),
                 ],
-              ),
+              ],
             ),
           ),
         ),
       ),
     );
   }
-}
 
-/// Image slider widget for displaying promotional images
-class ImageSlider extends StatefulWidget {
-  const ImageSlider({super.key});
-
-  @override
-  State<ImageSlider> createState() => _ImageSliderState();
-}
-
-class _ImageSliderState extends State<ImageSlider> {
-  static const List<String> _imagePaths = [
-    'assets/image1.jpg',
-    'assets/image2.jpg',
-    'assets/image3.jpg',
-    'assets/image4.jpg',
-  ];
-
-  int _currentImageIndex = 0;
-  late PageController _pageController;
-  Timer? _sliderTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(viewportFraction: 1.0);
-    _startAutoSlide();
-  }
-
-  @override
-  void dispose() {
-    _sliderTimer?.cancel();
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  /// Start automatic slide transition
-  void _startAutoSlide() {
-    _sliderTimer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (_pageController.hasClients) {
-        final nextPage = (_currentImageIndex + 1) % _imagePaths.length;
-        _pageController.animateToPage(
-          nextPage,
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOut,
+  void _showLocationFilterDialog() async {
+    await LocationButtonWid.showLocationFilterDialog(
+      context: context,
+      defaultCity: _defaultCity,
+      defaultDistrict: _defaultDistrict,
+      provinces: _provinces,
+      majorAreas: _majorAreas,
+      selectedCityId: _selectedCityId,
+      selectedRegionId: _selectedRegionId,
+      onApply: ({cityName, districtName, cityId, regionId}) async {
+        setState(() {
+          _selectedCity = cityName ?? _defaultCity;
+          _selectedDistrict = districtName ?? _defaultDistrict;
+          _selectedCityId = cityId;
+          _selectedRegionId = regionId;
+          _currentPageAds = 1;
+        });
+        // Show loading dialog using LoadingDialogWid
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const LoadingDialogWid(
+              message: 'جاري البحث حسب الموقع',
+              showProgress: true,
+            );
+          },
         );
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-      return SizedBox(
-        height: 140,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        child: Stack(
-          children: [
-            PageView.builder(
-              controller: _pageController,
-              itemCount: _imagePaths.length,
-              onPageChanged: (index) => setState(() => _currentImageIndex = index),
-              itemBuilder: (context, index) => Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.blue[300]!, width: 1.5),
-                  color: Colors.white,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.asset(
-                    _imagePaths[index],
-                    fit: BoxFit.fill, // Fill the entire slider area
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 16,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  _imagePaths.length,
-                  (index) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    width: _currentImageIndex == index ? 20 : 8,
-                    height: 8,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      color: _currentImageIndex == index
-                          ? Colors.blue[600]
-                          : Colors.white.withOpacity(0.7),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+        await _fetchFilteredAds(reset: true);
+        // Hide loading dialog
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+      },
     );
   }
 }
