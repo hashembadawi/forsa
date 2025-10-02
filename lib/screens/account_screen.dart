@@ -109,16 +109,20 @@ class _AccountScreenState extends State<AccountScreen> {
 
   // Simple image getter
   ImageProvider? _getAvatarImage() {
+    // If a new image is picked, show it
     if (_newProfileImage != null) {
       return FileImage(_newProfileImage!);
     }
+    // If a local profile image exists and is not empty, show it
     if (_localProfileImage != null && _localProfileImage!.isNotEmpty) {
       try {
         return MemoryImage(base64Decode(_localProfileImage!));
       } catch (e) {
+        // If decoding fails, treat as no image
         return null;
       }
     }
+    // If both are null or empty, return null (no image)
     return null;
   }
 
@@ -135,6 +139,9 @@ class _AccountScreenState extends State<AccountScreen> {
         'userId': widget.userId,
       };
       String? newProfileImageBase64;
+      bool imageDeleted = false;
+
+      // If user picked a new image, upload it
       if (_newProfileImage != null) {
         final bytes = await FlutterImageCompress.compressWithFile(
           _newProfileImage!.path,
@@ -144,7 +151,12 @@ class _AccountScreenState extends State<AccountScreen> {
           newProfileImageBase64 = base64Encode(bytes);
           data['profileImage'] = newProfileImageBase64;
         }
+      } else if (_localProfileImage == null || _localProfileImage!.isEmpty) {
+        // If user removed the image, send empty string to backend
+        data['profileImage'] = '';
+        imageDeleted = true;
       }
+
       final response = await http.put(
         Uri.parse('https://sahbo-app-api.onrender.com/api/user/update-info'),
         headers: {
@@ -158,13 +170,17 @@ class _AccountScreenState extends State<AccountScreen> {
         // Save updated info to SharedPreferences
         await prefs.setString('userFirstName', _firstNameController.text.trim());
         await prefs.setString('userLastName', _lastNameController.text.trim());
-        if (newProfileImageBase64 != null) {
+        if (imageDeleted) {
+          await prefs.remove('userProfileImage');
+          _localProfileImage = null;
+          _newProfileImage = null;
+        } else if (newProfileImageBase64 != null) {
           await prefs.setString('userProfileImage', newProfileImageBase64);
-          setState(() {
-            _localProfileImage = newProfileImageBase64;
-          });
+          _localProfileImage = newProfileImageBase64;
+          _newProfileImage = null;
         }
-        setState(() {}); // Refresh UI with new name
+        // Always call setState once after all changes to ensure UI updates
+        setState(() {}); // Refresh UI with new name/image
         DialogUtils.closeDialog(context);
         _showMessage('لقد تم تغير البيانات بنجاح', Colors.green);
       } else {
@@ -263,8 +279,7 @@ class _AccountScreenState extends State<AccountScreen> {
     _lastNameController.text = lastName;
 
     // Save current image state before dialog
-    final File? prevNewProfileImage = _newProfileImage;
-    final String? prevLocalProfileImage = _localProfileImage;
+  // Removed unused variables prevNewProfileImage and prevLocalProfileImage
 
     showDialog(
       context: context,
@@ -287,18 +302,18 @@ class _AccountScreenState extends State<AccountScreen> {
             },
             onSave: () async {
               await _updateProfile();
-              Navigator.of(context).pop();
+              // Only close dialog after update is complete
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
             },
           ),
         ),
       ),
-    ).then((value) {
-      // If user cancelled (did not save), restore previous image state
-      if (_newProfileImage != prevNewProfileImage || _localProfileImage != prevLocalProfileImage) {
-        _newProfileImage = prevNewProfileImage;
-        _localProfileImage = prevLocalProfileImage;
-        setState(() {});
-      }
+    ).then((value) async {
+      // Always reload user data after dialog closes to get latest image and name
+      await _loadUserData();
+      setState(() {});
     });
   }
 
