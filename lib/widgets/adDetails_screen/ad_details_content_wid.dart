@@ -16,40 +16,25 @@ class AdDetailsContentWid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final horizontalPad = screenWidth * 0.015; // much smaller
-    final verticalPad = screenWidth * 0.008; // much smaller
+  // Removed horizontalPad and verticalPad as they are no longer used
     return Padding(
       padding: const EdgeInsets.fromLTRB(6, 4, 6, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: colorScheme.primary.withOpacity(0.07),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: EdgeInsets.symmetric(horizontal: horizontalPad, vertical: verticalPad),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                adTitle,
-                Divider(
-                  color: colorScheme.primary.withOpacity(0.18),
-                  thickness: 1,
-                  height: 4,
-                  endIndent: 0,
-                  indent: 0,
-                ),
-                priceSection,
-              ],
-            ),
+          // Remove box: just show title, divider, and price
+          adTitle,
+          Divider(
+            color: Colors.grey.withOpacity(0.18),
+            thickness: 1,
+            height: 4,
+            endIndent: 0,
+            indent: 0,
           ),
-          const SizedBox(height: 6),
+          priceSection,
+          const SizedBox(height: 8.5),
           tabSection,
-          const SizedBox(height: 8),
+          const SizedBox(height: 8.5),
           actionButtons,
         ],
       ),

@@ -329,6 +329,7 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildImageSection(),
+          SizedBox(height: 5),
           AdDetailsContentWid(
             adTitle: _buildAdTitle(),
             priceSection: _buildPriceSection(),
