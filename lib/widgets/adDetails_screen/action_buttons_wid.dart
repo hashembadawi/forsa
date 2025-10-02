@@ -20,21 +20,21 @@ class ActionButtonsWid extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: colorScheme.primary.withOpacity(0.2),
-          width: 1.5,
+          width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.primary.withOpacity(0.08),
+            color: colorScheme.primary.withOpacity(0.06),
             spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
@@ -45,25 +45,34 @@ class ActionButtonsWid extends StatelessWidget {
             context: context,
             icon: Icons.share,
             label: 'مشاركة',
-            color: colorScheme.primary,
+            color: const Color(0xFF42A5F5), // Blue for share
             onTap: onShare,
+            iconSize: 18,
+            fontSize: 11,
+            verticalPadding: 6,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           _buildActionButton(
             context: context,
             icon: Icons.report_outlined,
             label: 'ابلاغ',
-            color: colorScheme.error,
+            color: const Color(0xFFE53935), // Red for report
             onTap: onReport,
+            iconSize: 18,
+            fontSize: 11,
+            verticalPadding: 6,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           _buildActionButton(
             context: context,
             icon: isFavorite ? Icons.favorite : Icons.favorite_border,
             label: 'تفضيل',
-            color: isFavorite ? colorScheme.error : colorScheme.outline,
+            color: isFavorite ? const Color(0xFFE53935) : const Color(0xFFBDBDBD), // Red if favorite, gray if not
             onTap: onToggleFavorite,
             isLoading: isLoadingFavorite,
+            iconSize: 18,
+            fontSize: 11,
+            verticalPadding: 6,
           ),
         ],
       ),
@@ -77,15 +86,18 @@ class ActionButtonsWid extends StatelessWidget {
     required Color color,
     required VoidCallback onTap,
     bool isLoading = false,
+    double iconSize = 18,
+    double fontSize = 11,
+    double verticalPadding = 6,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     return Expanded(
       child: FilledButton(
         style: FilledButton.styleFrom(
           backgroundColor: color,
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          padding: EdgeInsets.symmetric(vertical: verticalPadding, horizontal: 4),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
           ),
           elevation: 0,
         ),
@@ -95,22 +107,22 @@ class ActionButtonsWid extends StatelessWidget {
           children: [
             if (isLoading)
               SizedBox(
-                width: 24,
-                height: 24,
+                width: iconSize + 6,
+                height: iconSize + 6,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onPrimary),
                 ),
               )
             else
-              Icon(icon, color: colorScheme.onPrimary, size: 24),
-            const SizedBox(height: 6),
+              Icon(icon, color: colorScheme.onPrimary, size: iconSize),
+            const SizedBox(height: 3),
             Text(
               label,
               style: GoogleFonts.cairo(
                 color: colorScheme.onPrimary,
                 fontWeight: FontWeight.bold,
-                fontSize: 13,
+                fontSize: fontSize,
               ),
               textAlign: TextAlign.center,
             ),
