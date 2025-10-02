@@ -34,7 +34,7 @@ class AdDetailsContentWid extends StatelessWidget {
           priceSection,
           const SizedBox(height: 8.5),
           tabSection,
-          const SizedBox(height: 2), // Reduced space to move buttons up
+          const SizedBox(height: 10), // Even less space between tabSection and actionButtons
           actionButtons,
         ],
       ),

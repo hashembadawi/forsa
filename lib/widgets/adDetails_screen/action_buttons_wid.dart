@@ -41,15 +41,17 @@ class ActionButtonsWid extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+          // مشاركة button uses primary color (like call button)
           _buildActionButton(
             context: context,
             icon: Icons.share,
             label: 'مشاركة',
-            color: const Color(0xFF42A5F5), // Blue for share
+            color: colorScheme.primary, // Primary color
             onTap: onShare,
             iconSize: 18,
             fontSize: 11,
             verticalPadding: 6,
+            forceWhiteText: true,
           ),
           const SizedBox(width: 4),
           _buildActionButton(
@@ -63,16 +65,18 @@ class ActionButtonsWid extends StatelessWidget {
             verticalPadding: 6,
           ),
           const SizedBox(width: 4),
+          // تفضيل button: white text, red icon/text if favorite
           _buildActionButton(
             context: context,
             icon: isFavorite ? Icons.favorite : Icons.favorite_border,
             label: 'تفضيل',
-            color: isFavorite ? const Color(0xFFE53935) : const Color(0xFFBDBDBD), // Red if favorite, gray if not
+            color: Colors.white, // Always white background
             onTap: onToggleFavorite,
             isLoading: isLoadingFavorite,
             iconSize: 18,
             fontSize: 11,
             verticalPadding: 6,
+            heartRed: isFavorite,
           ),
         ],
       ),
@@ -89,8 +93,24 @@ class ActionButtonsWid extends StatelessWidget {
     double iconSize = 18,
     double fontSize = 11,
     double verticalPadding = 6,
+    bool forceWhiteText = false,
+    bool heartRed = false,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
+    Color iconColor = colorScheme.onPrimary;
+    Color textColor = colorScheme.onPrimary;
+    if (forceWhiteText) {
+      textColor = Colors.white;
+      iconColor = Colors.white;
+    }
+    if (heartRed) {
+      iconColor = Colors.red;
+      textColor = Colors.red;
+    } else if (color == Colors.white) {
+      // For 'تفضيل' button when not favorite: black icon/text
+      iconColor = Colors.black;
+      textColor = Colors.black;
+    }
     return Expanded(
       child: FilledButton(
         style: FilledButton.styleFrom(
@@ -111,16 +131,16 @@ class ActionButtonsWid extends StatelessWidget {
                 height: iconSize + 6,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onPrimary),
+                  valueColor: AlwaysStoppedAnimation<Color>(iconColor),
                 ),
               )
             else
-              Icon(icon, color: colorScheme.onPrimary, size: iconSize),
+              Icon(icon, color: iconColor, size: iconSize),
             const SizedBox(height: 3),
             Text(
               label,
               style: GoogleFonts.cairo(
-                color: colorScheme.onPrimary,
+                color: textColor,
                 fontWeight: FontWeight.bold,
                 fontSize: fontSize,
               ),
