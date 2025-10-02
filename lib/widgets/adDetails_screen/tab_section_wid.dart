@@ -12,28 +12,44 @@ class TabSectionWid extends StatelessWidget {
     required this.tabContent,
   }) : super(key: key);
 
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    // Use a light, neutral background color to match the general screen
+    const Color kTabSectionBg = Color(0xFFFAFAFA); // Matches general background
     return Container(
+      margin: const EdgeInsets.only(top: 4, bottom: 4),
       decoration: BoxDecoration(
-        border: Border.all(color: colorScheme.primary.withOpacity(0.15), width: 1.5),
+        gradient: LinearGradient(
+          colors: [kTabSectionBg, colorScheme.surface.withOpacity(0.97)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: colorScheme.primary.withOpacity(0.10), width: 1.2),
         borderRadius: BorderRadius.circular(18),
-        color: colorScheme.surface,
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
         child: Column(
           children: [
-            // Tab Headers
+            // Tab Headers with icons
             Row(
               children: [
-                _buildTabButton(context, 'معلومات الإعلان', 0),
-                _buildTabButton(context, 'الوصف', 1),
-                _buildTabButton(context, 'الموقع', 2),
+                _buildTabButton(context, 'معلومات', 0, icon: Icons.info_outline),
+                _buildTabButton(context, 'الوصف', 1, icon: Icons.description_outlined),
+                _buildTabButton(context, 'الموقع', 2, icon: Icons.location_on_outlined),
               ],
             ),
             // Tab Content with fluid animation
+            // Set a static height for the tab content area
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 400),
               switchInCurve: Curves.easeInOut,
@@ -52,10 +68,15 @@ class TabSectionWid extends StatelessWidget {
                   child: child,
                 );
               },
-              child: Container(
+              child: SizedBox(
                 key: ValueKey<int>(selectedTabIndex),
-                padding: const EdgeInsets.all(16),
-                child: tabContent,
+                height: 365, // Fixed height for content area
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SingleChildScrollView(
+                    child: tabContent,
+                  ),
+                ),
               ),
             ),
           ],
@@ -64,30 +85,47 @@ class TabSectionWid extends StatelessWidget {
     );
   }
 
-  Widget _buildTabButton(BuildContext context, String title, int index) {
+  Widget _buildTabButton(BuildContext context, String title, int index, {IconData? icon}) {
     final colorScheme = Theme.of(context).colorScheme;
     final isSelected = selectedTabIndex == index;
     final isFirst = index == 0;
     return Expanded(
-      child: GestureDetector(
-        onTap: () => onTabSelected(index),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? colorScheme.primary : Colors.transparent,
-            border: !isFirst
-                ? Border(
-                    right: BorderSide(color: colorScheme.primary.withOpacity(0.15), width: 1),
-                  )
-                : null,
-          ),
-          child: Text(
-            title,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.cairo(
-              color: isSelected ? colorScheme.onPrimary : colorScheme.primary,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        decoration: BoxDecoration(
+          color: isSelected ? colorScheme.primary : Colors.transparent,
+          border: !isFirst
+              ? Border(
+                  right: BorderSide(color: colorScheme.primary.withOpacity(0.15), width: 1),
+                )
+              : null,
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: () => onTabSelected(index),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 13),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (icon != null)
+                  Icon(
+                    icon,
+                    size: 20,
+                    color: isSelected ? colorScheme.onPrimary : colorScheme.primary,
+                  ),
+                const SizedBox(height: 2),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.cairo(
+                    color: isSelected ? colorScheme.onPrimary : colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
