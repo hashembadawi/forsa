@@ -24,7 +24,7 @@ class EditProfileDialogWid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      insetPadding: const EdgeInsets.all(16),
+      insetPadding: const EdgeInsets.all(14),
       backgroundColor: Colors.transparent,
       child: Container(
         width: double.maxFinite,
@@ -39,7 +39,7 @@ class EditProfileDialogWid extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
               decoration: BoxDecoration(
                 color: Colors.blue,
                 borderRadius: const BorderRadius.only(
@@ -53,7 +53,7 @@ class EditProfileDialogWid extends StatelessWidget {
                     child: Text(
                       'تعديل الملف الشخصي',
                       style: GoogleFonts.cairo(
-                        fontSize: 18,
+                        fontSize: 17.5,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -70,16 +70,18 @@ class EditProfileDialogWid extends StatelessWidget {
             ),
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 child: Form(
                   key: formKey,
-                  child: Column(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Image on the right
                       GestureDetector(
                         onTap: onPickImage,
                         child: Container(
-                          width: 80,
-                          height: 80,
+                          width: 74,
+                          height: 74,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.blue, width: 2),
@@ -97,8 +99,8 @@ class EditProfileDialogWid extends StatelessWidget {
                                         child: GestureDetector(
                                           onTap: onRemoveImage,
                                           child: Container(
-                                            width: 20,
-                                            height: 20,
+                                            width: 19,
+                                            height: 19,
                                             decoration: const BoxDecoration(
                                               color: Colors.red,
                                               shape: BoxShape.circle,
@@ -116,11 +118,11 @@ class EditProfileDialogWid extends StatelessWidget {
                                 : Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Icon(Icons.add_a_photo, size: 30, color: Colors.blue),
-                                      const SizedBox(height: 4),
+                                      const Icon(Icons.add_a_photo, size: 26, color: Colors.blue),
+                                      const SizedBox(height: 3),
                                       Text(
                                         'اضغط لاختيار صورة',
-                                        style: GoogleFonts.cairo(fontSize: 10, color: Colors.blue),
+                                        style: GoogleFonts.cairo(fontSize: 9.5, color: Colors.blue),
                                         textAlign: TextAlign.center,
                                       ),
                                     ],
@@ -128,36 +130,51 @@ class EditProfileDialogWid extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      TextFormField(
-                        controller: firstNameController,
-                        decoration: InputDecoration(
-                          labelText: 'الاسم الأول',
-                          labelStyle: GoogleFonts.cairo(),
-                          border: const OutlineInputBorder(),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                        ),
-                        validator: (v) => v?.isEmpty == true ? 'مطلوب' : null,
+                      // Vertical divider
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                        width: 1.1,
+                        height: 70,
+                        color: Colors.grey[300],
                       ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: lastNameController,
-                        decoration: InputDecoration(
-                          labelText: 'الاسم الأخير',
-                          labelStyle: GoogleFonts.cairo(),
-                          border: const OutlineInputBorder(),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      // Name fields on the left
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TextFormField(
+                              controller: firstNameController,
+                              style: GoogleFonts.cairo(),
+                              decoration: InputDecoration(
+                                labelText: 'الاسم الأول',
+                                labelStyle: GoogleFonts.cairo(),
+                                border: const OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 9, vertical: 9),
+                              ),
+                              validator: (v) => v?.isEmpty == true ? 'مطلوب' : null,
+                            ),
+                            const SizedBox(height: 8),
+                            TextFormField(
+                              controller: lastNameController,
+                              style: GoogleFonts.cairo(),
+                              decoration: InputDecoration(
+                                labelText: 'الاسم الأخير',
+                                labelStyle: GoogleFonts.cairo(),
+                                border: const OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 9, vertical: 9),
+                              ),
+                              validator: (v) => v?.isEmpty == true ? 'مطلوب' : null,
+                            ),
+                          ],
                         ),
-                        validator: (v) => v?.isEmpty == true ? 'مطلوب' : null,
                       ),
-                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
               ),
             ),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: const BorderRadius.only(
@@ -168,21 +185,10 @@ class EditProfileDialogWid extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: TextButton.styleFrom(
-                        foregroundColor: const Color(0xFF42A5F5), // Light Blue
-                        textStyle: GoogleFonts.cairo(),
-                      ),
-                      child: const Text('إلغاء'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
                     child: FilledButton(
                       onPressed: onSave,
                       style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF42A5F5), // Light Blue
+                        backgroundColor: const Color(0xFF42A5F5),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -191,6 +197,17 @@ class EditProfileDialogWid extends StatelessWidget {
                         textStyle: GoogleFonts.cairo(fontWeight: FontWeight.bold),
                       ),
                       child: const Text('حفظ'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.grey[600],
+                        textStyle: GoogleFonts.cairo(),
+                      ),
+                      child: const Text('إلغاء'),
                     ),
                   ),
                 ],

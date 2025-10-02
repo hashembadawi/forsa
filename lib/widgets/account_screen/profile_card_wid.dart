@@ -33,7 +33,6 @@ class ProfileCardWid extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          // Only keep the boxShadow for card elevation, remove the extra border
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.07),
@@ -82,7 +81,7 @@ class ProfileCardWid extends StatelessWidget {
                               borderRadius: BorderRadius.circular(1),
                             ),
                           ),
-                          const SizedBox(width: 18),
+                          const SizedBox(width: 14),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,7 +97,15 @@ class ProfileCardWid extends StatelessWidget {
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: 8),
+                                // Divider between name and phone
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  child: Divider(
+                                    color: Colors.grey[300],
+                                    thickness: 1,
+                                    height: 1,
+                                  ),
+                                ),
                                 Text(
                                   phoneNumber,
                                   style: GoogleFonts.cairo(
@@ -109,7 +116,15 @@ class ProfileCardWid extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 if (accountNumber != null && accountNumber!.isNotEmpty) ...[
-                                  const SizedBox(height: 6),
+                                  // Divider between phone and account number
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 4),
+                                    child: Divider(
+                                      color: Colors.grey[300],
+                                      thickness: 1,
+                                      height: 1,
+                                    ),
+                                  ),
                                   Text(
                                     accountNumber!,
                                     style: GoogleFonts.cairo(
