@@ -348,23 +348,13 @@ class _AccountScreenState extends State<AccountScreen> {
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
-          title: Text('حسابي', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 25, color: Color(0xFF212121))),
+          title: Text('حسابي', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 25, color: Color(0xFF212121)) ),
           backgroundColor: headerColor,
           foregroundColor: Color(0xFF212121),
           elevation: 4,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
           ),
-          actions: [
-            // IconButton(
-            //   icon: const Icon(Icons.home),
-            //   onPressed: () => Navigator.pushAndRemoveUntil(
-            //     context,
-            //     MaterialPageRoute(builder: (_) => const HomeScreen()),
-            //     (route) => false,
-            //   ),
-            // ),
-          ],
         ),
         backgroundColor: backgroundColor,
         body: Padding(
@@ -379,11 +369,43 @@ class _AccountScreenState extends State<AccountScreen> {
                 accountNumber: widget.userAccountNumber,
                 isLoggedIn: widget.isLoggedIn,
               ),
-              const SizedBox(height: 16),
               if (widget.isLoggedIn) ...[
-                EditDeleteButtonsWid(
-                  onEdit: _showEditDialog,
-                  onDelete: _showDeleteDialog,
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _showEditDialog,
+                      icon: const Icon(Icons.edit, color: Color(0xFF212121)),
+                      label: Text('تعديل', style: GoogleFonts.cairo(color: Color(0xFF212121), fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF212121),
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: const BorderSide(color: Color(0xFF7C4DFF), width: 1.2),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    ElevatedButton.icon(
+                      onPressed: _showDeleteDialog,
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      label: Text('حذف', style: GoogleFonts.cairo(color: Colors.red, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.red,
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: const BorderSide(color: Colors.red, width: 1.2),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
               ],
@@ -404,7 +426,6 @@ class _AccountScreenState extends State<AccountScreen> {
                         MaterialPageRoute(builder: (_) => const LoginScreen()),
                       ),
               ),
-              // Removed MenuItemsWid (شروط الاعلان, الاسئلة الشائعة, اتصل بنا) as requested
               const Spacer(),
             ],
           ),
