@@ -244,17 +244,17 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
     // Material 3 color scheme
-    const Color primaryColor = Color(0xFF42A5F5); // Light Blue
+    const Color headerColor = Color(0xFF42A5F5); // Light Blue
     const Color backgroundColor = Color(0xFFFAFAFA); // White
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Theme(
         data: ThemeData(
           useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: primaryColor),
+          colorScheme: ColorScheme.fromSeed(seedColor: headerColor),
           scaffoldBackgroundColor: backgroundColor,
           appBarTheme: const AppBarTheme(
-            backgroundColor: primaryColor,
+            backgroundColor: Color(0xFF42A5F5),
             foregroundColor: Colors.white,
             elevation: 4,
             centerTitle: true,
@@ -285,13 +285,13 @@ class _AdDetailsScreenState extends State<AdDetailsScreen> with AutomaticKeepAli
         style: GoogleFonts.cairo(
           fontSize: 22,
           fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.onPrimary,
+          color: Colors.black,
         ),
       ),
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: const Color(0xFF42A5F5),
       elevation: 4,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onPrimary),
+        icon: const Icon(Icons.arrow_back, color: Colors.black),
         onPressed: () => Navigator.pop(context),
       ),
       centerTitle: true,
