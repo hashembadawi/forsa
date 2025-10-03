@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'dart:convert';
+import '../../screens/about_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   final Function(BuildContext) reloadHomeScreen;
@@ -79,6 +81,7 @@ class AppDrawer extends StatelessWidget {
               const SizedBox(height: 14),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+
                 children: [
                   Text(
                     'مرحبا $firstName $lastName',
@@ -100,7 +103,7 @@ class AppDrawer extends StatelessWidget {
     const Color surfaceColor = Color(0xFFF5F5F5);
     const Color textColor = Color(0xFF212121);
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 1),
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
       decoration: BoxDecoration(
         color: surfaceColor,
         border: Border(
@@ -117,7 +120,7 @@ class AppDrawer extends StatelessWidget {
           highlightColor: iconColor.withOpacity(0.06),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
                 Container(
@@ -211,6 +214,18 @@ class AppDrawer extends StatelessWidget {
                     Color(0xFF7C4DFF), // Material 3 purple
                     () async {
                       await handleAccountNavigation(context);
+                    },
+                  ),
+                  _buildDrawerItem(
+                    Icons.info_outline_rounded,
+                    'حول التطبيق',
+                    Color(0xFF009688), // Teal
+                    () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AboutScreen()),
+                      );
                     },
                   ),
                 ],

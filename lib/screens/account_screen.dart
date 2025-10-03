@@ -10,9 +10,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // Screen imports
-import 'FAQ_screen.dart';
-import 'ad_terms_screen.dart';
-import 'contact_us_screen.dart';
+// Removed unused imports for FAQ_screen.dart, ad_terms_screen.dart, contact_us_screen.dart
 import 'home_screen.dart';
 import 'login_screen.dart';
 
@@ -20,7 +18,7 @@ import 'login_screen.dart';
 import '../utils/dialog_utils.dart';
 import '../widgets/account_screen/profile_card_wid.dart';
 import '../widgets/account_screen/edit_delete_buttons_wid.dart';
-import '../widgets/account_screen/menu_items_wid.dart';
+// Removed unused import for menu_items_wid.dart
 import '../widgets/account_screen/auth_button_wid.dart';
 import '../../widgets/no_internet_wid.dart';
 import '../widgets/account_screen/edit_profile_dialog_wid.dart';
@@ -358,14 +356,14 @@ class _AccountScreenState extends State<AccountScreen> {
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.home),
-              onPressed: () => Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const HomeScreen()),
-                (route) => false,
-              ),
-            ),
+            // IconButton(
+            //   icon: const Icon(Icons.home),
+            //   onPressed: () => Navigator.pushAndRemoveUntil(
+            //     context,
+            //     MaterialPageRoute(builder: (_) => const HomeScreen()),
+            //     (route) => false,
+            //   ),
+            // ),
           ],
         ),
         backgroundColor: backgroundColor,
@@ -389,21 +387,6 @@ class _AccountScreenState extends State<AccountScreen> {
                 ),
                 const SizedBox(height: 16),
               ],
-              MenuItemsWid(
-                onAdTerms: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AdTermsScreen()),
-                ),
-                onFAQ: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const FAQScreen()),
-                ),
-                onContactUs: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ContactUsScreen()),
-                ),
-              ),
-              const Spacer(),
               AuthButtonWid(
                 isLoggedIn: widget.isLoggedIn,
                 onPressed: widget.isLoggedIn
@@ -421,6 +404,8 @@ class _AccountScreenState extends State<AccountScreen> {
                         MaterialPageRoute(builder: (_) => const LoginScreen()),
                       ),
               ),
+              // Removed MenuItemsWid (شروط الاعلان, الاسئلة الشائعة, اتصل بنا) as requested
+              const Spacer(),
             ],
           ),
         ),
