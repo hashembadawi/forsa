@@ -17,11 +17,11 @@ import 'login_screen.dart';
 // Utils imports
 import '../utils/dialog_utils.dart';
 import '../widgets/account_screen/profile_card_wid.dart';
-import '../widgets/account_screen/edit_delete_buttons_wid.dart';
 // Removed unused import for menu_items_wid.dart
 import '../widgets/account_screen/auth_button_wid.dart';
 import '../../widgets/no_internet_wid.dart';
 import '../widgets/account_screen/edit_profile_dialog_wid.dart';
+import 'profile_edit_screen.dart';
 
 /// SIMPLIFIED VERSION - Much easier to understand and maintain
 class AccountScreen extends StatefulWidget {
@@ -269,50 +269,43 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
-  // Simple edit dialog with keyboard handling
-  void _showEditDialog() {
+  // Navigate to profile edit screen
+  void _navigateToProfileEditScreen() {
     final firstName = widget.userFirstName;
     final lastName = widget.userLastName;
     _firstNameController.text = firstName;
     _lastNameController.text = lastName;
 
-    // Save current image state before dialog
-  // Removed unused variables prevNewProfileImage and prevLocalProfileImage
-
-    showDialog(
-      context: context,
-      builder: (context) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: StatefulBuilder(
-          builder: (context, setDialogState) => EditProfileDialogWid(
-            firstNameController: _firstNameController,
-            lastNameController: _lastNameController,
-            formKey: _formKey,
-            avatarImage: _getAvatarImage(),
-            onPickImage: () {
-              _pickImage().then((_) => setDialogState(() {}));
-            },
-            onRemoveImage: () {
-              setDialogState(() {
-                _newProfileImage = null;
-                _localProfileImage = null;
-              });
-            },
-            onSave: () async {
-              await _updateProfile();
-              // Only close dialog after update is complete
-              if (Navigator.of(context).canPop()) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfileEditScreen(
+          firstNameController: _firstNameController,
+          lastNameController: _lastNameController,
+          formKey: _formKey,
+          avatarImage: _getAvatarImage(),
+          onPickImage: () async {
+            await _pickImage();
+            // Force rebuild to update image
+            (context as Element).markNeedsBuild();
+          },
+          onRemoveImage: () {
+            setState(() {
+              _newProfileImage = null;
+              _localProfileImage = null;
+            });
+          },
+          onSave: () async {
+            await _updateProfile();
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            }
+            await _loadUserData();
+            setState(() {});
+          },
         ),
       ),
-    ).then((value) async {
-      // Always reload user data after dialog closes to get latest image and name
-      await _loadUserData();
-      setState(() {});
-    });
+    );
   }
 
   // Simple delete dialog using DialogUtils
@@ -375,7 +368,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton.icon(
-                      onPressed: _showEditDialog,
+                      onPressed: _navigateToProfileEditScreen,
                       icon: const Icon(Icons.edit, color: Color(0xFF212121)),
                       label: Text('تعديل', style: GoogleFonts.cairo(color: Color(0xFF212121), fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
