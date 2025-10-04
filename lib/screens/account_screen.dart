@@ -20,7 +20,6 @@ import '../widgets/account_screen/profile_card_wid.dart';
 // Removed unused import for menu_items_wid.dart
 import '../widgets/account_screen/auth_button_wid.dart';
 import '../../widgets/no_internet_wid.dart';
-import '../widgets/account_screen/edit_profile_dialog_wid.dart';
 import 'profile_edit_screen.dart';
 
 /// SIMPLIFIED VERSION - Much easier to understand and maintain
